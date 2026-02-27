@@ -126,10 +126,9 @@ const CreateRoomScreen = ({ onBack, onRoomReady }: CreateRoomScreenProps) => {
         <div className="mt-auto w-full max-w-sm pb-6 safe-bottom">
           <Button
             onClick={() => onRoomReady(roomCode)}
-            disabled={players.length < 3}
-            className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40"
+            className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold"
           >
-            Empezar partida ({players.length}/3 mínimo)
+            Ir al Lobby →
           </Button>
         </div>
       </div>

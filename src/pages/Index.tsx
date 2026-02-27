@@ -9,7 +9,9 @@ import CreateRoomScreen from "@/components/social/CreateRoomScreen";
 import JoinRoomScreen from "@/components/social/JoinRoomScreen";
 import QuickPlayScreen from "@/components/social/QuickPlayScreen";
 import FriendsScreen from "@/components/social/FriendsScreen";
-import type { AvatarConfig, Language } from "@/types/game";
+import LobbyScreen from "@/components/lobby/LobbyScreen";
+import RoleRevealScreen from "@/components/lobby/RoleRevealScreen";
+import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 
 type Step =
   | "splash"
@@ -21,11 +23,18 @@ type Step =
   | "create-room"
   | "join-room"
   | "quick-play"
-  | "friends";
+  | "friends"
+  | "lobby"
+  | "role-reveal";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("splash");
   const [displayName, setDisplayName] = useState("Agente");
+  const [roomCode, setRoomCode] = useState("");
+  const [roomMode, setRoomMode] = useState<RoomMode>("friends");
+  const [roomLanguage, setRoomLanguage] = useState<Language>("es");
+  const [isHost, setIsHost] = useState(false);
+  const [myRole, setMyRole] = useState<PlayerRole>("agent");
 
   const handleSplashComplete = useCallback(() => setStep("login"), []);
   const handleLogin = useCallback(() => setStep("age-gate"), []);
@@ -37,6 +46,22 @@ const Index = () => {
     },
     []
   );
+
+  const goToLobby = useCallback(
+    (code: string, mode: RoomMode, host: boolean) => {
+      setRoomCode(code);
+      setRoomMode(mode);
+      setIsHost(host);
+      setStep("lobby");
+    },
+    []
+  );
+
+  const handleStartGame = useCallback(() => {
+    // Mock: randomly assign role
+    setMyRole(Math.random() < 0.75 ? "agent" : "saboteur");
+    setStep("role-reveal");
+  }, []);
 
   switch (step) {
     case "splash":
@@ -68,25 +93,46 @@ const Index = () => {
       return (
         <CreateRoomScreen
           onBack={() => setStep("play-friends")}
-          onRoomReady={() => {/* lobby – fase 3 */}}
+          onRoomReady={(code) => goToLobby(code, "friends", true)}
         />
       );
     case "join-room":
       return (
         <JoinRoomScreen
           onBack={() => setStep("play-friends")}
-          onJoin={() => {/* lobby – fase 3 */}}
+          onJoin={(code) => goToLobby(code || "JOINED", "friends", false)}
         />
       );
     case "quick-play":
       return (
         <QuickPlayScreen
           onBack={() => setStep("home")}
-          onMatchFound={() => {/* lobby – fase 3 */}}
+          onMatchFound={(code) => goToLobby(code, "quick", false)}
         />
       );
     case "friends":
       return <FriendsScreen onBack={() => setStep("home")} />;
+    case "lobby":
+      return (
+        <LobbyScreen
+          roomCode={roomCode}
+          mode={roomMode}
+          language={roomLanguage}
+          isHost={isHost}
+          onBack={() => setStep("home")}
+          onStart={handleStartGame}
+        />
+      );
+    case "role-reveal":
+      return (
+        <RoleRevealScreen
+          role={myRole}
+          onComplete={() => {
+            /* Fase 4: partida */
+            setStep("home");
+          }}
+        />
+      );
     default:
       return null;
   }
