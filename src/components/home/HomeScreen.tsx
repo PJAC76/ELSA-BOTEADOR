@@ -8,6 +8,7 @@ type HomeScreenProps = {
   xp?: number;
   onPlayFriends: () => void;
   onQuickPlay: () => void;
+  onFriends?: () => void;
 };
 
 const HomeScreen = ({
@@ -16,6 +17,7 @@ const HomeScreen = ({
   xp = 0,
   onPlayFriends,
   onQuickPlay,
+  onFriends,
 }: HomeScreenProps) => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -115,13 +117,14 @@ const HomeScreen = ({
         >
           <div className="flex justify-around rounded-3xl bg-muted p-3">
             {[
-              { icon: UserCircle, label: "Perfil" },
-              { icon: Package, label: "Inventario" },
-              { icon: Users, label: "Amigas" },
-              { icon: Settings, label: "Ajustes" },
-            ].map(({ icon: Icon, label }) => (
+              { icon: UserCircle, label: "Perfil", action: undefined },
+              { icon: Package, label: "Inventario", action: undefined },
+              { icon: Users, label: "Amigas", action: onFriends },
+              { icon: Settings, label: "Ajustes", action: undefined },
+            ].map(({ icon: Icon, label, action }) => (
               <button
                 key={label}
+                onClick={action}
                 className="flex flex-col items-center gap-1 rounded-2xl px-4 py-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
               >
                 <Icon className="h-5 w-5" />
