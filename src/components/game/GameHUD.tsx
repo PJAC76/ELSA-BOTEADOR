@@ -49,7 +49,7 @@ const GameHUD = ({
                 : "bg-destructive/20 text-destructive"
             }`}
           >
-            {role === "agent" ? "🕵️ Agente" : "💣 Saboteadora"}
+            {role === "agent" ? "🕵️ Agente" : "💣 ELSA-BOTEADOR"}
           </div>
         </div>
 
