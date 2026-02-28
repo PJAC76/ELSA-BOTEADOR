@@ -15,6 +15,7 @@ import ProfileScreen from "@/components/profile/ProfileScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
 import GameScreen from "@/components/game/GameScreen";
 import GameResultScreen from "@/components/game/GameResultScreen";
+import InventoryScreen from "@/components/inventory/InventoryScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
@@ -35,6 +36,7 @@ type Step =
   | "role-reveal"
   | "profile"
   | "settings"
+  | "inventory"
   | "game"
   | "game-result";
 
@@ -95,6 +97,7 @@ const Index = () => {
           onPlayFriends={() => setStep("play-friends")}
           onQuickPlay={() => setStep("quick-play")}
           onFriends={() => setStep("friends")}
+          onInventory={() => setStep("inventory")}
           onProfile={() => setStep("profile")}
           onSettings={() => setStep("settings")}
         />
@@ -146,6 +149,14 @@ const Index = () => {
       );
     case "settings":
       return <SettingsScreen onBack={() => setStep("home")} />;
+    case "inventory":
+      return (
+        <InventoryScreen
+          avatarConfig={avatarConfig}
+          onBack={() => setStep("home")}
+          onAvatarSave={setAvatarConfig}
+        />
+      );
     case "lobby":
       return (
         <LobbyScreen
