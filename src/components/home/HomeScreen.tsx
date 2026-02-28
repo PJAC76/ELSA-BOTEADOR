@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Users, Zap, UserCircle, Package, Settings } from "lucide-react";
+import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 
 type HomeScreenProps = {
   displayName: string;
@@ -112,6 +113,16 @@ const HomeScreen = ({
               </div>
             </div>
           </Button>
+        </motion.div>
+
+        {/* Weekly challenges */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4 px-0"
+        >
+          <WeeklyChallenges compact />
         </motion.div>
 
         {/* Quick nav */}
