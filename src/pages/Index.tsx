@@ -16,6 +16,7 @@ import SettingsScreen from "@/components/settings/SettingsScreen";
 import GameScreen from "@/components/game/GameScreen";
 import GameResultScreen from "@/components/game/GameResultScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
+import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
 const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0 };
 
@@ -38,6 +39,7 @@ type Step =
   | "game-result";
 
 const Index = () => {
+  const { totalXp } = useProgressionStore();
   const [step, setStep] = useState<Step>("splash");
   const [displayName, setDisplayName] = useState("Agente");
   const [roomCode, setRoomCode] = useState("");
@@ -88,6 +90,8 @@ const Index = () => {
       return (
         <HomeScreen
           displayName={displayName}
+          level={getLevelForXp(totalXp)}
+          xp={getXpForCurrentLevel(totalXp).progress}
           onPlayFriends={() => setStep("play-friends")}
           onQuickPlay={() => setStep("quick-play")}
           onFriends={() => setStep("friends")}
