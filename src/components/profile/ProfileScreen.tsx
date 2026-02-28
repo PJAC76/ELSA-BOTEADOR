@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2, Award } from "lucide-react";
 import AvatarCustomizer, { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
 import type { AvatarConfig } from "@/types/game";
+import { getUnlockedAchievements } from "@/stores/achievements";
 
 type ProfileScreenProps = {
   displayName: string;
   avatarConfig: AvatarConfig;
   level?: number;
   xp?: number;
+  totalXp?: number;
   gamesPlayed?: number;
   gamesWon?: number;
   onBack: () => void;
@@ -21,12 +23,15 @@ const ProfileScreen = ({
   avatarConfig,
   level = 1,
   xp = 0,
+  totalXp = 0,
   gamesPlayed = 0,
   gamesWon = 0,
   onBack,
   onAvatarSave,
 }: ProfileScreenProps) => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+  const achievements = getUnlockedAchievements({ gamesPlayed, gamesWon, totalXp });
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AvatarConfig>(avatarConfig);
 
@@ -213,26 +218,63 @@ const ProfileScreen = ({
           </div>
         </motion.div>
 
-        {/* Badges */}
+        {/* Achievements */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="mt-4 rounded-3xl bg-card p-5 shadow-soft"
         >
-          <h3 className="font-display text-sm font-bold text-foreground mb-3">
-            Insignias
-          </h3>
-          <div className="flex gap-3 flex-wrap">
-            {["🌟", "🔍", "🛡️", "💎", "🎯"].map((badge, i) => (
-              <div
-                key={i}
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-                  i < 3 ? "bg-muted" : "bg-muted/50 opacity-40"
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              <h3 className="font-display text-sm font-bold text-foreground">
+                Logros
+              </h3>
+            </div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">
+              {unlockedCount}/{achievements.length}
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {achievements.map(({ achievement, unlocked }, i) => (
+              <motion.div
+                key={achievement.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 + i * 0.05 }}
+                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
+                  unlocked ? "bg-primary/8" : "bg-muted/40"
                 }`}
               >
-                <span className="text-xl">{badge}</span>
-              </div>
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    unlocked ? "bg-primary/15" : "bg-muted grayscale opacity-40"
+                  }`}
+                >
+                  <span className="text-lg">{achievement.emoji}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-display text-xs font-bold truncate ${
+                    unlocked ? "text-foreground" : "text-muted-foreground"
+                  }`}>
+                    {achievement.name}
+                  </p>
+                  <p className="font-body text-[10px] text-muted-foreground truncate">
+                    {achievement.description}
+                  </p>
+                </div>
+                {unlocked && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Check className="h-4 w-4 text-primary" />
+                  </motion.div>
+                )}
+              </motion.div>
             ))}
           </div>
         </motion.div>
