@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, Check, X } from "lucide-react";
+import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2 } from "lucide-react";
 import AvatarCustomizer, { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
 import type { AvatarConfig } from "@/types/game";
 
@@ -21,8 +21,8 @@ const ProfileScreen = ({
   avatarConfig,
   level = 1,
   xp = 0,
-  gamesPlayed = 12,
-  gamesWon = 7,
+  gamesPlayed = 0,
+  gamesWon = 0,
   onBack,
   onAvatarSave,
 }: ProfileScreenProps) => {
@@ -137,31 +137,80 @@ const ProfileScreen = ({
           )}
         </AnimatePresence>
 
-        {/* Stats */}
+        {/* Stats Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-4 grid grid-cols-3 gap-3"
+          className="mt-4 rounded-3xl bg-card p-5 shadow-soft"
         >
-          {[
-            { label: "Partidas", value: gamesPlayed, emoji: "🎮" },
-            { label: "Victorias", value: gamesWon, emoji: "🏆" },
-            { label: "Win Rate", value: `${winRate}%`, emoji: "📊" },
-          ].map(({ label, value, emoji }) => (
-            <div
-              key={label}
-              className="flex flex-col items-center rounded-2xl bg-card p-4 shadow-soft"
-            >
-              <span className="text-2xl">{emoji}</span>
-              <span className="mt-1 font-display text-lg font-bold text-foreground">
-                {value}
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h3 className="font-display text-sm font-bold text-foreground">
+              Estadísticas
+            </h3>
+          </div>
+
+          {/* Main stats grid */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[
+              { label: "Partidas", value: gamesPlayed, icon: Gamepad2, color: "text-primary" },
+              { label: "Victorias", value: gamesWon, icon: Trophy, color: "text-campus-yellow" },
+              { label: "Win Rate", value: `${winRate}%`, icon: Target, color: "text-campus-green" },
+            ].map(({ label, value, icon: Icon, color }, i) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
+                className="flex flex-col items-center rounded-2xl bg-muted/50 p-3"
+              >
+                <Icon className={`h-5 w-5 ${color} mb-1`} />
+                <span className="font-display text-xl font-black text-foreground">
+                  {value}
+                </span>
+                <span className="font-body text-[10px] text-muted-foreground">
+                  {label}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Win rate bar */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-body text-xs text-muted-foreground">
+                Tasa de victorias
               </span>
-              <span className="font-body text-[11px] text-muted-foreground">
-                {label}
+              <span className="font-display text-xs font-bold text-foreground">
+                {winRate}%
               </span>
             </div>
-          ))}
+            <div className="h-3 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${winRate}%` }}
+                transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                className="h-full rounded-full gradient-primary"
+              />
+            </div>
+          </div>
+
+          {/* Extra detail rows */}
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between rounded-xl bg-muted/30 px-3 py-2">
+              <span className="font-body text-xs text-muted-foreground">Derrotas</span>
+              <span className="font-display text-sm font-bold text-foreground">
+                {gamesPlayed - gamesWon}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-muted/30 px-3 py-2">
+              <span className="font-body text-xs text-muted-foreground">Racha actual</span>
+              <span className="font-display text-sm font-bold text-foreground">
+                {gamesWon > 0 ? "🔥" : "—"}
+              </span>
+            </div>
+          </div>
         </motion.div>
 
         {/* Badges */}
