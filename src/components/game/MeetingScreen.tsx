@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward } from "lucide-react";
-import { CHAT_PRESETS, CHAT_EMOJIS } from "@/types/game";
-import type { ChatMessage } from "@/types/game";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin } from "lucide-react";
+import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
+import type { ChatMessage, Zone } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 
 // --- Types ---
@@ -22,6 +22,7 @@ type MeetingScreenProps = {
   players: MeetingPlayer[];
   myPlayerId: string;
   isGhost: boolean;
+  playerZones?: Record<string, Zone>;
   onVoteResult: (eliminatedId: string | null) => void;
 };
 
@@ -247,6 +248,7 @@ const MeetingScreen = ({
   players: propPlayers,
   myPlayerId = "me",
   isGhost = false,
+  playerZones = {},
   onVoteResult,
 }: MeetingScreenProps) => {
   const players = propPlayers.length > 0 ? propPlayers : MOCK_PLAYERS;
@@ -491,6 +493,44 @@ const MeetingScreen = ({
                   <Timer className="h-4 w-4" />
                   Discusión: {timeLeft}s
                 </div>
+              </div>
+
+              {/* Player list with last zone */}
+              <div className="flex flex-wrap gap-2">
+                {players.filter(p => p.isAlive).map((player) => {
+                  const zone = playerZones[player.id];
+                  const zoneInfo = zone ? ZONE_INFO[zone] : null;
+                  return (
+                    <motion.div
+                      key={player.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 shadow-soft"
+                    >
+                      <span className="text-base">{player.emoji}</span>
+                      <span className="font-display text-xs font-bold text-foreground">
+                        {player.name}
+                      </span>
+                      {zoneInfo && (
+                        <span className="flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-body text-muted-foreground">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {zoneInfo.emoji} {zoneInfo.name}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+                {players.filter(p => !p.isAlive).map((player) => (
+                  <div
+                    key={player.id}
+                    className="flex items-center gap-1.5 rounded-xl bg-muted/50 px-3 py-2 opacity-50"
+                  >
+                    <span className="text-base grayscale">👻</span>
+                    <span className="font-display text-xs font-bold text-muted-foreground line-through">
+                      {player.name}
+                    </span>
+                  </div>
+                ))}
               </div>
 
               <ChatPanel

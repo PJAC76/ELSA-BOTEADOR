@@ -5,7 +5,9 @@ import ZoneMap from "./ZoneMap";
 import TaskMiniGame from "./TaskMiniGame";
 import SabotagePanel from "./SabotagePanel";
 import MeetingScreen from "./MeetingScreen";
+import EmergencyButton from "./EmergencyButton";
 import type { Zone, PlayerRole } from "@/types/game";
+import { ZONE_INFO } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
@@ -32,6 +34,17 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [completedZones, setCompletedZones] = useState<Zone[]>([]);
   const [activeTask, setActiveTask] = useState<Zone | null>(null);
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
+  const [currentZone, setCurrentZone] = useState<Zone>("library");
+
+  // Mock player zone tracking for meeting display
+  const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
+  const mockPlayerZones: Record<string, Zone> = {
+    me: currentZone,
+    p2: MOCK_ZONES[Math.floor(round * 1.3) % 6],
+    p3: MOCK_ZONES[Math.floor(round * 2.7) % 6],
+    p4: MOCK_ZONES[Math.floor(round * 0.5) % 6],
+    p5: MOCK_ZONES[Math.floor(round * 3.1) % 6],
+  };
 
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
@@ -64,6 +77,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
 
   const handleSelectZone = useCallback(
     (zone: Zone) => {
+      setCurrentZone(zone);
       if (role === "saboteur") return;
       if (sabotagedZones.includes(zone)) return;
       if (completedZones.includes(zone)) return;
@@ -71,6 +85,12 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     },
     [role, sabotagedZones, completedZones]
   );
+
+  const handleEmergency = useCallback(() => {
+    if (phase === "action") {
+      setPhase("meeting");
+    }
+  }, [phase]);
 
   const handleTaskComplete = useCallback(
     (success: boolean) => {
@@ -167,6 +187,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             players={[]}
             myPlayerId="me"
             isGhost={false}
+            playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
           />
         </motion.div>
@@ -211,6 +232,18 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
                 onSabotage={handleSabotage}
                 sabotagedZones={sabotagedZones}
               />
+            </motion.div>
+          )}
+
+          {/* Emergency button */}
+          {phase === "action" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="flex justify-center px-4 pb-4"
+            >
+              <EmergencyButton onEmergency={handleEmergency} />
             </motion.div>
           )}
 
