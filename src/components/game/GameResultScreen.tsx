@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
 import { playVictory, playDefeat } from "@/lib/sounds";
+import { useToast } from "@/hooks/use-toast";
+import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
+import { getUnlockedAchievements } from "@/stores/achievements";
 import Confetti from "./Confetti";
 
 type GameResultScreenProps = {
@@ -12,6 +15,9 @@ type GameResultScreenProps = {
 };
 
 const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProps) => {
+  const { toast } = useToast();
+  const hasRecorded = useRef(false);
+
   const iWon =
     (result === "agents-win" && myRole === "agent") ||
     (result === "saboteur-wins" && myRole === "saboteur");
@@ -20,6 +26,40 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
     if (iWon) playVictory();
     else playDefeat();
   }, [iWon]);
+
+  useEffect(() => {
+    if (hasRecorded.current) return;
+    hasRecorded.current = true;
+
+    const store = useProgressionStore.getState();
+    const before = getUnlockedAchievements({
+      gamesPlayed: store.gamesPlayed,
+      gamesWon: store.gamesWon,
+      totalXp: store.totalXp,
+    });
+
+    store.recordGame(iWon);
+
+    const updated = useProgressionStore.getState();
+    const after = getUnlockedAchievements({
+      gamesPlayed: updated.gamesPlayed,
+      gamesWon: updated.gamesWon,
+      totalXp: updated.totalXp,
+    });
+
+    const newlyUnlocked = after.filter(
+      (a, i) => a.unlocked && !before[i].unlocked
+    );
+
+    newlyUnlocked.forEach((item, idx) => {
+      setTimeout(() => {
+        toast({
+          title: `${item.achievement.emoji} ¡Logro desbloqueado!`,
+          description: `${item.achievement.name} — ${item.achievement.description}`,
+        });
+      }, 1500 + idx * 800);
+    });
+  }, [iWon, toast]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
