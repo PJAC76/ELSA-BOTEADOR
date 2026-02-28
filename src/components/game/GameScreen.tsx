@@ -124,98 +124,191 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     setPhase("action");
   }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd]);
 
-  // --- Meeting phase ---
-  if (phase === "meeting") {
-    return (
-      <MeetingScreen
-        round={round}
-        players={[]}
-        myPlayerId="me"
-        isGhost={false}
-        onVoteResult={handleVoteResult}
-      />
-    );
-  }
-
-  // --- Action phase + Round summary ---
+  // --- Render with AnimatePresence for phase transitions ---
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <GameHUD
-        round={round}
-        totalRounds={TOTAL_ROUNDS}
-        timeLeft={timeLeft}
-        tasksCompleted={totalTasksCompleted + tasksCompleted}
-        tasksTotal={globalTasksTotal}
-        role={role}
-      />
-
-      <ZoneMap
-        onSelectZone={handleSelectZone}
-        sabotagedZones={sabotagedZones}
-        completedZones={completedZones}
-      />
-
-      {/* Saboteur controls */}
-      {role === "saboteur" && phase === "action" && (
-        <SabotagePanel
-          onSabotage={handleSabotage}
-          sabotagedZones={sabotagedZones}
-        />
-      )}
-
-      {/* Active mini-game overlay */}
-      <AnimatePresence>
-        {activeTask && (
-          <TaskMiniGame
-            zone={activeTask}
-            onComplete={handleTaskComplete}
-            onCancel={() => setActiveTask(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Round summary overlay */}
-      <AnimatePresence>
-        {phase === "round-summary" && (
+    <AnimatePresence mode="wait">
+      {phase === "meeting" ? (
+        <motion.div
+          key={`meeting-${round}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          {/* Cinematic meeting entrance overlay */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm px-6"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center bg-background"
+            style={{ pointerEvents: "none" }}
           >
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
-              className="flex flex-col items-center gap-4"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: [0, 1.3, 1], rotate: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="flex flex-col items-center gap-3"
             >
-              <span className="text-6xl">
-                {tasksCompleted >= tasksTotal ? "🎉" : "⏰"}
-              </span>
-              <h2 className="font-display text-2xl font-black text-foreground">
-                {round >= TOTAL_ROUNDS
-                  ? "¡Partida terminada!"
-                  : `Ronda ${round} completada`}
-              </h2>
-              <p className="font-body text-sm text-muted-foreground text-center">
-                Tareas completadas esta ronda: {tasksCompleted}/{tasksTotal}
-              </p>
-              {eliminatedPlayers.length > 0 && (
-                <p className="font-body text-xs text-muted-foreground">
-                  Jugadoras eliminadas: {eliminatedPlayers.length}
-                </p>
-              )}
-              <Button
-                onClick={handleNextRound}
-                className="h-14 w-full max-w-xs rounded-2xl gradient-primary text-primary-foreground font-display text-base font-bold shadow-soft"
+              <span className="text-7xl">🚨</span>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="font-display text-2xl font-black text-foreground"
               >
-                {round >= TOTAL_ROUNDS ? "Ver resultados" : "Siguiente ronda →"}
-              </Button>
+                ¡Reunión de emergencia!
+              </motion.h2>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+
+          <MeetingScreen
+            round={round}
+            players={[]}
+            myPlayerId="me"
+            isGhost={false}
+            onVoteResult={handleVoteResult}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key={`action-${round}`}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, y: -30, filter: "blur(8px)" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex min-h-screen flex-col bg-background"
+        >
+          <GameHUD
+            round={round}
+            totalRounds={TOTAL_ROUNDS}
+            timeLeft={timeLeft}
+            tasksCompleted={totalTasksCompleted + tasksCompleted}
+            tasksTotal={globalTasksTotal}
+            role={role}
+          />
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <ZoneMap
+              onSelectZone={handleSelectZone}
+              sabotagedZones={sabotagedZones}
+              completedZones={completedZones}
+            />
+          </motion.div>
+
+          {/* Saboteur controls */}
+          {role === "saboteur" && phase === "action" && (
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
+              <SabotagePanel
+                onSabotage={handleSabotage}
+                sabotagedZones={sabotagedZones}
+              />
+            </motion.div>
+          )}
+
+          {/* Active mini-game overlay */}
+          <AnimatePresence>
+            {activeTask && (
+              <TaskMiniGame
+                zone={activeTask}
+                onComplete={handleTaskComplete}
+                onCancel={() => setActiveTask(null)}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Round summary overlay */}
+          <AnimatePresence>
+            {phase === "round-summary" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 1.1, filter: "blur(6px)" }}
+                transition={{ duration: 0.5 }}
+                className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm px-6"
+              >
+                {/* Decorative background pulse */}
+                <motion.div
+                  className="absolute inset-0 opacity-10"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [0, 2, 2.5] }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                >
+                  <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary" />
+                </motion.div>
+
+                <motion.div
+                  initial={{ scale: 0, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.15 }}
+                  className="relative flex flex-col items-center gap-4"
+                >
+                  <motion.span
+                    className="text-6xl"
+                    animate={{ 
+                      y: [0, -20, 0],
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                  >
+                    {tasksCompleted >= tasksTotal ? "🎉" : "⏰"}
+                  </motion.span>
+                  <motion.h2
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="font-display text-2xl font-black text-foreground"
+                  >
+                    {round >= TOTAL_ROUNDS
+                      ? "¡Partida terminada!"
+                      : `Ronda ${round} completada`}
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="font-body text-sm text-muted-foreground text-center"
+                  >
+                    Tareas completadas esta ronda: {tasksCompleted}/{tasksTotal}
+                  </motion.p>
+                  {eliminatedPlayers.length > 0 && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                      className="font-body text-xs text-muted-foreground"
+                    >
+                      Jugadoras eliminadas: {eliminatedPlayers.length}
+                    </motion.p>
+                  )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="w-full max-w-xs"
+                  >
+                    <Button
+                      onClick={handleNextRound}
+                      className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground font-display text-base font-bold shadow-soft"
+                    >
+                      {round >= TOTAL_ROUNDS ? "Ver resultados" : "Siguiente ronda →"}
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
