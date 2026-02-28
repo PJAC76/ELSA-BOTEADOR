@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Globe, Accessibility, Shield, Volume2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { isSoundEnabled, setSoundEnabled } from "@/lib/sounds";
 
 type SettingsScreenProps = {
   onBack: () => void;
@@ -12,7 +13,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const [language, setLanguage] = useState<"es" | "en">("es");
   const [highContrast, setHighContrast] = useState(false);
   const [largeText, setLargeText] = useState(false);
-  const [soundEffects, setSoundEffects] = useState(true);
+  const [soundEffects, setSoundEffectsState] = useState(isSoundEnabled());
   const [privateProfile, setPrivateProfile] = useState(false);
   const [friendRequests, setFriendRequests] = useState(true);
 
@@ -126,7 +127,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           <SettingRow
             label="Efectos de sonido"
             checked={soundEffects}
-            onChange={setSoundEffects}
+            onChange={(v) => { setSoundEffectsState(v); setSoundEnabled(v); }}
           />
         </Section>
 
