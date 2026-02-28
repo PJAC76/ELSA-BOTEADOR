@@ -131,7 +131,18 @@ const Index = () => {
     case "friends":
       return <FriendsScreen onBack={() => setStep("home")} />;
     case "profile":
-      return <ProfileScreen displayName={displayName} avatarConfig={avatarConfig} onBack={() => setStep("home")} onAvatarSave={setAvatarConfig} />;
+      return (
+        <ProfileScreen
+          displayName={displayName}
+          avatarConfig={avatarConfig}
+          level={getLevelForXp(totalXp)}
+          xp={getXpForCurrentLevel(totalXp).progress}
+          gamesPlayed={useProgressionStore.getState().gamesPlayed}
+          gamesWon={useProgressionStore.getState().gamesWon}
+          onBack={() => setStep("home")}
+          onAvatarSave={setAvatarConfig}
+        />
+      );
     case "settings":
       return <SettingsScreen onBack={() => setStep("home")} />;
     case "lobby":
