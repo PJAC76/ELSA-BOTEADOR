@@ -12,6 +12,7 @@ type MeetingPlayer = {
   id: string;
   name: string;
   emoji: string;
+  role: "agent" | "saboteur";
   isAlive: boolean;
   isGhost: boolean;
 };
@@ -30,11 +31,11 @@ const DISCUSSION_TIME = 30;
 const VOTING_TIME = 15;
 
 const MOCK_PLAYERS: MeetingPlayer[] = [
-  { id: "me", name: "Tú", emoji: "🕵️", isAlive: true, isGhost: false },
-  { id: "p2", name: "Luna_Star", emoji: "💃", isAlive: true, isGhost: false },
-  { id: "p3", name: "MintChoco", emoji: "🧁", isAlive: true, isGhost: false },
-  { id: "p4", name: "PixelQueen", emoji: "👑", isAlive: true, isGhost: false },
-  { id: "p5", name: "StarGirl", emoji: "⭐", isAlive: true, isGhost: false },
+  { id: "me", name: "Tú", emoji: "🕵️", role: "agent", isAlive: true, isGhost: false },
+  { id: "p2", name: "Luna_Star", emoji: "💃", role: "saboteur", isAlive: true, isGhost: false },
+  { id: "p3", name: "MintChoco", emoji: "🧁", role: "agent", isAlive: true, isGhost: false },
+  { id: "p4", name: "PixelQueen", emoji: "👑", role: "agent", isAlive: true, isGhost: false },
+  { id: "p5", name: "StarGirl", emoji: "⭐", role: "agent", isAlive: true, isGhost: false },
 ];
 
 // --- Sub-components ---
@@ -550,9 +551,27 @@ const MeetingScreen = ({
                   <h2 className="font-display text-xl font-black text-foreground text-center">
                     {eliminatedPlayer.name} fue eliminada
                   </h2>
-                  <p className="font-body text-sm text-muted-foreground text-center">
-                    La mayoría ha hablado... ¿será la saboteadora? 🤔
-                  </p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className={`rounded-2xl px-5 py-3 text-center ${
+                      eliminatedPlayer.role === "saboteur"
+                        ? "bg-destructive/15"
+                        : "bg-primary/10"
+                    }`}
+                  >
+                    <p className="font-display text-sm font-bold text-foreground">
+                      {eliminatedPlayer.role === "saboteur"
+                        ? "💣 ¡Era la Saboteadora!"
+                        : "🕵️ Era una Agente inocente..."}
+                    </p>
+                    <p className="font-body text-xs text-muted-foreground mt-1">
+                      {eliminatedPlayer.role === "saboteur"
+                        ? "¡Gran trabajo, equipo!"
+                        : "Han eliminado a una aliada..."}
+                    </p>
+                  </motion.div>
                 </>
               ) : (
                 <>
