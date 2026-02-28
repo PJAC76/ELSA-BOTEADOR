@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Send, SmilePlus } from "lucide-react";
 import type { RoomMode, ChatMessage, Language } from "@/types/game";
@@ -32,6 +32,17 @@ const MOCK_PLAYERS: LobbyPlayer[] = [
 
 const LobbyScreen = ({ roomCode, mode, isHost, onBack, onStart }: LobbyScreenProps) => {
   const [players, setPlayers] = useState<LobbyPlayer[]>(MOCK_PLAYERS);
+
+  // Auto-ready remaining bots after 3s for demo
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPlayers((prev) =>
+        prev.map((p) => (p.id === "me" ? p : { ...p, isReady: true }))
+      );
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",

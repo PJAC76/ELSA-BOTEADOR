@@ -121,7 +121,7 @@ const Index = () => {
       return (
         <QuickPlayScreen
           onBack={() => setStep("home")}
-          onMatchFound={(code) => goToLobby(code, "quick", false)}
+          onMatchFound={(code) => goToLobby(code, "quick", true)}
         />
       );
     case "friends":
