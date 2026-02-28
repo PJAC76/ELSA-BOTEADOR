@@ -11,6 +11,8 @@ import QuickPlayScreen from "@/components/social/QuickPlayScreen";
 import FriendsScreen from "@/components/social/FriendsScreen";
 import LobbyScreen from "@/components/lobby/LobbyScreen";
 import RoleRevealScreen from "@/components/lobby/RoleRevealScreen";
+import ProfileScreen from "@/components/profile/ProfileScreen";
+import SettingsScreen from "@/components/settings/SettingsScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 
 type Step =
@@ -25,7 +27,9 @@ type Step =
   | "quick-play"
   | "friends"
   | "lobby"
-  | "role-reveal";
+  | "role-reveal"
+  | "profile"
+  | "settings";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("splash");
@@ -79,6 +83,8 @@ const Index = () => {
           onPlayFriends={() => setStep("play-friends")}
           onQuickPlay={() => setStep("quick-play")}
           onFriends={() => setStep("friends")}
+          onProfile={() => setStep("profile")}
+          onSettings={() => setStep("settings")}
         />
       );
     case "play-friends":
@@ -112,6 +118,10 @@ const Index = () => {
       );
     case "friends":
       return <FriendsScreen onBack={() => setStep("home")} />;
+    case "profile":
+      return <ProfileScreen displayName={displayName} onBack={() => setStep("home")} />;
+    case "settings":
+      return <SettingsScreen onBack={() => setStep("home")} />;
     case "lobby":
       return (
         <LobbyScreen
