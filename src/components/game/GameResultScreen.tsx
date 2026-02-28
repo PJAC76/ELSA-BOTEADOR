@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
+import { playVictory, playDefeat } from "@/lib/sounds";
 
 type GameResultScreenProps = {
   result: "agents-win" | "saboteur-wins";
@@ -12,6 +14,11 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
   const iWon =
     (result === "agents-win" && myRole === "agent") ||
     (result === "saboteur-wins" && myRole === "saboteur");
+
+  useEffect(() => {
+    if (iWon) playVictory();
+    else playDefeat();
+  }, [iWon]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Timer, X } from "lucide-react";
 import type { Zone } from "@/types/game";
 import { ZONE_INFO } from "@/types/game";
+import { playTaskComplete, playTaskFail, playTimerUrgent, playTap } from "@/lib/sounds";
 
 type TaskMiniGameProps = {
   zone: Zone;
@@ -217,6 +218,7 @@ const TaskMiniGame = ({ zone, onComplete, onCancel }: TaskMiniGameProps) => {
           setResult("fail");
           return 0;
         }
+        if (t <= 5) playTimerUrgent();
         return t - 1;
       });
     }, 1000);
@@ -225,6 +227,8 @@ const TaskMiniGame = ({ zone, onComplete, onCancel }: TaskMiniGameProps) => {
 
   const handleResult = (success: boolean) => {
     setResult(success ? "success" : "fail");
+    if (success) playTaskComplete();
+    else playTaskFail();
   };
 
   useEffect(() => {
