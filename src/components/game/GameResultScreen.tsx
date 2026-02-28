@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
 import { playVictory, playDefeat } from "@/lib/sounds";
+import Confetti from "./Confetti";
 
 type GameResultScreenProps = {
   result: "agents-win" | "saboteur-wins";
@@ -22,6 +23,7 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+      {iWon && <Confetti count={60} />}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
