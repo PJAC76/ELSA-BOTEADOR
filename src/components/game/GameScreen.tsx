@@ -7,6 +7,7 @@ import SabotagePanel from "./SabotagePanel";
 import type { Zone, PlayerRole } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 
 const ROUND_TIME = 90; // seconds per round
 const TASKS_PER_ROUND = 6;
@@ -40,6 +41,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
           setRoundEnded(true);
           return 0;
         }
+        if (t <= 6) playTimerUrgent();
         return t - 1;
       });
     }, 1000);
@@ -100,6 +102,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   useEffect(() => {
     if (tasksCompleted >= tasksTotal && !roundEnded) {
       setRoundEnded(true);
+      playRoundComplete();
     }
   }, [tasksCompleted, tasksTotal, roundEnded]);
 

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Bomb, Timer } from "lucide-react";
 import type { Zone } from "@/types/game";
 import { ZONE_INFO } from "@/types/game";
+import { playSabotage } from "@/lib/sounds";
 
 const COOLDOWN = 30; // seconds
 const ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
@@ -27,6 +28,7 @@ const SabotagePanel = ({ onSabotage, sabotagedZones }: SabotagePanelProps) => {
   const handleSabotage = (zone: Zone) => {
     if (cooldown > 0 || sabotagedZones.includes(zone)) return;
     onSabotage(zone);
+    playSabotage();
     setCooldown(COOLDOWN);
     setExpanded(false);
   };
