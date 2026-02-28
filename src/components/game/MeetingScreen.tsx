@@ -415,7 +415,12 @@ const MeetingScreen = ({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <div className="gradient-primary px-4 pb-4 pt-4 safe-top">
+      <motion.div
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="gradient-primary px-4 pb-4 pt-4 safe-top"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Vote className="h-5 w-5 text-primary-foreground" />
@@ -434,7 +439,7 @@ const MeetingScreen = ({
             ? "¡Voten ahora!"
             : "Resultado de la votación"}
         </p>
-      </div>
+      </motion.div>
 
       {/* Phase indicator */}
       <div className="flex gap-2 px-4 py-3">
@@ -468,9 +473,10 @@ const MeetingScreen = ({
           {phase === "discussion" && (
             <motion.div
               key="discussion"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
               className="flex flex-col gap-3"
             >
               {/* Timer */}
@@ -508,9 +514,10 @@ const MeetingScreen = ({
           {phase === "voting" && (
             <motion.div
               key="voting"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
               <VotingPanel
                 players={players}
@@ -535,8 +542,13 @@ const MeetingScreen = ({
           {phase === "result" && (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.6, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ 
+                duration: 0.6, 
+                ease: [0.22, 1, 0.36, 1],
+                scale: { type: "spring", stiffness: 200, damping: 18 }
+              }}
               className="flex flex-col items-center justify-center gap-4 pt-12"
             >
               {eliminatedPlayer ? (
