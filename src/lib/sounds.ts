@@ -148,3 +148,32 @@ export function playRoundComplete() {
 export function playTap() {
   playTone(600, 0.05, "sine", 0.06);
 }
+
+/** Voting phase alarm – rising alert */
+export function playVoteAlarm() {
+  playNotes(
+    [
+      { freq: 440, time: 0, dur: 0.12 },
+      { freq: 554, time: 0.1, dur: 0.12 },
+      { freq: 659, time: 0.2, dur: 0.12 },
+      { freq: 880, time: 0.3, dur: 0.35 },
+    ],
+    "square",
+    0.1
+  );
+}
+
+/** Player eliminated – dramatic descending tone */
+export function playElimination() {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.value = 600;
+  osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.7);
+  gain.gain.value = 0.12;
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 0.8);
+}

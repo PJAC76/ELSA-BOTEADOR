@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Timer, MessageCircle, SmilePlus, Vote, SkipForward } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS } from "@/types/game";
 import type { ChatMessage } from "@/types/game";
-import { playTap } from "@/lib/sounds";
+import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 
 // --- Types ---
 
@@ -265,11 +265,14 @@ const MeetingScreen = ({
           if (phase === "discussion") {
             setPhase("voting");
             setTimeLeft(VOTING_TIME);
+            playVoteAlarm();
           } else if (phase === "voting") {
             resolveVotes();
           }
           return phase === "discussion" ? VOTING_TIME : 0;
         }
+        // Urgent tick in last 5s of either phase
+        if (t <= 6) playTimerUrgent();
         return t - 1;
       });
     }, 1000);
@@ -356,6 +359,7 @@ const MeetingScreen = ({
 
     setEliminatedPlayer(eliminated);
     setPhase("result");
+    if (eliminated) playElimination();
 
     // Auto-advance after showing result
     setTimeout(() => {
