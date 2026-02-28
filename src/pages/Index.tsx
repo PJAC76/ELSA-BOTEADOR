@@ -13,6 +13,8 @@ import LobbyScreen from "@/components/lobby/LobbyScreen";
 import RoleRevealScreen from "@/components/lobby/RoleRevealScreen";
 import ProfileScreen from "@/components/profile/ProfileScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
+import GameScreen from "@/components/game/GameScreen";
+import GameResultScreen from "@/components/game/GameResultScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 
 const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0 };
@@ -31,7 +33,9 @@ type Step =
   | "lobby"
   | "role-reveal"
   | "profile"
-  | "settings";
+  | "settings"
+  | "game"
+  | "game-result";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("splash");
@@ -42,6 +46,7 @@ const Index = () => {
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
+  const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
 
   const handleSplashComplete = useCallback(() => setStep("login"), []);
   const handleLogin = useCallback(() => setStep("age-gate"), []);
@@ -140,10 +145,25 @@ const Index = () => {
       return (
         <RoleRevealScreen
           role={myRole}
-          onComplete={() => {
-            /* Fase 4: partida */
-            setStep("home");
+          onComplete={() => setStep("game")}
+        />
+      );
+    case "game":
+      return (
+        <GameScreen
+          role={myRole}
+          onGameEnd={(result) => {
+            setGameResult(result);
+            setStep("game-result");
           }}
+        />
+      );
+    case "game-result":
+      return (
+        <GameResultScreen
+          result={gameResult}
+          myRole={myRole}
+          onBackToHome={() => setStep("home")}
         />
       );
     default:
