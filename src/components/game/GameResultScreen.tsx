@@ -8,7 +8,8 @@ import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } 
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import Confetti from "./Confetti";
-import { Gift, Play, Star, Eye } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag } from "lucide-react";
+import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 
 // Mock reveal data
 const MOCK_PLAYERS = [
@@ -31,6 +32,7 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
   const [showReveal, setShowReveal] = useState(false);
   const [bonusClaimed, setBonusClaimed] = useState(false);
   const [xpAnimated, setXpAnimated] = useState(0);
+  const [reportTarget, setReportTarget] = useState<{ id: string; name: string } | null>(null);
 
   const iWon =
     (result === "agents-win" && myRole === "agent") ||
@@ -270,6 +272,18 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
                     >
                       {p.role === "saboteur" ? "💣 Saboteadora" : "🕵️ Agente"}
                     </span>
+                    {p.id !== "me" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReportTarget({ id: p.id, name: p.name });
+                          playTap();
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <Flag className="h-3 w-3" />
+                      </button>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -292,6 +306,14 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
           Volver al inicio
         </Button>
       </motion.div>
+
+      {/* Report modal */}
+      <ReportPlayerModal
+        isOpen={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        playerId={reportTarget?.id ?? ""}
+        playerName={reportTarget?.name ?? ""}
+      />
     </div>
   );
 };
