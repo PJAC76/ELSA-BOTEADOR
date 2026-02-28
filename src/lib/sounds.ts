@@ -3,6 +3,22 @@
  * No external files or backend needed.
  */
 
+const SOUND_KEY = "sound-enabled";
+
+let _soundEnabled: boolean | null = null;
+
+export function isSoundEnabled(): boolean {
+  if (_soundEnabled === null) {
+    _soundEnabled = localStorage.getItem(SOUND_KEY) !== "false";
+  }
+  return _soundEnabled;
+}
+
+export function setSoundEnabled(enabled: boolean) {
+  _soundEnabled = enabled;
+  localStorage.setItem(SOUND_KEY, String(enabled));
+}
+
 let audioCtx: AudioContext | null = null;
 
 function getCtx(): AudioContext {
@@ -24,6 +40,7 @@ function playTone(
   volume = 0.15,
   rampDown = true
 ) {
+  if (!isSoundEnabled()) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -43,6 +60,7 @@ function playNotes(
   type: OscillatorType = "sine",
   volume = 0.12
 ) {
+  if (!isSoundEnabled()) return;
   const ctx = getCtx();
   notes.forEach(({ freq, time, dur }) => {
     const osc = ctx.createOscillator();
@@ -165,6 +183,7 @@ export function playVoteAlarm() {
 
 /** Player eliminated – dramatic descending tone */
 export function playElimination() {
+  if (!isSoundEnabled()) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
