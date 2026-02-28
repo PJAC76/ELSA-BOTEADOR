@@ -50,7 +50,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           transition={{ delay: 0.3 }}
           className="mb-10 font-body text-base text-muted-foreground"
         >
-          Entra al campus y descubre quién es la saboteadora
+          Entra al campus y descubre quién es ELSA-BOTEADOR
         </motion.p>
 
         <motion.div
