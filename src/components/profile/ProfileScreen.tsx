@@ -1,28 +1,44 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3 } from "lucide-react";
-
-const SKIN_TONES = ["🏻", "🏼", "🏽", "🏾", "🏿"];
-const HAIR_STYLES = ["💇‍♀️", "👩‍🦱", "👩‍🦰", "👩‍🦳", "👩‍🦲"];
+import { ArrowLeft, Edit3, Check, X } from "lucide-react";
+import AvatarCustomizer, { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
+import type { AvatarConfig } from "@/types/game";
 
 type ProfileScreenProps = {
   displayName: string;
+  avatarConfig: AvatarConfig;
   level?: number;
   xp?: number;
   gamesPlayed?: number;
   gamesWon?: number;
   onBack: () => void;
+  onAvatarSave: (config: AvatarConfig) => void;
 };
 
 const ProfileScreen = ({
   displayName,
+  avatarConfig,
   level = 1,
   xp = 0,
   gamesPlayed = 12,
   gamesWon = 7,
   onBack,
+  onAvatarSave,
 }: ProfileScreenProps) => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<AvatarConfig>(avatarConfig);
+
+  const handleSave = () => {
+    onAvatarSave(draft);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(avatarConfig);
+    setEditing(false);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -41,7 +57,7 @@ const ProfileScreen = ({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-6 -mt-6">
+      <div className="flex flex-1 flex-col px-6 -mt-6 pb-8 overflow-y-auto">
         {/* Avatar Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -50,7 +66,9 @@ const ProfileScreen = ({
         >
           <div className="flex items-center gap-4">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl gradient-warm">
-              <span className="text-4xl">🕵️</span>
+              <span className="text-4xl">
+                {getAvatarEmoji(editing ? draft : avatarConfig)}
+              </span>
             </div>
             <div className="flex-1">
               <h2 className="font-display text-xl font-bold text-foreground">
@@ -67,14 +85,57 @@ const ProfileScreen = ({
               </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="mt-4 w-full rounded-2xl font-display text-sm"
-          >
-            <Edit3 className="mr-2 h-4 w-4" />
-            Editar Avatar
-          </Button>
+
+          {!editing ? (
+            <Button
+              variant="outline"
+              className="mt-4 w-full rounded-2xl font-display text-sm"
+              onClick={() => {
+                setDraft(avatarConfig);
+                setEditing(true);
+              }}
+            >
+              <Edit3 className="mr-2 h-4 w-4" />
+              Editar Avatar
+            </Button>
+          ) : (
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-2xl font-display text-sm"
+                onClick={handleCancel}
+              >
+                <X className="mr-1 h-4 w-4" />
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 rounded-2xl gradient-primary text-primary-foreground font-display text-sm"
+                onClick={handleSave}
+              >
+                <Check className="mr-1 h-4 w-4" />
+                Guardar
+              </Button>
+            </div>
+          )}
         </motion.div>
+
+        {/* Avatar Editor */}
+        <AnimatePresence>
+          {editing && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 rounded-3xl bg-card p-5 shadow-soft overflow-hidden"
+            >
+              <AvatarCustomizer
+                avatarConfig={draft}
+                onChange={setDraft}
+                showPreview={false}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Stats */}
         <motion.div

@@ -15,6 +15,8 @@ import ProfileScreen from "@/components/profile/ProfileScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 
+const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0 };
+
 type Step =
   | "splash"
   | "login"
@@ -36,6 +38,7 @@ const Index = () => {
   const [displayName, setDisplayName] = useState("Agente");
   const [roomCode, setRoomCode] = useState("");
   const [roomMode, setRoomMode] = useState<RoomMode>("friends");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(DEFAULT_AVATAR);
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
@@ -119,7 +122,7 @@ const Index = () => {
     case "friends":
       return <FriendsScreen onBack={() => setStep("home")} />;
     case "profile":
-      return <ProfileScreen displayName={displayName} onBack={() => setStep("home")} />;
+      return <ProfileScreen displayName={displayName} avatarConfig={avatarConfig} onBack={() => setStep("home")} onAvatarSave={setAvatarConfig} />;
     case "settings":
       return <SettingsScreen onBack={() => setStep("home")} />;
     case "lobby":
