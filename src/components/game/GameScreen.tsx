@@ -4,6 +4,7 @@ import GameHUD from "./GameHUD";
 import ZoneMap from "./ZoneMap";
 import TaskMiniGame from "./TaskMiniGame";
 import SabotagePanel from "./SabotagePanel";
+import MeetingScreen from "./MeetingScreen";
 import type { Zone, PlayerRole } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ const TASKS_PER_ROUND = 6;
 const TOTAL_ROUNDS = 3;
 const SABOTAGE_DURATION = 15; // how long a zone stays sabotaged
 
+type GamePhase = "action" | "meeting" | "round-summary";
+
 type GameScreenProps = {
   role: PlayerRole;
   onGameEnd: (result: "agents-win" | "saboteur-wins") => void;
@@ -21,24 +24,26 @@ type GameScreenProps = {
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [round, setRound] = useState(1);
+  const [phase, setPhase] = useState<GamePhase>("action");
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [tasksCompleted, setTasksCompleted] = useState(0);
   const [totalTasksCompleted, setTotalTasksCompleted] = useState(0);
   const [sabotagedZones, setSabotagedZones] = useState<Zone[]>([]);
   const [completedZones, setCompletedZones] = useState<Zone[]>([]);
   const [activeTask, setActiveTask] = useState<Zone | null>(null);
-  const [roundEnded, setRoundEnded] = useState(false);
+  const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
 
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
-  // Round timer
+  // Round timer (only during action phase)
   useEffect(() => {
-    if (roundEnded || activeTask) return;
+    if (phase !== "action" || activeTask) return;
     const interval = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          setRoundEnded(true);
+          // Round time up → go to meeting
+          setPhase("meeting");
           return 0;
         }
         if (t <= 6) playTimerUrgent();
@@ -46,9 +51,9 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [roundEnded, activeTask]);
+  }, [phase, activeTask]);
 
-  // Sabotage timeout — clear sabotaged zones after duration
+  // Sabotage timeout
   useEffect(() => {
     if (sabotagedZones.length === 0) return;
     const timer = setTimeout(() => {
@@ -59,9 +64,9 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
 
   const handleSelectZone = useCallback(
     (zone: Zone) => {
-      if (role === "saboteur") return; // saboteur uses panel
-      if (sabotagedZones.includes(zone)) return; // can't enter sabotaged
-      if (completedZones.includes(zone)) return; // already done
+      if (role === "saboteur") return;
+      if (sabotagedZones.includes(zone)) return;
+      if (completedZones.includes(zone)) return;
       setActiveTask(zone);
     },
     [role, sabotagedZones, completedZones]
@@ -83,10 +88,31 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     setSabotagedZones((prev) => [...prev, zone]);
   }, []);
 
+  // Check round completion by tasks → go to meeting
+  useEffect(() => {
+    if (tasksCompleted >= tasksTotal && phase === "action") {
+      playRoundComplete();
+      setPhase("meeting");
+    }
+  }, [tasksCompleted, tasksTotal, phase]);
+
+  // Handle meeting vote result
+  const handleVoteResult = useCallback(
+    (eliminatedId: string | null) => {
+      if (eliminatedId) {
+        setEliminatedPlayers((prev) => [...prev, eliminatedId]);
+      }
+      // Show round summary briefly, then advance
+      setPhase("round-summary");
+    },
+    []
+  );
+
+  // Handle next round from summary
   const handleNextRound = useCallback(() => {
     if (round >= TOTAL_ROUNDS) {
-      // Game over
-      const agentsWin = totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6);
+      const agentsWin =
+        totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6);
       onGameEnd(agentsWin ? "agents-win" : "saboteur-wins");
       return;
     }
@@ -95,17 +121,23 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     setTasksCompleted(0);
     setCompletedZones([]);
     setSabotagedZones([]);
-    setRoundEnded(false);
+    setPhase("action");
   }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd]);
 
-  // Check round completion by tasks
-  useEffect(() => {
-    if (tasksCompleted >= tasksTotal && !roundEnded) {
-      setRoundEnded(true);
-      playRoundComplete();
-    }
-  }, [tasksCompleted, tasksTotal, roundEnded]);
+  // --- Meeting phase ---
+  if (phase === "meeting") {
+    return (
+      <MeetingScreen
+        round={round}
+        players={[]}
+        myPlayerId="me"
+        isGhost={false}
+        onVoteResult={handleVoteResult}
+      />
+    );
+  }
 
+  // --- Action phase + Round summary ---
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <GameHUD
@@ -124,7 +156,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
       />
 
       {/* Saboteur controls */}
-      {role === "saboteur" && !roundEnded && (
+      {role === "saboteur" && phase === "action" && (
         <SabotagePanel
           onSabotage={handleSabotage}
           sabotagedZones={sabotagedZones}
@@ -142,9 +174,9 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
         )}
       </AnimatePresence>
 
-      {/* Round end overlay */}
+      {/* Round summary overlay */}
       <AnimatePresence>
-        {roundEnded && (
+        {phase === "round-summary" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -161,11 +193,18 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
                 {tasksCompleted >= tasksTotal ? "🎉" : "⏰"}
               </span>
               <h2 className="font-display text-2xl font-black text-foreground">
-                {round >= TOTAL_ROUNDS ? "¡Partida terminada!" : `Ronda {round} completada`}
+                {round >= TOTAL_ROUNDS
+                  ? "¡Partida terminada!"
+                  : `Ronda ${round} completada`}
               </h2>
               <p className="font-body text-sm text-muted-foreground text-center">
                 Tareas completadas esta ronda: {tasksCompleted}/{tasksTotal}
               </p>
+              {eliminatedPlayers.length > 0 && (
+                <p className="font-body text-xs text-muted-foreground">
+                  Jugadoras eliminadas: {eliminatedPlayers.length}
+                </p>
+              )}
               <Button
                 onClick={handleNextRound}
                 className="h-14 w-full max-w-xs rounded-2xl gradient-primary text-primary-foreground font-display text-base font-bold shadow-soft"
