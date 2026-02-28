@@ -24,7 +24,7 @@ type InventoryItem = {
 const CATEGORIES: { key: InventoryCategory; label: string; emoji: string }[] = [
   { key: "hair", label: "Pelo", emoji: "💇‍♀️" },
   { key: "clothes", label: "Ropa", emoji: "👗" },
-  { key: "accessories", label: "Accesorios", emoji: "🎀" },
+  { key: "accessories", label: "Accs", emoji: "🎀" },
   { key: "stickers", label: "Stickers", emoji: "✨" },
 ];
 
