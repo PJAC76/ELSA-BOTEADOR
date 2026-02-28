@@ -57,18 +57,10 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="mb-2 font-display text-4xl font-black tracking-tight text-primary-foreground"
+        className="mb-12 font-display text-4xl font-black tracking-tight text-primary-foreground text-center"
       >
-        ELSA
+        ELSA-BOTEADOR
       </motion.h1>
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="mb-12 font-display text-lg font-bold tracking-widest text-primary-foreground/80"
-      >
-        BOTEADOR
-      </motion.p>
 
       {/* Progress */}
       <motion.div
