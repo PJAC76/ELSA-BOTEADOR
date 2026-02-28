@@ -173,7 +173,7 @@ const VotingPanel = ({
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-sm font-bold text-foreground">
-          ¿Quién es la saboteadora?
+          ¿Quién es ELSA-BOTEADOR?
         </h3>
         <div
           className={`flex items-center gap-1 rounded-full px-3 py-1 font-display text-xs font-bold ${
@@ -434,7 +434,7 @@ const MeetingScreen = ({
         </div>
         <p className="mt-1 font-body text-xs text-primary-foreground/70">
           {phase === "discussion"
-            ? "Discutan quién puede ser la saboteadora"
+            ? "Discutan quién puede ser ELSA-BOTEADOR"
             : phase === "voting"
             ? "¡Voten ahora!"
             : "Resultado de la votación"}
@@ -575,7 +575,7 @@ const MeetingScreen = ({
                   >
                     <p className="font-display text-sm font-bold text-foreground">
                       {eliminatedPlayer.role === "saboteur"
-                        ? "💣 ¡Era la Saboteadora!"
+                        ? "💣 ¡Era ELSA-BOTEADOR!"
                         : "🕵️ Era una Agente inocente..."}
                     </p>
                     <p className="font-body text-xs text-muted-foreground mt-1">

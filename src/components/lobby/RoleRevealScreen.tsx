@@ -11,11 +11,11 @@ const ROLE_DATA: Record<PlayerRole, { title: string; emoji: string; subtitle: st
   agent: {
     title: "Agente",
     emoji: "🕵️",
-    subtitle: "Completa las tareas y descubre a la saboteadora",
+    subtitle: "Completa las tareas y descubre a ELSA-BOTEADOR",
     gradient: "gradient-fun",
   },
   saboteur: {
-    title: "Saboteadora",
+    title: "ELSA-BOTEADOR",
     emoji: "💣",
     subtitle: "Sabotea las tareas sin que te descubran",
     gradient: "gradient-warm",

@@ -54,7 +54,7 @@ const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProp
           <p className="font-display text-sm font-bold text-foreground mb-1">
             {result === "agents-win"
               ? "🕵️ Las Agentes ganan"
-              : "💣 La Saboteadora gana"}
+              : "💣 ELSA-BOTEADOR gana"}
           </p>
           <p className="font-body text-xs text-muted-foreground">
             {result === "agents-win"
