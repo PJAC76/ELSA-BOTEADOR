@@ -75,9 +75,8 @@ const Index = () => {
     []
   );
 
-  const handleStartGame = useCallback(() => {
-    // Mock: randomly assign role
-    setMyRole(Math.random() < 0.75 ? "agent" : "saboteur");
+  const handleStartGame = useCallback((chosenRole: PlayerRole) => {
+    setMyRole(chosenRole);
     setStep("role-reveal");
   }, []);
 

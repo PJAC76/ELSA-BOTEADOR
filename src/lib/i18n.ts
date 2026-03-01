@@ -119,6 +119,7 @@ const translations = {
     imReady: "Estoy lista",
     readyCheck: "✅ Lista",
     start: "🚀 Empezar",
+    chooseRole: "Elige tu rol (solo pruebas)",
 
     // Role reveal
     agent: "Agente",
@@ -525,6 +526,7 @@ const translations = {
     imReady: "I'm ready",
     readyCheck: "✅ Ready",
     start: "🚀 Start",
+    chooseRole: "Choose your role (testing only)",
 
     // Role reveal
     agent: "Agent",
