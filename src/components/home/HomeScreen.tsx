@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Users, Zap, UserCircle, Package, Settings } from "lucide-react";
+import { Users, Zap, UserCircle, Package, Settings, HelpCircle } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 
 type HomeScreenProps = {
@@ -13,6 +13,7 @@ type HomeScreenProps = {
   onInventory?: () => void;
   onProfile?: () => void;
   onSettings?: () => void;
+  onHowToPlay?: () => void;
 };
 
 const HomeScreen = ({
@@ -25,6 +26,7 @@ const HomeScreen = ({
   onInventory,
   onProfile,
   onSettings,
+  onHowToPlay,
 }: HomeScreenProps) => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -113,6 +115,17 @@ const HomeScreen = ({
               </div>
             </div>
           </Button>
+
+          {/* How to play */}
+          <button
+            onClick={onHowToPlay}
+            className="flex w-full items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted"
+          >
+            <HelpCircle className="h-5 w-5 text-muted-foreground" />
+            <span className="font-display text-sm font-bold text-foreground">
+              ¿Cómo se juega?
+            </span>
+          </button>
         </motion.div>
 
         {/* Weekly challenges */}
