@@ -16,6 +16,7 @@ import SettingsScreen from "@/components/settings/SettingsScreen";
 import GameScreen from "@/components/game/GameScreen";
 import GameResultScreen from "@/components/game/GameResultScreen";
 import InventoryScreen from "@/components/inventory/InventoryScreen";
+import HowToPlayScreen from "@/components/help/HowToPlayScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
@@ -38,7 +39,8 @@ type Step =
   | "settings"
   | "inventory"
   | "game"
-  | "game-result";
+  | "game-result"
+  | "how-to-play";
 
 const Index = () => {
   const { totalXp } = useProgressionStore();
@@ -100,6 +102,7 @@ const Index = () => {
           onInventory={() => setStep("inventory")}
           onProfile={() => setStep("profile")}
           onSettings={() => setStep("settings")}
+          onHowToPlay={() => setStep("how-to-play")}
         />
       );
     case "play-friends":
@@ -193,6 +196,8 @@ const Index = () => {
           onBackToHome={() => setStep("home")}
         />
       );
+    case "how-to-play":
+      return <HowToPlayScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }
