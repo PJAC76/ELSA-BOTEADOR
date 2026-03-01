@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import GameHUD from "./GameHUD";
 import ZoneMap from "./ZoneMap";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
+import { getRandomWord } from "@/data/secret-words";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
@@ -23,7 +24,7 @@ type GamePhase = "action" | "meeting" | "round-summary";
 type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins") => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [round, setRound] = useState(1);
   const [phase, setPhase] = useState<GamePhase>("action");
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
@@ -35,6 +36,11 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
   const [currentZone, setCurrentZone] = useState<Zone>("library");
   const [showTutorial, setShowTutorial] = useState(true);
+
+  // Secret word per round
+  const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
+  const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
+  const secretCategory = language === "en" ? roundWord.categoryEn : roundWord.category;
 
   const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
   const mockPlayerZones: Record<string, Zone> = { me: currentZone, p2: MOCK_ZONES[Math.floor(round * 1.3) % 6], p3: MOCK_ZONES[Math.floor(round * 2.7) % 6], p4: MOCK_ZONES[Math.floor(round * 0.5) % 6], p5: MOCK_ZONES[Math.floor(round * 3.1) % 6] };
@@ -77,11 +83,30 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
               <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="font-display text-2xl font-black text-foreground">{t("emergencyMeeting")}!</motion.h2>
             </motion.div>
           </motion.div>
-          <MeetingScreen round={round} players={[]} myPlayerId="me" isGhost={false} playerZones={mockPlayerZones} onVoteResult={handleVoteResult} />
+          <MeetingScreen
+            round={round}
+            players={[]}
+            myPlayerId="me"
+            isGhost={false}
+            playerZones={mockPlayerZones}
+            onVoteResult={handleVoteResult}
+            secretWord={role === "saboteur" ? null : secretWord}
+            secretCategory={secretCategory}
+            myRole={role}
+          />
         </motion.div>
       ) : (
         <motion.div key={`action-${round}`} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -30, filter: "blur(8px)" }} transition={{ duration: 0.5 }} className="flex min-h-screen flex-col bg-background">
-          <GameHUD round={round} totalRounds={TOTAL_ROUNDS} timeLeft={timeLeft} tasksCompleted={totalTasksCompleted + tasksCompleted} tasksTotal={globalTasksTotal} role={role} />
+          <GameHUD
+            round={round}
+            totalRounds={TOTAL_ROUNDS}
+            timeLeft={timeLeft}
+            tasksCompleted={totalTasksCompleted + tasksCompleted}
+            tasksTotal={globalTasksTotal}
+            role={role}
+            secretWord={role === "saboteur" ? null : secretWord}
+            secretCategory={secretCategory}
+          />
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
             <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} />
           </motion.div>
