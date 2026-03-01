@@ -165,6 +165,18 @@ const translations = {
     emergency: "🚨 ¡Emergencia!",
     emergencyCooldown: "Emergencia",
 
+    // Secret word
+    secretWordLabel: "Palabra secreta",
+    secretCategoryOnly: "Solo sabes la categoría",
+    impostorClueHint: "¡Inventa algo creíble sin conocer la palabra!",
+    cluePhaseTitle: "Ronda de pistas",
+    cluePhaseSubtitle: "Cada jugadora da una pista de una palabra",
+    cluesLabel: "Pistas",
+    yourTurnClue: "¡Tu turno! Da una pista",
+    isThinking: "pensando",
+    typeOneWord: "Escribe una palabra...",
+    cluesSummary: "Pistas de esta ronda",
+
     // Meeting
     emergencyMeeting: "Reunión de emergencia",
     discussSaboteur: "Discutan quién puede ser ELSA-BOTEADOR",
@@ -571,6 +583,18 @@ const translations = {
     // Emergency button
     emergency: "🚨 Emergency!",
     emergencyCooldown: "Emergency",
+
+    // Secret word
+    secretWordLabel: "Secret word",
+    secretCategoryOnly: "You only know the category",
+    impostorClueHint: "Make up something believable without knowing the word!",
+    cluePhaseTitle: "Clue round",
+    cluePhaseSubtitle: "Each player gives a one-word clue",
+    cluesLabel: "Clues",
+    yourTurnClue: "Your turn! Give a clue",
+    isThinking: "thinking",
+    typeOneWord: "Type one word...",
+    cluesSummary: "Clues from this round",
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",
