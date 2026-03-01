@@ -168,7 +168,7 @@ const VotingPanel = ({
   timeLeft: number;
   disabled: boolean;
 }) => {
-  const alivePlayers = players.filter((p) => p.isAlive && p.id !== myPlayerId);
+  const alivePlayers = players.filter((p) => p.isAlive);
 
   return (
     <div className="flex flex-col gap-3">
@@ -190,20 +190,23 @@ const VotingPanel = ({
 
       <div className="grid grid-cols-2 gap-2">
         {alivePlayers.map((player) => {
+          const isMe = player.id === myPlayerId;
           const isSelected = myVote === player.id;
           const voteCount = Object.values(votes).filter((v) => v === player.id).length;
           return (
             <motion.button
               key={player.id}
-              whileTap={{ scale: 0.95 }}
+              whileTap={isMe ? undefined : { scale: 0.95 }}
               onClick={() => {
-                if (!disabled) {
+                if (!disabled && !isMe) {
                   onVote(isSelected ? null : player.id);
                   playTap();
                 }
               }}
               className={`relative flex items-center gap-2 rounded-2xl p-3 transition-all ${
-                isSelected
+                isMe
+                  ? "bg-muted/60 cursor-default"
+                  : isSelected
                   ? "bg-destructive/15 ring-2 ring-destructive"
                   : "bg-card shadow-soft"
               }`}
