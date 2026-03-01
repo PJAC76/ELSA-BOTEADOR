@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 type AgeGateScreenProps = {
   onVerified: () => void;
@@ -13,6 +14,7 @@ const years = Array.from({ length: 20 }, (_, i) => currentYear - 10 - i);
 const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [blocked, setBlocked] = useState(false);
+  const { t } = useTranslation();
 
   const handleConfirm = () => {
     if (!selectedYear) return;
@@ -40,7 +42,7 @@ const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
           animate={{ opacity: 1 }}
           className="mb-3 font-display text-2xl font-bold text-foreground"
         >
-          ¡Ups! Aún no puedes entrar
+          {t("ageBlocked")}
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
@@ -48,7 +50,7 @@ const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
           transition={{ delay: 0.2 }}
           className="max-w-xs text-center font-body text-base text-muted-foreground"
         >
-          ELSA-BOTEADOR es para mayores de 14 años. ¡Vuelve cuando crezcas un poquito más! 💜
+          {t("ageBlockedDesc")}
         </motion.p>
       </div>
     );
@@ -70,7 +72,7 @@ const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-2 font-display text-2xl font-bold text-foreground"
       >
-        Verificación de edad
+        {t("ageVerification")}
       </motion.h2>
       <motion.p
         initial={{ opacity: 0, y: 20 }}
@@ -78,7 +80,7 @@ const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
         transition={{ delay: 0.1 }}
         className="mb-8 max-w-xs text-center font-body text-sm text-muted-foreground"
       >
-        Necesitamos confirmar que tienes al menos 14 años para poder jugar 🎂
+        {t("ageVerificationDesc")}
       </motion.p>
 
       <motion.div
@@ -108,7 +110,7 @@ const AgeGateScreen = ({ onVerified }: AgeGateScreenProps) => {
         size="lg"
         className="h-14 w-full max-w-sm rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40"
       >
-        Confirmar
+        {t("confirm")}
       </Button>
     </div>
   );

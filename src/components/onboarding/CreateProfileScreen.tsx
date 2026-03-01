@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { AvatarConfig, Language } from "@/types/game";
+import { useTranslation } from "@/lib/i18n";
 
 type CreateProfileScreenProps = {
   onComplete: (data: {
@@ -18,24 +19,21 @@ const HAIR_COLORS = ["🖤", "🤎", "🧡", "💛", "🩷"];
 const OUTFITS = ["👕", "👗", "🧥", "👚", "🎽"];
 const ACCESSORIES = ["🎀", "🕶️", "🎒", "💍", "🧢"];
 
-const AVATAR_SECTIONS = [
-  { label: "Piel", key: "skinTone" as const, items: SKIN_TONES },
-  { label: "Pelo", key: "hairStyle" as const, items: HAIR_STYLES },
-  { label: "Color de pelo", key: "hairColor" as const, items: HAIR_COLORS },
-  { label: "Ropa", key: "outfit" as const, items: OUTFITS },
-  { label: "Accesorio", key: "accessory" as const, items: ACCESSORIES },
-];
-
 const CreateProfileScreen = ({ onComplete }: CreateProfileScreenProps) => {
   const [displayName, setDisplayName] = useState("");
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
-    skinTone: 0,
-    hairStyle: 0,
-    hairColor: 0,
-    outfit: 0,
-    accessory: 0,
+    skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0,
   });
   const [language, setLanguage] = useState<Language>("es");
+  const { t } = useTranslation();
+
+  const AVATAR_SECTIONS = [
+    { label: t("skinLabel"), key: "skinTone" as const, items: SKIN_TONES },
+    { label: t("hairLabel"), key: "hairStyle" as const, items: HAIR_STYLES },
+    { label: t("hairColorLabel"), key: "hairColor" as const, items: HAIR_COLORS },
+    { label: t("clothesLabel"), key: "outfit" as const, items: OUTFITS },
+    { label: t("accessoryLabel"), key: "accessory" as const, items: ACCESSORIES },
+  ];
 
   const handleSubmit = () => {
     if (!displayName.trim()) return;
@@ -53,42 +51,37 @@ const CreateProfileScreen = ({ onComplete }: CreateProfileScreenProps) => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-1 font-display text-2xl font-bold text-foreground"
       >
-        Crea tu perfil
+        {t("createProfile")}
       </motion.h2>
       <p className="mb-6 font-body text-sm text-muted-foreground">
-        Elige cómo te verán en el campus ✨
+        {t("createProfileDesc")}
       </p>
 
-      {/* Avatar preview */}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring" }}
         className="mb-6 flex h-28 w-28 items-center justify-center rounded-full gradient-fun shadow-card"
       >
-        <span className="text-5xl">
-          {HAIR_STYLES[avatarConfig.hairStyle]}
-        </span>
+        <span className="text-5xl">{HAIR_STYLES[avatarConfig.hairStyle]}</span>
       </motion.div>
 
-      {/* Name */}
       <div className="mb-6 w-full max-w-sm">
         <label className="mb-2 block font-display text-sm font-bold text-foreground">
-          Nombre
+          {t("name")}
         </label>
         <Input
-          placeholder="Tu nombre en el campus"
+          placeholder={t("namePlaceholder")}
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           maxLength={16}
           className="h-14 rounded-2xl font-body text-base text-center"
         />
         <p className="mt-1 text-center font-body text-xs text-muted-foreground">
-          {displayName.length}/16 caracteres
+          {displayName.length}/16 {t("characters")}
         </p>
       </div>
 
-      {/* Avatar customization */}
       <div className="mb-6 w-full max-w-sm space-y-4">
         {AVATAR_SECTIONS.map((section) => (
           <div key={section.key}>
@@ -114,10 +107,9 @@ const CreateProfileScreen = ({ onComplete }: CreateProfileScreenProps) => {
         ))}
       </div>
 
-      {/* Language */}
       <div className="mb-8 w-full max-w-sm">
         <label className="mb-2 block font-display text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          Idioma
+          {t("language")}
         </label>
         <div className="flex gap-3">
           {(["es", "en"] as Language[]).map((lang) => (
@@ -142,7 +134,7 @@ const CreateProfileScreen = ({ onComplete }: CreateProfileScreenProps) => {
         size="lg"
         className="h-14 w-full max-w-sm rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40 safe-bottom"
       >
-        ¡Listo, vamos! 🎉
+        {t("letsGo")}
       </Button>
     </div>
   );

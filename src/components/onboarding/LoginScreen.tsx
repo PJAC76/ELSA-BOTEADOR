@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 type LoginScreenProps = {
   onLogin: () => void;
@@ -16,6 +17,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +44,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           transition={{ delay: 0.2 }}
           className="mb-1 font-display text-3xl font-black text-foreground"
         >
-          ¡Bienvenida!
+          {t("welcome")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -50,7 +52,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           transition={{ delay: 0.3 }}
           className="mb-10 font-body text-base text-muted-foreground"
         >
-          Entra al campus y descubre quién es ELSA-BOTEADOR
+          {t("welcomeSubtitle")}
         </motion.p>
 
         <motion.div
@@ -59,7 +61,6 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           transition={{ delay: 0.4 }}
           className="flex w-full max-w-sm flex-col gap-3"
         >
-          {/* Google */}
           <Button
             onClick={onLogin}
             size="lg"
@@ -71,34 +72,31 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Continuar con Google
+            {t("continueWithGoogle")}
           </Button>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 my-2">
             <div className="h-px flex-1 bg-border" />
-            <span className="font-body text-xs text-muted-foreground">o</span>
+            <span className="font-body text-xs text-muted-foreground">{t("or")}</span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          {/* Email login */}
           <Button
             onClick={() => setMode("login")}
             size="lg"
             className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold"
           >
             <Mail className="mr-2 h-5 w-5" />
-            Email y contraseña
+            {t("emailAndPassword")}
           </Button>
 
-          {/* Register */}
           <p className="mt-4 text-center font-body text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
+            {t("noAccount")}{" "}
             <button
               onClick={() => setMode("register")}
               className="font-bold text-primary underline-offset-2 hover:underline"
             >
-              Regístrate
+              {t("register")}
             </button>
           </p>
         </motion.div>
@@ -121,12 +119,10 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         animate={{ opacity: 1 }}
         className="mb-1 font-display text-2xl font-bold text-foreground"
       >
-        {mode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
+        {mode === "login" ? t("login") : t("createAccount")}
       </motion.h2>
       <p className="mb-8 font-body text-sm text-muted-foreground">
-        {mode === "login"
-          ? "¡El campus te espera!"
-          : "Únete a la diversión"}
+        {mode === "login" ? t("campusAwaits") : t("joinTheFun")}
       </p>
 
       <motion.form
@@ -139,7 +135,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <div className="relative">
             <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Tu nombre"
+              placeholder={t("yourName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-14 rounded-2xl pl-11 font-body text-base"
@@ -151,7 +147,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-14 rounded-2xl pl-11 font-body text-base"
@@ -162,7 +158,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type={showPassword ? "text" : "password"}
-            placeholder="Contraseña"
+            placeholder={t("password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-14 rounded-2xl pl-11 pr-12 font-body text-base"
@@ -181,17 +177,17 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           size="lg"
           className="h-14 rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold"
         >
-          {mode === "login" ? "Entrar" : "Crear cuenta"}
+          {mode === "login" ? t("enter") : t("createAccountBtn")}
         </Button>
 
         <p className="text-center font-body text-sm text-muted-foreground">
-          {mode === "login" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
+          {mode === "login" ? t("noAccount") + " " : t("haveAccount") + " "}
           <button
             type="button"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
             className="font-bold text-primary"
           >
-            {mode === "login" ? "Regístrate" : "Inicia sesión"}
+            {mode === "login" ? t("register") : t("signIn")}
           </button>
         </p>
       </motion.form>
@@ -200,7 +196,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         onClick={() => setMode("welcome")}
         className="mt-6 font-body text-sm text-muted-foreground"
       >
-        ← Volver
+        {t("back")}
       </button>
     </div>
   );

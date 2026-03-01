@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from "@/lib/i18n";
 
 type SplashScreenProps = {
   onComplete: () => void;
@@ -8,6 +9,7 @@ type SplashScreenProps = {
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [progress, setProgress] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -25,7 +27,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gradient-primary p-6">
-      {/* Logo */}
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -52,7 +53,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         </div>
       </motion.div>
 
-      {/* Title */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,7 +62,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         ELSA-BOTEADOR
       </motion.h1>
 
-      {/* Progress */}
       <motion.div
         initial={{ opacity: 0, width: 0 }}
         animate={{ opacity: 1, width: "80%" }}
@@ -74,7 +73,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           className="h-3 bg-primary-foreground/20 [&>div]:gradient-warm [&>div]:rounded-full"
         />
         <p className="mt-3 text-center font-body text-sm font-medium text-primary-foreground/70">
-          Preparando el campus...
+          {t("splashLoading")}
         </p>
       </motion.div>
     </div>
