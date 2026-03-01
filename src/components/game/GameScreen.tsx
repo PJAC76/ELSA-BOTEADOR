@@ -6,10 +6,12 @@ import TaskMiniGame from "./TaskMiniGame";
 import SabotagePanel from "./SabotagePanel";
 import MeetingScreen from "./MeetingScreen";
 import EmergencyButton from "./EmergencyButton";
+import GameTutorialOverlay from "./GameTutorialOverlay";
 import type { Zone, PlayerRole } from "@/types/game";
 import { ZONE_INFO } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 
 const ROUND_TIME = 90; // seconds per round
@@ -35,6 +37,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [activeTask, setActiveTask] = useState<Zone | null>(null);
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
   const [currentZone, setCurrentZone] = useState<Zone>("library");
+  const [showTutorial, setShowTutorial] = useState(true);
 
   // Mock player zone tracking for meeting display
   const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
@@ -235,15 +238,22 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             </motion.div>
           )}
 
-          {/* Emergency button */}
+          {/* Emergency button + tutorial help */}
           {phase === "action" && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex justify-center px-4 pb-4"
+              className="flex items-center justify-center gap-3 px-4 pb-4"
             >
               <EmergencyButton onEmergency={handleEmergency} />
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-soft text-muted-foreground"
+                aria-label="Tutorial"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </button>
             </motion.div>
           )}
 
@@ -337,6 +347,16 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
                   </motion.div>
                 </motion.div>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Tutorial overlay */}
+          <AnimatePresence>
+            {showTutorial && (
+              <GameTutorialOverlay
+                role={role}
+                onClose={() => setShowTutorial(false)}
+              />
             )}
           </AnimatePresence>
         </motion.div>
