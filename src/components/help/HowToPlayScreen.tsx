@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Zap, Target, MessageCircle, Vote, Trophy, Ghost, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Users, Zap, Target, MessageCircle, Vote, Trophy, Ghost, ShieldAlert, KeyRound, MessageSquare } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 type HowToPlayScreenProps = { onBack: () => void };
@@ -11,8 +11,10 @@ const HowToPlayScreen = ({ onBack }: HowToPlayScreenProps) => {
     { icon: Target, emoji: "🎯", title: t("htpObjectiveTitle"), content: t("htpObjectiveContent") },
     { icon: Users, emoji: "🕵️", title: t("htpRolesTitle"), content: t("htpRolesContent") },
     { icon: Zap, emoji: "⚡", title: t("htpRoundsTitle"), content: t("htpRoundsContent") },
+    { icon: KeyRound, emoji: "🔑", title: t("htpSecretWordTitle"), content: t("htpSecretWordContent") },
     { icon: ShieldAlert, emoji: "💣", title: t("htpSabotageTitle"), content: t("htpSabotageContent") },
-    { icon: MessageCircle, emoji: "💬", title: t("htpMeetingsTitle"), content: t("htpMeetingsContent") },
+    { icon: MessageSquare, emoji: "💬", title: t("htpCluesTitle"), content: t("htpCluesContent") },
+    { icon: MessageCircle, emoji: "🚨", title: t("htpMeetingsTitle"), content: t("htpMeetingsContent") },
     { icon: Vote, emoji: "🗳️", title: t("htpVotingTitle"), content: t("htpVotingContent") },
     { icon: Ghost, emoji: "👻", title: t("htpGhostTitle"), content: t("htpGhostContent") },
     { icon: Trophy, emoji: "🏆", title: t("htpVictoryTitle"), content: t("htpVictoryContent") },
