@@ -41,6 +41,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
   const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
   const secretCategory = language === "en" ? roundWord.categoryEn : roundWord.category;
+  const secretClues = language === "en" ? roundWord.cluesEn : roundWord.clues;
 
   const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
   const mockPlayerZones: Record<string, Zone> = { me: currentZone, p2: MOCK_ZONES[Math.floor(round * 1.3) % 6], p3: MOCK_ZONES[Math.floor(round * 2.7) % 6], p4: MOCK_ZONES[Math.floor(round * 0.5) % 6], p5: MOCK_ZONES[Math.floor(round * 3.1) % 6] };
@@ -92,6 +93,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             onVoteResult={handleVoteResult}
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
+            secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
           />
         </motion.div>
