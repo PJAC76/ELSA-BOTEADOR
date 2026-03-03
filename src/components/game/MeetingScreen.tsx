@@ -27,6 +27,7 @@ type MeetingScreenProps = {
   onVoteResult: (eliminatedId: string | null) => void;
   secretWord: string | null; // null for saboteur
   secretCategory: string;
+  secretClues: string[]; // contextual clues for the word
   myRole: PlayerRole;
 };
 
@@ -53,6 +54,7 @@ const CluePhasePanel = ({
   myPlayerId,
   secretWord,
   secretCategory,
+  secretClues,
   myRole,
   onCluesComplete,
 }: {
@@ -60,6 +62,7 @@ const CluePhasePanel = ({
   myPlayerId: string;
   secretWord: string | null;
   secretCategory: string;
+  secretClues: string[];
   myRole: PlayerRole;
   onCluesComplete: (clues: ClueEntry[]) => void;
 }) => {
@@ -76,18 +79,18 @@ const CluePhasePanel = ({
   // Auto-generate bot clues based on whether they know the word
   const generateBotClue = useCallback((player: MeetingPlayer) => {
     if (!secretWord) return "...";
-    // Agents give related clues, saboteur gives vague ones
-    const agentClues: Record<string, string[]> = {
-      default: ["bonito", "grande", "conocido", "especial", "famoso", "divertido", "genial", "increíble"],
-    };
     const saboteurClues = ["interesante", "normal", "diferente", "algo", "raro", "típico", "común", "obvio"];
 
     if (player.role === "saboteur") {
       return saboteurClues[Math.floor(Math.random() * saboteurClues.length)];
     }
-    const pool = agentClues.default;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }, [secretWord]);
+    // Agents use contextual clues from the word bank
+    if (secretClues.length > 0) {
+      return secretClues[Math.floor(Math.random() * secretClues.length)];
+    }
+    const fallback = ["bonito", "grande", "conocido", "especial", "famoso"];
+    return fallback[Math.floor(Math.random() * fallback.length)];
+  }, [secretWord, secretClues]);
 
   // Timer per turn
   useEffect(() => {
@@ -443,6 +446,7 @@ const MeetingScreen = ({
   onVoteResult,
   secretWord,
   secretCategory,
+  secretClues,
   myRole,
 }: MeetingScreenProps) => {
   const { t } = useTranslation();
@@ -639,6 +643,7 @@ const MeetingScreen = ({
                 myPlayerId={myPlayerId}
                 secretWord={secretWord}
                 secretCategory={secretCategory}
+                secretClues={secretClues}
                 myRole={myRole}
                 onCluesComplete={handleCluesComplete}
               />
