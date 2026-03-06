@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const PROFESSIONS: WordCategory = {
   category: "Profesiones",
   categoryEn: "Professions",
-  words: ["Doctora", "Chef", "Piloto", "Artista", "Bombera", "Astronauta", "Fotógrafa", "Detective"],
-  wordsEn: ["Doctor", "Chef", "Pilot", "Artist", "Firefighter", "Astronaut", "Photographer", "Detective"],
+  words: ["Doctora", "Chef", "Piloto", "Artista", "Bombera", "Astronauta", "Fotógrafa", "Detective", "Veterinaria", "Arquitecta", "Maga", "Inventora"],
+  wordsEn: ["Doctor", "Chef", "Pilot", "Artist", "Firefighter", "Astronaut", "Photographer", "Detective", "Veterinarian", "Architect", "Magician", "Inventor"],
   clues: {
     Doctora: ["estetoscopio", "receta", "paciente", "salud", "bata"],
     Chef: ["cocina", "cuchillo", "receta", "sabor", "gorro"],
@@ -14,6 +14,10 @@ export const PROFESSIONS: WordCategory = {
     Astronauta: ["espacio", "cohete", "órbita", "traje", "gravedad"],
     Fotógrafa: ["cámara", "lente", "retrato", "flash", "enfoque"],
     Detective: ["pista", "lupa", "misterio", "caso", "sospechoso"],
+    Veterinaria: ["animales", "clínica", "mascota", "curar", "vacuna"],
+    Arquitecta: ["plano", "edificio", "diseño", "maqueta", "construir"],
+    Maga: ["truco", "sombrero", "varita", "conejo", "ilusión"],
+    Inventora: ["crear", "patente", "idea", "prototipo", "ingenio"],
   },
   cluesEn: {
     Doctor: ["stethoscope", "prescription", "patient", "health", "coat"],
@@ -24,5 +28,9 @@ export const PROFESSIONS: WordCategory = {
     Astronaut: ["space", "rocket", "orbit", "suit", "gravity"],
     Photographer: ["camera", "lens", "portrait", "flash", "focus"],
     Detective: ["clue", "magnifier", "mystery", "case", "suspect"],
+    Veterinarian: ["animals", "clinic", "pet", "heal", "vaccine"],
+    Architect: ["blueprint", "building", "design", "model", "build"],
+    Magician: ["trick", "hat", "wand", "rabbit", "illusion"],
+    Inventor: ["create", "patent", "idea", "prototype", "genius"],
   },
 };

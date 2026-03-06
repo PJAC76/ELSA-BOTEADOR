@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const MOVIES: WordCategory = {
   category: "Películas",
   categoryEn: "Movies",
-  words: ["Titanic", "Avatar", "Frozen", "Coco", "Matrix", "Shrek", "Moana", "Encanto"],
-  wordsEn: ["Titanic", "Avatar", "Frozen", "Coco", "Matrix", "Shrek", "Moana", "Encanto"],
+  words: ["Titanic", "Avatar", "Frozen", "Coco", "Matrix", "Shrek", "Moana", "Encanto", "Jumanji", "Ratatouille", "Up", "Brave"],
+  wordsEn: ["Titanic", "Avatar", "Frozen", "Coco", "Matrix", "Shrek", "Moana", "Encanto", "Jumanji", "Ratatouille", "Up", "Brave"],
   clues: {
     Titanic: ["barco", "iceberg", "Rose", "hundirse", "océano"],
     Avatar: ["azul", "Pandora", "selva", "alien", "volar"],
@@ -14,6 +14,10 @@ export const MOVIES: WordCategory = {
     Shrek: ["ogro", "pantano", "burro", "princesa", "verde"],
     Moana: ["mar", "isla", "Maui", "navegación", "coral"],
     Encanto: ["magia", "Colombia", "Mirabel", "casita", "familia"],
+    Jumanji: ["selva", "dados", "juego", "trampa", "aventura"],
+    Ratatouille: ["rata", "cocina", "París", "chef", "sabor"],
+    Up: ["globos", "casa", "volar", "anciano", "aventura"],
+    Brave: ["arco", "oso", "Escocia", "princesa", "valiente"],
   },
   cluesEn: {
     Titanic: ["ship", "iceberg", "Rose", "sink", "ocean"],
@@ -24,5 +28,9 @@ export const MOVIES: WordCategory = {
     Shrek: ["ogre", "swamp", "donkey", "princess", "green"],
     Moana: ["sea", "island", "Maui", "navigation", "coral"],
     Encanto: ["magic", "Colombia", "Mirabel", "house", "family"],
+    Jumanji: ["jungle", "dice", "game", "trap", "adventure"],
+    Ratatouille: ["rat", "kitchen", "Paris", "chef", "flavor"],
+    Up: ["balloons", "house", "fly", "old man", "adventure"],
+    Brave: ["bow", "bear", "Scotland", "princess", "brave"],
   },
 };
