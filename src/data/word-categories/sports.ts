@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const SPORTS: WordCategory = {
   category: "Deportes",
   categoryEn: "Sports",
-  words: ["Fútbol", "Natación", "Tenis", "Baloncesto", "Surf", "Yoga", "Boxeo", "Esquí"],
-  wordsEn: ["Soccer", "Swimming", "Tennis", "Basketball", "Surfing", "Yoga", "Boxing", "Skiing"],
+  words: ["Fútbol", "Natación", "Tenis", "Baloncesto", "Surf", "Yoga", "Boxeo", "Esquí", "Esgrima", "Patinaje", "Escalada", "Ciclismo"],
+  wordsEn: ["Soccer", "Swimming", "Tennis", "Basketball", "Surfing", "Yoga", "Boxing", "Skiing", "Fencing", "Skating", "Climbing", "Cycling"],
   clues: {
     Fútbol: ["gol", "balón", "portero", "cancha", "once"],
     Natación: ["piscina", "agua", "brazada", "gafas", "crol"],
@@ -14,6 +14,10 @@ export const SPORTS: WordCategory = {
     Yoga: ["postura", "respirar", "esterilla", "calma", "flexión"],
     Boxeo: ["guantes", "ring", "golpe", "round", "esquiva"],
     Esquí: ["nieve", "montaña", "bastón", "pista", "bajada"],
+    Esgrima: ["espada", "máscara", "toque", "pista", "elegante"],
+    Patinaje: ["hielo", "cuchilla", "giro", "salto", "pista"],
+    Escalada: ["roca", "cuerda", "arnés", "pared", "agarre"],
+    Ciclismo: ["bicicleta", "pedal", "casco", "ruta", "velocidad"],
   },
   cluesEn: {
     Soccer: ["goal", "ball", "keeper", "field", "eleven"],
@@ -24,5 +28,9 @@ export const SPORTS: WordCategory = {
     Yoga: ["pose", "breathe", "mat", "calm", "stretch"],
     Boxing: ["gloves", "ring", "punch", "round", "dodge"],
     Skiing: ["snow", "mountain", "pole", "slope", "downhill"],
+    Fencing: ["sword", "mask", "touch", "strip", "elegant"],
+    Skating: ["ice", "blade", "spin", "jump", "rink"],
+    Climbing: ["rock", "rope", "harness", "wall", "grip"],
+    Cycling: ["bicycle", "pedal", "helmet", "route", "speed"],
   },
 };

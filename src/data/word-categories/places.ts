@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const PLACES: WordCategory = {
   category: "Lugares",
   categoryEn: "Places",
-  words: ["Playa", "Montaña", "Museo", "Parque", "Cine", "Hospital", "Aeropuerto", "Biblioteca"],
-  wordsEn: ["Beach", "Mountain", "Museum", "Park", "Cinema", "Hospital", "Airport", "Library"],
+  words: ["Playa", "Montaña", "Museo", "Parque", "Cine", "Hospital", "Aeropuerto", "Biblioteca", "Castillo", "Volcán", "Mercado", "Faro"],
+  wordsEn: ["Beach", "Mountain", "Museum", "Park", "Cinema", "Hospital", "Airport", "Library", "Castle", "Volcano", "Market", "Lighthouse"],
   clues: {
     Playa: ["arena", "olas", "sol", "mar", "toalla"],
     Montaña: ["cumbre", "nieve", "escalada", "altura", "bosque"],
@@ -14,6 +14,10 @@ export const PLACES: WordCategory = {
     Hospital: ["doctor", "salud", "urgencias", "cama", "bata"],
     Aeropuerto: ["avión", "maleta", "vuelo", "pasaporte", "terminal"],
     Biblioteca: ["libros", "silencio", "lectura", "estantes", "estudio"],
+    Castillo: ["torre", "rey", "medieval", "muralla", "puente"],
+    Volcán: ["lava", "erupción", "cráter", "humo", "montaña"],
+    Mercado: ["puestos", "frutas", "comprar", "precio", "vendedor"],
+    Faro: ["luz", "costa", "barco", "noche", "guía"],
   },
   cluesEn: {
     Beach: ["sand", "waves", "sun", "sea", "towel"],
@@ -24,5 +28,9 @@ export const PLACES: WordCategory = {
     Hospital: ["doctor", "health", "emergency", "bed", "gown"],
     Airport: ["plane", "luggage", "flight", "passport", "terminal"],
     Library: ["books", "silence", "reading", "shelves", "study"],
+    Castle: ["tower", "king", "medieval", "wall", "bridge"],
+    Volcano: ["lava", "eruption", "crater", "smoke", "mountain"],
+    Market: ["stalls", "fruits", "buy", "price", "vendor"],
+    Lighthouse: ["light", "coast", "ship", "night", "guide"],
   },
 };

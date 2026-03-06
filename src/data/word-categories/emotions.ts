@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const EMOTIONS: WordCategory = {
   category: "Emociones",
   categoryEn: "Emotions",
-  words: ["Alegría", "Sorpresa", "Nostalgia", "Valentía", "Curiosidad", "Calma", "Orgullo", "Ternura"],
-  wordsEn: ["Joy", "Surprise", "Nostalgia", "Bravery", "Curiosity", "Calm", "Pride", "Tenderness"],
+  words: ["Alegría", "Sorpresa", "Nostalgia", "Valentía", "Curiosidad", "Calma", "Orgullo", "Ternura", "Emoción", "Vergüenza", "Esperanza", "Gratitud"],
+  wordsEn: ["Joy", "Surprise", "Nostalgia", "Bravery", "Curiosity", "Calm", "Pride", "Tenderness", "Excitement", "Embarrassment", "Hope", "Gratitude"],
   clues: {
     Alegría: ["sonrisa", "risa", "fiesta", "feliz", "bailar"],
     Sorpresa: ["inesperado", "regalo", "asombro", "ojos", "wow"],
@@ -14,6 +14,10 @@ export const EMOTIONS: WordCategory = {
     Calma: ["paz", "silencio", "tranquilo", "respirar", "sereno"],
     Orgullo: ["logro", "medalla", "triunfo", "satisfacción", "meta"],
     Ternura: ["abrazo", "suave", "cariño", "bebé", "corazón"],
+    Emoción: ["nervios", "latido", "adrenalina", "intenso", "vibrar"],
+    Vergüenza: ["rojo", "esconder", "pena", "mejillas", "tímido"],
+    Esperanza: ["futuro", "luz", "deseo", "confiar", "mañana"],
+    Gratitud: ["gracias", "aprecio", "regalo", "generoso", "valor"],
   },
   cluesEn: {
     Joy: ["smile", "laugh", "party", "happy", "dance"],
@@ -24,5 +28,9 @@ export const EMOTIONS: WordCategory = {
     Calm: ["peace", "silence", "quiet", "breathe", "serene"],
     Pride: ["achievement", "medal", "triumph", "satisfaction", "goal"],
     Tenderness: ["hug", "soft", "affection", "baby", "heart"],
+    Excitement: ["nerves", "heartbeat", "adrenaline", "intense", "thrill"],
+    Embarrassment: ["blush", "hide", "shame", "cheeks", "shy"],
+    Hope: ["future", "light", "wish", "trust", "tomorrow"],
+    Gratitude: ["thanks", "appreciate", "gift", "generous", "value"],
   },
 };

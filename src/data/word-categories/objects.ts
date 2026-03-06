@@ -3,8 +3,8 @@ import type { WordCategory } from "../secret-words";
 export const OBJECTS: WordCategory = {
   category: "Objetos",
   categoryEn: "Objects",
-  words: ["Espejo", "Reloj", "Llave", "Paraguas", "Guitarra", "Cámara", "Vela", "Mapa"],
-  wordsEn: ["Mirror", "Clock", "Key", "Umbrella", "Guitar", "Camera", "Candle", "Map"],
+  words: ["Espejo", "Reloj", "Llave", "Paraguas", "Guitarra", "Cámara", "Vela", "Mapa", "Corona", "Telescopio", "Cofre", "Brújula"],
+  wordsEn: ["Mirror", "Clock", "Key", "Umbrella", "Guitar", "Camera", "Candle", "Map", "Crown", "Telescope", "Chest", "Compass"],
   clues: {
     Espejo: ["reflejo", "cristal", "imagen", "baño", "brillante"],
     Reloj: ["hora", "manecillas", "tic-tac", "muñeca", "tiempo"],
@@ -14,6 +14,10 @@ export const OBJECTS: WordCategory = {
     Cámara: ["foto", "lente", "disparo", "enfoque", "recuerdo"],
     Vela: ["fuego", "cera", "mecha", "luz", "romántico"],
     Mapa: ["ruta", "tesoro", "brújula", "territorio", "viaje"],
+    Corona: ["rey", "oro", "joyas", "cabeza", "trono"],
+    Telescopio: ["estrellas", "lente", "cielo", "mirar", "galaxia"],
+    Cofre: ["tesoro", "cerradura", "madera", "pirata", "guardar"],
+    Brújula: ["norte", "aguja", "dirección", "magnético", "explorar"],
   },
   cluesEn: {
     Mirror: ["reflection", "glass", "image", "bathroom", "shiny"],
@@ -24,5 +28,9 @@ export const OBJECTS: WordCategory = {
     Camera: ["photo", "lens", "shot", "focus", "memory"],
     Candle: ["fire", "wax", "wick", "light", "romantic"],
     Map: ["route", "treasure", "compass", "territory", "travel"],
+    Crown: ["king", "gold", "jewels", "head", "throne"],
+    Telescope: ["stars", "lens", "sky", "look", "galaxy"],
+    Chest: ["treasure", "lock", "wood", "pirate", "store"],
+    Compass: ["north", "needle", "direction", "magnetic", "explore"],
   },
 };
