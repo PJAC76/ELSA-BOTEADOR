@@ -1,0 +1,36 @@
+import type { WordCategory } from "../secret-words";
+
+export const ANIMALS: WordCategory = {
+  category: "Animales",
+  categoryEn: "Animals",
+  words: ["Gato", "Perro", "Delfín", "Águila", "Mariposa", "Tortuga", "Caballo", "Pingüino", "León", "Búho", "Pulpo", "Cocodrilo"],
+  wordsEn: ["Cat", "Dog", "Dolphin", "Eagle", "Butterfly", "Turtle", "Horse", "Penguin", "Lion", "Owl", "Octopus", "Crocodile"],
+  clues: {
+    Gato: ["bigotes", "ronroneo", "felino", "siete vidas", "maullido"],
+    Perro: ["ladrido", "hueso", "fiel", "cola", "paseo"],
+    Delfín: ["océano", "salto", "inteligente", "aleta", "nariz"],
+    Águila: ["cielo", "garras", "nido", "vuelo", "pico"],
+    Mariposa: ["alas", "colores", "oruga", "jardín", "néctar"],
+    Tortuga: ["caparazón", "lenta", "reptil", "longeva", "arena"],
+    Caballo: ["galope", "herradura", "crin", "establo", "montar"],
+    Pingüino: ["hielo", "antártico", "esmoquin", "nadar", "frío"],
+    León: ["melena", "rugido", "sabana", "rey", "manada"],
+    Búho: ["nocturno", "sabio", "plumas", "girar", "ulular"],
+    Pulpo: ["tentáculos", "tinta", "océano", "camuflaje", "inteligente"],
+    Cocodrilo: ["escamas", "pantano", "mandíbula", "río", "reptil"],
+  },
+  cluesEn: {
+    Cat: ["whiskers", "purr", "feline", "nine lives", "meow"],
+    Dog: ["bark", "bone", "loyal", "tail", "walk"],
+    Dolphin: ["ocean", "jump", "smart", "fin", "nose"],
+    Eagle: ["sky", "claws", "nest", "flight", "beak"],
+    Butterfly: ["wings", "colors", "caterpillar", "garden", "nectar"],
+    Turtle: ["shell", "slow", "reptile", "long-lived", "sand"],
+    Horse: ["gallop", "horseshoe", "mane", "stable", "ride"],
+    Penguin: ["ice", "antarctic", "tuxedo", "swim", "cold"],
+    Lion: ["mane", "roar", "savanna", "king", "pride"],
+    Owl: ["nocturnal", "wise", "feathers", "rotate", "hoot"],
+    Octopus: ["tentacles", "ink", "ocean", "camouflage", "smart"],
+    Crocodile: ["scales", "swamp", "jaw", "river", "reptile"],
+  },
+};

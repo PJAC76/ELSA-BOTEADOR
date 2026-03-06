@@ -1,0 +1,36 @@
+import type { WordCategory } from "../secret-words";
+
+export const FOOD: WordCategory = {
+  category: "Comida",
+  categoryEn: "Food",
+  words: ["Pizza", "Sushi", "Tacos", "Helado", "Hamburguesa", "Pasta", "Chocolate", "Ensalada", "Galleta", "Pancake", "Empanada", "Ramen"],
+  wordsEn: ["Pizza", "Sushi", "Tacos", "Ice cream", "Burger", "Pasta", "Chocolate", "Salad", "Cookie", "Pancake", "Empanada", "Ramen"],
+  clues: {
+    Pizza: ["queso", "horno", "Italia", "masa", "pepperoni"],
+    Sushi: ["arroz", "Japón", "alga", "pescado", "palillos"],
+    Tacos: ["tortilla", "México", "salsa", "carne", "limón"],
+    Helado: ["frío", "cono", "sabor", "vainilla", "verano"],
+    Hamburguesa: ["pan", "carne", "ketchup", "parrilla", "queso"],
+    Pasta: ["Italia", "salsa", "fideos", "tomate", "albahaca"],
+    Chocolate: ["cacao", "dulce", "tableta", "bombón", "oscuro"],
+    Ensalada: ["lechuga", "fresca", "tomate", "aceite", "verde"],
+    Galleta: ["horno", "dulce", "crujiente", "chispas", "masa"],
+    Pancake: ["sirope", "desayuno", "redondo", "mantequilla", "esponjoso"],
+    Empanada: ["relleno", "masa", "horno", "carne", "dorada"],
+    Ramen: ["fideos", "caldo", "Japón", "huevo", "caliente"],
+  },
+  cluesEn: {
+    Pizza: ["cheese", "oven", "Italy", "dough", "pepperoni"],
+    Sushi: ["rice", "Japan", "seaweed", "fish", "chopsticks"],
+    Tacos: ["tortilla", "Mexico", "salsa", "meat", "lime"],
+    "Ice cream": ["cold", "cone", "flavor", "vanilla", "summer"],
+    Burger: ["bun", "meat", "ketchup", "grill", "cheese"],
+    Pasta: ["Italy", "sauce", "noodles", "tomato", "basil"],
+    Chocolate: ["cocoa", "sweet", "bar", "truffle", "dark"],
+    Salad: ["lettuce", "fresh", "tomato", "oil", "green"],
+    Cookie: ["oven", "sweet", "crunchy", "chips", "dough"],
+    Pancake: ["syrup", "breakfast", "round", "butter", "fluffy"],
+    Empanada: ["filling", "dough", "oven", "meat", "golden"],
+    Ramen: ["noodles", "broth", "Japan", "egg", "hot"],
+  },
+};
