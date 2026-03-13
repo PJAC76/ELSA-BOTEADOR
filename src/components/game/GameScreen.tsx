@@ -14,6 +14,7 @@ import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
+import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
