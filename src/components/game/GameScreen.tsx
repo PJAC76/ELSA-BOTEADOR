@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
-import { getRandomWord } from "@/data/secret-words";
+import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
