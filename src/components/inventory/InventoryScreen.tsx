@@ -46,7 +46,7 @@ type InventoryScreenProps = { avatarConfig: AvatarConfig; onBack: () => void; on
 const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreenProps) => {
   const { totalXp } = useProgressionStore();
   const level = getLevelForXp(totalXp);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategory>("hair");
   const [previewConfig, setPreviewConfig] = useState<AvatarConfig>({ ...avatarConfig });
   const [hasChanges, setHasChanges] = useState(false);
