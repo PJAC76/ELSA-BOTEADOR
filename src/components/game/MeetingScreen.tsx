@@ -724,6 +724,62 @@ const MeetingScreen = ({
                 ))}
               </div>
 
+              {/* Word Guess Input - only for agents who know the word */}
+              {myRole === "agent" && secretWord && !isGhost && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl bg-accent/10 p-3 border border-accent/20"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Key className="h-4 w-4 text-accent-foreground" />
+                    <span className="font-display text-xs font-bold text-foreground">{t("wordGuessTitle")}</span>
+                  </div>
+                  {hasGuessedCorrectly ? (
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-primary/15 px-3 py-2"
+                    >
+                      <span className="font-display text-sm font-bold text-primary">{t("guessCorrect")}</span>
+                      <span className="rounded-full bg-primary/20 px-2 py-0.5 font-display text-[10px] font-bold text-primary">{t("guessCorrectXp")}</span>
+                    </motion.div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={guessInput}
+                        onChange={(e) => setGuessInput(e.target.value)}
+                        placeholder={t("guessWordPlaceholder")}
+                        maxLength={30}
+                        className="flex-1 rounded-xl bg-muted px-3 py-2 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                        onKeyDown={(e) => { if (e.key === "Enter") handleGuessWord(); }}
+                      />
+                      <Button
+                        onClick={handleGuessWord}
+                        disabled={!guessInput.trim()}
+                        className="rounded-xl font-display text-xs"
+                        size="sm"
+                      >
+                        {t("guessWordButton")}
+                      </Button>
+                    </div>
+                  )}
+                  <AnimatePresence>
+                    {guessResult === "wrong" && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-2 font-body text-xs text-destructive text-center"
+                      >
+                        {t("guessWrong")}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
               <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} disabled={isGhost} players={players} clues={roundClues} />
 
               {isGhost && (
