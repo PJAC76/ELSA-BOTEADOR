@@ -177,6 +177,13 @@ const translations = {
     typeOneWord: "Escribe una palabra...",
     cluesSummary: "Pistas de esta ronda",
     clueRoundLabel: "Ronda de pistas",
+    guessWordPlaceholder: "¿Sabes la palabra? Escríbela...",
+    guessWordButton: "Adivinar 🔑",
+    guessCorrect: "🎉 ¡Adivinaste la palabra!",
+    guessCorrectXp: "+25 XP bonus",
+    guessWrong: "❌ Esa no es la palabra...",
+    guessAlreadyCorrect: "✅ ¡Ya adivinaste la palabra!",
+    wordGuessTitle: "Adivina la palabra secreta",
 
     // Meeting
     emergencyMeeting: "Reunión de emergencia",
@@ -613,6 +620,13 @@ const translations = {
     typeOneWord: "Type one word...",
     cluesSummary: "Clues from this round",
     clueRoundLabel: "Clue round",
+    guessWordPlaceholder: "Know the word? Type it...",
+    guessWordButton: "Guess 🔑",
+    guessCorrect: "🎉 You guessed the word!",
+    guessCorrectXp: "+25 XP bonus",
+    guessWrong: "❌ That's not the word...",
+    guessAlreadyCorrect: "✅ You already guessed it!",
+    wordGuessTitle: "Guess the secret word",
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",

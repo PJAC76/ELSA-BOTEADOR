@@ -14,6 +14,7 @@ import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
+import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
@@ -69,6 +70,9 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
 
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
+  const addXp = useProgressionStore((s) => s.addXp);
+  const handleWordGuessed = useCallback(() => { addXp(XP_REWARDS.WORD_GUESS); }, [addXp]);
+
   const handleNextRound = useCallback(() => {
     if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins"); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
@@ -91,6 +95,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             isGhost={false}
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
+            onWordGuessed={handleWordGuessed}
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}

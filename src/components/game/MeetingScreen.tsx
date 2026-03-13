@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb } from "lucide-react";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
@@ -25,6 +25,7 @@ type MeetingScreenProps = {
   isGhost: boolean;
   playerZones?: Record<string, Zone>;
   onVoteResult: (eliminatedId: string | null) => void;
+  onWordGuessed?: () => void;
   secretWord: string | null; // null for saboteur
   secretCategory: string;
   secretClues: string[]; // contextual clues for the word
@@ -445,6 +446,7 @@ const MeetingScreen = ({
   isGhost = false,
   playerZones = {},
   onVoteResult,
+  onWordGuessed,
   secretWord,
   secretCategory,
   secretClues,
@@ -460,6 +462,27 @@ const MeetingScreen = ({
   const [eliminatedPlayer, setEliminatedPlayer] = useState<MeetingPlayer | null>(null);
   const [roundClues, setRoundClues] = useState<ClueEntry[]>([]);
   const [clueRoundNumber, setClueRoundNumber] = useState(1);
+  const [guessInput, setGuessInput] = useState("");
+  const [guessResult, setGuessResult] = useState<"correct" | "wrong" | null>(null);
+  const [hasGuessedCorrectly, setHasGuessedCorrectly] = useState(false);
+
+  const normalizeWord = (w: string) => w.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  const handleGuessWord = useCallback(() => {
+    if (!guessInput.trim() || !secretWord || hasGuessedCorrectly) return;
+    const guess = normalizeWord(guessInput);
+    const answer = normalizeWord(secretWord);
+    if (guess === answer) {
+      setGuessResult("correct");
+      setHasGuessedCorrectly(true);
+      onWordGuessed?.();
+      playTap();
+    } else {
+      setGuessResult("wrong");
+      setTimeout(() => setGuessResult(null), 2000);
+    }
+    setGuessInput("");
+  }, [guessInput, secretWord, hasGuessedCorrectly, onWordGuessed]);
 
   const handleCluesComplete = useCallback((clues: ClueEntry[]) => {
     setRoundClues((prev) => [...prev, ...clues]);
@@ -700,6 +723,62 @@ const MeetingScreen = ({
                   </div>
                 ))}
               </div>
+
+              {/* Word Guess Input - only for agents who know the word */}
+              {myRole === "agent" && secretWord && !isGhost && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl bg-accent/10 p-3 border border-accent/20"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Key className="h-4 w-4 text-accent-foreground" />
+                    <span className="font-display text-xs font-bold text-foreground">{t("wordGuessTitle")}</span>
+                  </div>
+                  {hasGuessedCorrectly ? (
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-primary/15 px-3 py-2"
+                    >
+                      <span className="font-display text-sm font-bold text-primary">{t("guessCorrect")}</span>
+                      <span className="rounded-full bg-primary/20 px-2 py-0.5 font-display text-[10px] font-bold text-primary">{t("guessCorrectXp")}</span>
+                    </motion.div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={guessInput}
+                        onChange={(e) => setGuessInput(e.target.value)}
+                        placeholder={t("guessWordPlaceholder")}
+                        maxLength={30}
+                        className="flex-1 rounded-xl bg-muted px-3 py-2 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                        onKeyDown={(e) => { if (e.key === "Enter") handleGuessWord(); }}
+                      />
+                      <Button
+                        onClick={handleGuessWord}
+                        disabled={!guessInput.trim()}
+                        className="rounded-xl font-display text-xs"
+                        size="sm"
+                      >
+                        {t("guessWordButton")}
+                      </Button>
+                    </div>
+                  )}
+                  <AnimatePresence>
+                    {guessResult === "wrong" && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-2 font-body text-xs text-destructive text-center"
+                      >
+                        {t("guessWrong")}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
 
               <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} disabled={isGhost} players={players} clues={roundClues} />
 
