@@ -36,6 +36,7 @@ type MeetingScreenProps = {
 const CLUE_TIME_PER_PLAYER = 8;
 const DISCUSSION_TIME = 30;
 const VOTING_TIME = 15;
+const MIN_CLUE_ROUNDS = 2;
 
 const MOCK_PLAYERS: MeetingPlayer[] = [
   { id: "me", name: "Tú", emoji: "🕵️", role: "agent", isAlive: true, isGhost: false },
