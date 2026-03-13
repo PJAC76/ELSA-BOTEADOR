@@ -446,6 +446,7 @@ const MeetingScreen = ({
   isGhost = false,
   playerZones = {},
   onVoteResult,
+  onWordGuessed,
   secretWord,
   secretCategory,
   secretClues,
