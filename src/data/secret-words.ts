@@ -26,12 +26,37 @@ export const SECRET_WORD_BANK: WordCategory[] = [
   NATURE, MUSIC, TECHNOLOGY, FANTASY, COUNTRIES,
 ];
 
-export function getRandomWord(roundIndex: number): {
+// Fisher-Yates shuffle
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let shuffledCategories: WordCategory[] = [];
+let categoryPointer = 0;
+
+function getNextCategory(): WordCategory {
+  if (categoryPointer >= shuffledCategories.length) {
+    shuffledCategories = shuffleArray(SECRET_WORD_BANK);
+    categoryPointer = 0;
+  }
+  return shuffledCategories[categoryPointer++];
+}
+
+export function resetCategoryRotation() {
+  shuffledCategories = shuffleArray(SECRET_WORD_BANK);
+  categoryPointer = 0;
+}
+
+export function getRandomWord(_roundIndex: number): {
   category: string; categoryEn: string; word: string; wordEn: string;
   clues: string[]; cluesEn: string[];
 } {
-  const catIndex = roundIndex % SECRET_WORD_BANK.length;
-  const cat = SECRET_WORD_BANK[catIndex];
+  const cat = getNextCategory();
   const wordIndex = Math.floor(Math.random() * cat.words.length);
   const word = cat.words[wordIndex];
   const wordEn = cat.wordsEn[wordIndex];
