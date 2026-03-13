@@ -176,6 +176,7 @@ const translations = {
     isThinking: "pensando",
     typeOneWord: "Escribe una palabra...",
     cluesSummary: "Pistas de esta ronda",
+    clueRoundLabel: "Ronda de pistas",
 
     // Meeting
     emergencyMeeting: "Reunión de emergencia",
