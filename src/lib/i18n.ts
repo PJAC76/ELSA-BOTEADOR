@@ -688,6 +688,8 @@ const translations = {
     clothesCategory: "Clothes",
     accsCategory: "Accs",
     stickersCategory: "Stickers",
+    wordsCategory: "Words",
+    wordsRemaining: "remaining",
     saveChanges: "Save changes",
 
     // Inventory items
