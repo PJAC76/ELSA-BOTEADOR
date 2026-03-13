@@ -108,6 +108,24 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
 
       <div className="flex-1 overflow-y-auto px-4 pb-24">
         <AnimatePresence mode="wait">
+        {selectedCategory === "words" ? (
+          <motion.div key="words" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="flex flex-col gap-3">
+            {wordStats.map((stat, idx) => {
+              const pct = ((stat.total - stat.remaining) / stat.total) * 100;
+              return (
+                <motion.div key={stat.categoryEn} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }} className="rounded-2xl bg-card p-4 shadow-soft">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-display text-sm font-bold text-foreground">{language === "en" ? stat.categoryEn : stat.category}</span>
+                    <span className="font-display text-xs font-bold text-muted-foreground">{stat.remaining}/{stat.total} {t("wordsRemaining" as any)}</span>
+                  </div>
+                  <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ delay: idx * 0.04 + 0.2, duration: 0.5, ease: "easeOut" }} className="h-full rounded-full bg-primary" style={{ background: pct >= 100 ? "hsl(var(--accent))" : undefined }} />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : (
           <motion.div key={selectedCategory} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="grid grid-cols-3 gap-3">
             {categoryItems.map((item, idx) => {
               const isUnlocked = item.unlockLevel <= level; const isEquipped = isItemEquipped(item);
@@ -121,6 +139,7 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
               );
             })}
           </motion.div>
+        )}
         </AnimatePresence>
       </div>
 
