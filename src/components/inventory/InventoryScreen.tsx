@@ -62,6 +62,7 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
 
   const categoryItems = INVENTORY_ITEMS.filter((i) => i.category === selectedCategory);
   const unlockedCount = INVENTORY_ITEMS.filter((i) => i.unlockLevel <= level).length;
+  const wordStats = useMemo(() => getWordStats(), [selectedCategory]);
 
   const handleEquipItem = (item: InventoryItem) => {
     if (item.unlockLevel > level) return; playTap();
