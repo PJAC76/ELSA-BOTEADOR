@@ -474,6 +474,12 @@ const MeetingScreen = ({
       setTimeLeft((t) => {
         if (t <= 1) {
           if (phase === "discussion") {
+            if (clueRoundNumber < MIN_CLUE_ROUNDS) {
+              // Go back to clues for another round
+              setClueRoundNumber((r) => r + 1);
+              setPhase("clues");
+              return CLUE_TIME_PER_PLAYER;
+            }
             setPhase("voting");
             setTimeLeft(VOTING_TIME);
             playVoteAlarm();

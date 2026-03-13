@@ -18,8 +18,11 @@ const GameTutorialOverlay = ({ role, onClose }: Props) => {
     { emoji: "🧩", title: t("tutorialAgentStep4Title"), description: t("tutorialAgentStep4Desc"), position: "center" },
     { emoji: "🚫", title: t("tutorialAgentStep5Title"), description: t("tutorialAgentStep5Desc"), position: "center" },
     { emoji: "🚨", title: t("tutorialAgentStep6Title"), description: t("tutorialAgentStep6Desc"), position: "bottom" },
-    { emoji: "🗳️", title: t("tutorialAgentStep7Title"), description: t("tutorialAgentStep7Desc"), position: "center" },
-    { emoji: "🏆", title: t("tutorialAgentStep8Title"), description: t("tutorialAgentStep8Desc"), position: "center" },
+    { emoji: "🔑", title: t("tutorialAgentStep7Title"), description: t("tutorialAgentStep7Desc"), position: "center" },
+    { emoji: "💡", title: t("tutorialAgentStep8Title"), description: t("tutorialAgentStep8Desc"), position: "center" },
+    { emoji: "💬", title: t("tutorialAgentStep9Title"), description: t("tutorialAgentStep9Desc"), position: "center" },
+    { emoji: "🗳️", title: t("tutorialAgentStep10Title"), description: t("tutorialAgentStep10Desc"), position: "center" },
+    { emoji: "🏆", title: t("tutorialAgentStep11Title"), description: t("tutorialAgentStep11Desc"), position: "center" },
   ];
 
   const SABOTEUR_STEPS: TutorialStep[] = [
@@ -27,8 +30,10 @@ const GameTutorialOverlay = ({ role, onClose }: Props) => {
     { emoji: "📊", title: t("tutorialSaboteurStep2Title"), description: t("tutorialSaboteurStep2Desc"), position: "top" },
     { emoji: "💣", title: t("tutorialSaboteurStep3Title"), description: t("tutorialSaboteurStep3Desc"), position: "bottom" },
     { emoji: "⏳", title: t("tutorialSaboteurStep4Title"), description: t("tutorialSaboteurStep4Desc"), position: "center" },
-    { emoji: "🎭", title: t("tutorialSaboteurStep5Title"), description: t("tutorialSaboteurStep5Desc"), position: "center" },
-    { emoji: "🏆", title: t("tutorialSaboteurStep6Title"), description: t("tutorialSaboteurStep6Desc"), position: "center" },
+    { emoji: "❓", title: t("tutorialSaboteurStep5Title"), description: t("tutorialSaboteurStep5Desc"), position: "center" },
+    { emoji: "🎭", title: t("tutorialSaboteurStep6Title"), description: t("tutorialSaboteurStep6Desc"), position: "center" },
+    { emoji: "🗳️", title: t("tutorialSaboteurStep7Title"), description: t("tutorialSaboteurStep7Desc"), position: "center" },
+    { emoji: "🏆", title: t("tutorialSaboteurStep8Title"), description: t("tutorialSaboteurStep8Desc"), position: "center" },
   ];
 
   const steps = role === "agent" ? AGENT_STEPS : SABOTEUR_STEPS;
