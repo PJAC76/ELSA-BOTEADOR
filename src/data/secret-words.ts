@@ -39,6 +39,9 @@ function shuffleArray<T>(arr: T[]): T[] {
 let shuffledCategories: WordCategory[] = [];
 let categoryPointer = 0;
 
+// Track used word indices per category to avoid repeats
+const usedWordsMap = new Map<string, number[]>();
+
 function getNextCategory(): WordCategory {
   if (categoryPointer >= shuffledCategories.length) {
     shuffledCategories = shuffleArray(SECRET_WORD_BANK);
@@ -52,12 +55,28 @@ export function resetCategoryRotation() {
   categoryPointer = 0;
 }
 
+function pickUniqueWordIndex(cat: WordCategory): number {
+  const key = cat.categoryEn;
+  let used = usedWordsMap.get(key) || [];
+
+  // If all words used, reset for this category
+  if (used.length >= cat.words.length) {
+    used = [];
+  }
+
+  const available = cat.words.map((_, i) => i).filter((i) => !used.includes(i));
+  const picked = available[Math.floor(Math.random() * available.length)];
+  used.push(picked);
+  usedWordsMap.set(key, used);
+  return picked;
+}
+
 export function getRandomWord(_roundIndex: number): {
   category: string; categoryEn: string; word: string; wordEn: string;
   clues: string[]; cluesEn: string[];
 } {
   const cat = getNextCategory();
-  const wordIndex = Math.floor(Math.random() * cat.words.length);
+  const wordIndex = pickUniqueWordIndex(cat);
   const word = cat.words[wordIndex];
   const wordEn = cat.wordsEn[wordIndex];
   return {
