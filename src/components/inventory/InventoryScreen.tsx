@@ -57,6 +57,7 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
     { key: "clothes", label: t("clothesCategory"), emoji: "👗" },
     { key: "accessories", label: t("accsCategory"), emoji: "🎀" },
     { key: "stickers", label: t("stickersCategory"), emoji: "✨" },
+    { key: "words", label: t("wordsCategory" as any), emoji: "📖" },
   ];
 
   const categoryItems = INVENTORY_ITEMS.filter((i) => i.category === selectedCategory);
