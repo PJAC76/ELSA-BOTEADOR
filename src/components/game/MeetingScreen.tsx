@@ -459,9 +459,10 @@ const MeetingScreen = ({
   const [votes, setVotes] = useState<Record<string, string | null>>({});
   const [eliminatedPlayer, setEliminatedPlayer] = useState<MeetingPlayer | null>(null);
   const [roundClues, setRoundClues] = useState<ClueEntry[]>([]);
+  const [clueRoundNumber, setClueRoundNumber] = useState(1);
 
   const handleCluesComplete = useCallback((clues: ClueEntry[]) => {
-    setRoundClues(clues);
+    setRoundClues((prev) => [...prev, ...clues]);
     setPhase("discussion");
     setTimeLeft(DISCUSSION_TIME);
   }, []);
