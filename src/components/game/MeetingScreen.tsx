@@ -462,6 +462,27 @@ const MeetingScreen = ({
   const [eliminatedPlayer, setEliminatedPlayer] = useState<MeetingPlayer | null>(null);
   const [roundClues, setRoundClues] = useState<ClueEntry[]>([]);
   const [clueRoundNumber, setClueRoundNumber] = useState(1);
+  const [guessInput, setGuessInput] = useState("");
+  const [guessResult, setGuessResult] = useState<"correct" | "wrong" | null>(null);
+  const [hasGuessedCorrectly, setHasGuessedCorrectly] = useState(false);
+
+  const normalizeWord = (w: string) => w.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  const handleGuessWord = useCallback(() => {
+    if (!guessInput.trim() || !secretWord || hasGuessedCorrectly) return;
+    const guess = normalizeWord(guessInput);
+    const answer = normalizeWord(secretWord);
+    if (guess === answer) {
+      setGuessResult("correct");
+      setHasGuessedCorrectly(true);
+      onWordGuessed?.();
+      playTap();
+    } else {
+      setGuessResult("wrong");
+      setTimeout(() => setGuessResult(null), 2000);
+    }
+    setGuessInput("");
+  }, [guessInput, secretWord, hasGuessedCorrectly, onWordGuessed]);
 
   const handleCluesComplete = useCallback((clues: ClueEntry[]) => {
     setRoundClues((prev) => [...prev, ...clues]);
