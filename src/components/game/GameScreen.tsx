@@ -95,6 +95,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             isGhost={false}
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
+            onWordGuessed={handleWordGuessed}
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}
