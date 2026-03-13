@@ -88,3 +88,11 @@ export function getRandomWord(_roundIndex: number): {
     cluesEn: cat.cluesEn[wordEn] || [],
   };
 }
+
+export function getWordStats(): { categoryEn: string; category: string; total: number; remaining: number }[] {
+  return SECRET_WORD_BANK.map((cat) => {
+    const used = usedWordsMap.get(cat.categoryEn) || [];
+    const remaining = cat.words.length - (used.length >= cat.words.length ? 0 : used.length);
+    return { categoryEn: cat.categoryEn, category: cat.category, total: cat.words.length, remaining };
+  });
+}
