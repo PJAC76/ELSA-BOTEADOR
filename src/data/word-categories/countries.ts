@@ -1,0 +1,36 @@
+import type { WordCategory } from "../secret-words";
+
+export const COUNTRIES: WordCategory = {
+  category: "Países y Ciudades",
+  categoryEn: "Countries & Cities",
+  words: ["Japón", "Egipto", "Brasil", "París", "Roma", "Australia", "México", "Londres", "India", "Grecia", "Nueva York", "Rusia"],
+  wordsEn: ["Japan", "Egypt", "Brazil", "Paris", "Rome", "Australia", "Mexico", "London", "India", "Greece", "New York", "Russia"],
+  clues: {
+    Japón: ["sushi", "samurái", "cerezo", "anime", "kimono"],
+    Egipto: ["pirámide", "faraón", "desierto", "momia", "Nilo"],
+    Brasil: ["samba", "carnaval", "selva", "fútbol", "café"],
+    París: ["torre", "croissant", "moda", "museo", "río"],
+    Roma: ["coliseo", "pasta", "gladiador", "fuente", "imperio"],
+    Australia: ["canguro", "koala", "surf", "desierto", "coral"],
+    México: ["taco", "mariachi", "pirámide", "chile", "sombrero"],
+    Londres: ["Big Ben", "té", "reina", "lluvia", "puente"],
+    India: ["curry", "elefante", "Taj Mahal", "sari", "yoga"],
+    Grecia: ["olimpo", "templo", "isla", "mito", "oliva"],
+    "Nueva York": ["estatua", "rascacielos", "taxi", "Broadway", "pizza"],
+    Rusia: ["frío", "Kremlin", "matrioshka", "ballet", "vodka"],
+  },
+  cluesEn: {
+    Japan: ["sushi", "samurai", "cherry", "anime", "kimono"],
+    Egypt: ["pyramid", "pharaoh", "desert", "mummy", "Nile"],
+    Brazil: ["samba", "carnival", "jungle", "soccer", "coffee"],
+    Paris: ["tower", "croissant", "fashion", "museum", "river"],
+    Rome: ["colosseum", "pasta", "gladiator", "fountain", "empire"],
+    Australia: ["kangaroo", "koala", "surf", "desert", "coral"],
+    Mexico: ["taco", "mariachi", "pyramid", "chili", "sombrero"],
+    London: ["Big Ben", "tea", "queen", "rain", "bridge"],
+    India: ["curry", "elephant", "Taj Mahal", "sari", "yoga"],
+    Greece: ["olympus", "temple", "island", "myth", "olive"],
+    "New York": ["statue", "skyscraper", "taxi", "Broadway", "pizza"],
+    Russia: ["cold", "Kremlin", "matryoshka", "ballet", "vodka"],
+  },
+};

@@ -19,10 +19,11 @@ import { NATURE } from "./word-categories/nature";
 import { MUSIC } from "./word-categories/music";
 import { TECHNOLOGY } from "./word-categories/technology";
 import { FANTASY } from "./word-categories/fantasy";
+import { COUNTRIES } from "./word-categories/countries";
 
 export const SECRET_WORD_BANK: WordCategory[] = [
   ANIMALS, FOOD, PLACES, SPORTS, PROFESSIONS, OBJECTS, EMOTIONS, MOVIES,
-  NATURE, MUSIC, TECHNOLOGY, FANTASY,
+  NATURE, MUSIC, TECHNOLOGY, FANTASY, COUNTRIES,
 ];
 
 export function getRandomWord(roundIndex: number): {
