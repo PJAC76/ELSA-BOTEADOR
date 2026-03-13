@@ -263,6 +263,8 @@ const translations = {
     clothesCategory: "Ropa",
     accsCategory: "Accs",
     stickersCategory: "Stickers",
+    wordsCategory: "Palabras",
+    wordsRemaining: "restantes",
     saveChanges: "Guardar cambios",
 
     // Inventory items
@@ -686,6 +688,8 @@ const translations = {
     clothesCategory: "Clothes",
     accsCategory: "Accs",
     stickersCategory: "Stickers",
+    wordsCategory: "Words",
+    wordsRemaining: "remaining",
     saveChanges: "Save changes",
 
     // Inventory items
