@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
-import { getRandomWord } from "@/data/secret-words";
+import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
@@ -25,7 +25,7 @@ type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "s
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
-  const [round, setRound] = useState(1);
+  const [round, setRound] = useState(() => { resetCategoryRotation(); return 1; });
   const [phase, setPhase] = useState<GamePhase>("action");
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [tasksCompleted, setTasksCompleted] = useState(0);
