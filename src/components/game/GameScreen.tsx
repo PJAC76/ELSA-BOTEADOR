@@ -25,7 +25,7 @@ type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "s
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
-  const [round, setRound] = useState(1);
+  const [round, setRound] = useState(() => { resetCategoryRotation(); return 1; });
   const [phase, setPhase] = useState<GamePhase>("action");
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [tasksCompleted, setTasksCompleted] = useState(0);
