@@ -612,6 +612,7 @@ const translations = {
     isThinking: "thinking",
     typeOneWord: "Type one word...",
     cluesSummary: "Clues from this round",
+    clueRoundLabel: "Clue round",
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",
