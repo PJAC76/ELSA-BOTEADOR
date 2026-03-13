@@ -45,6 +45,7 @@ export const XP_REWARDS = {
   WIN: 50,
   LOSS: 15,
   TASK_BONUS: 5, // per task completed (future use)
+  WORD_GUESS: 25, // bonus for guessing the secret word
 } as const;
 
 type ProgressionStore = {

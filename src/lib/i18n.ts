@@ -620,6 +620,13 @@ const translations = {
     typeOneWord: "Type one word...",
     cluesSummary: "Clues from this round",
     clueRoundLabel: "Clue round",
+    guessWordPlaceholder: "Know the word? Type it...",
+    guessWordButton: "Guess 🔑",
+    guessCorrect: "🎉 You guessed the word!",
+    guessCorrectXp: "+25 XP bonus",
+    guessWrong: "❌ That's not the word...",
+    guessAlreadyCorrect: "✅ You already guessed it!",
+    wordGuessTitle: "Guess the secret word",
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",
