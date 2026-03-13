@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Lock, Sparkles, BookOpen } from "lucide-react";
 import type { AvatarConfig } from "@/types/game";
 import { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
 import { useProgressionStore, getLevelForXp } from "@/stores/progression-store";
 import { playTap } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
+import { getWordStats } from "@/data/secret-words";
 
-type InventoryCategory = "hair" | "clothes" | "accessories" | "stickers";
+type InventoryCategory = "hair" | "clothes" | "accessories" | "stickers" | "words";
 type InventoryItem = { id: string; emoji: string; nameKey: string; category: InventoryCategory; avatarKey?: keyof AvatarConfig; avatarValue?: number; unlockLevel: number };
 
 const INVENTORY_ITEMS: InventoryItem[] = [
