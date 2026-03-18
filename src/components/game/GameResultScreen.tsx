@@ -8,7 +8,7 @@ import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } 
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import Confetti from "./Confetti";
-import { Gift, Play, Star, Eye, Flag, Key } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag, Key, BookOpen } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import { useTranslation } from "@/lib/i18n";
 
@@ -21,9 +21,10 @@ const MOCK_PLAYERS = [
 ];
 
 type WordGuessInfo = { playerName: string; playerEmoji: string };
-type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; onBackToHome: () => void };
+type SecretWordInfo = { round: number; word: string; category: string };
+type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; secretWords?: SecretWordInfo[]; onBackToHome: () => void };
 
-const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: GameResultScreenProps) => {
+const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const hasRecorded = useRef(false);
@@ -79,6 +80,33 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: G
           <div className="h-2.5 rounded-full bg-muted overflow-hidden"><motion.div className="h-full rounded-full bg-campus-yellow" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ delay: 0.8, duration: 0.8 }} /></div>
         </div>
       </motion.div>
+
+      {/* Secret Words Section */}
+      {secretWords.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="mt-4 w-full max-w-xs">
+          <div className="rounded-2xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("secretWordsTitle")}</span>
+            </div>
+            <div className="space-y-2">
+              {secretWords.map((sw, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + idx * 0.12 }}
+                  className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2"
+                >
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 font-display text-[10px] font-bold text-primary">{t("roundLabel")} {sw.round}</span>
+                  <span className="flex-1 font-display text-sm font-bold text-foreground">{sw.word}</span>
+                  <span className="font-body text-xs text-muted-foreground">{sw.category}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Word Guessers Section */}
       {wordGuessers.length > 0 && (

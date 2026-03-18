@@ -23,7 +23,8 @@ const SABOTAGE_DURATION = 15;
 
 type GamePhase = "action" | "meeting" | "round-summary";
 type WordGuessInfo = { playerName: string; playerEmoji: string };
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[]) => void };
+type SecretWordInfo = { round: number; word: string; category: string };
+type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[]) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
@@ -39,6 +40,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [currentZone, setCurrentZone] = useState<Zone>("library");
   const [showTutorial, setShowTutorial] = useState(true);
   const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
+  const [secretWords, setSecretWords] = useState<SecretWordInfo[]>([]);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
@@ -80,10 +82,20 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     }
   }, [addXp]);
 
+  // Track secret word for current round when entering meeting
+  useEffect(() => {
+    if (phase === "meeting") {
+      setSecretWords((prev) => {
+        if (prev.some((sw) => sw.round === round)) return prev;
+        return [...prev, { round, word: secretWord, category: secretCategory }];
+      });
+    }
+  }, [phase, round, secretWord, secretCategory]);
+
   const handleNextRound = useCallback(() => {
-    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers); return; }
+    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
-  }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd]);
+  }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd, wordGuessers, secretWords]);
 
   return (
     <AnimatePresence mode="wait">
