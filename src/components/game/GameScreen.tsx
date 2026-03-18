@@ -38,6 +38,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
   const [currentZone, setCurrentZone] = useState<Zone>("library");
   const [showTutorial, setShowTutorial] = useState(true);
+  const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
