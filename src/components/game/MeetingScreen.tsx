@@ -118,14 +118,15 @@ const CluePhasePanel = ({
   const submitMyClue = (clue: string) => {
     const sanitized = clue.trim().split(/\s+/)[0] || "..."; // Only first word
     const entry: ClueEntry = {
-      playerId: myPlayerId,
-      playerName: currentPlayer.name,
-      emoji: currentPlayer.emoji,
+      playerId: "me",
+      playerName: t("you"),
+      playerEmoji: "🕵️",
       clue: sanitized,
     };
     const newClues = [...clues, entry];
     setClues(newClues);
     setMyClueInput("");
+    props.onClueGiven?.();
     advanceTurn(newClues);
   };
 
