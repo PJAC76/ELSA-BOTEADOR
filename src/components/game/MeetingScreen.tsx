@@ -26,6 +26,7 @@ type MeetingScreenProps = {
   playerZones?: Record<string, Zone>;
   onVoteResult: (eliminatedId: string | null) => void;
   onWordGuessed?: (playerName?: string, playerEmoji?: string) => void;
+  onClueGiven?: () => void;
   secretWord: string | null; // null for saboteur
   secretCategory: string;
   secretClues: string[]; // contextual clues for the word
