@@ -231,6 +231,8 @@ const translations = {
     agentRole: "🕵️ Agente",
     backToHome: "Volver al inicio",
     wordGuessedTitle: "🔑 Adivinaron la palabra secreta",
+    secretWordsTitle: "Palabras secretas",
+    roundLabel: "Ronda",
     achievementUnlocked: "¡Logro desbloqueado!",
     bonusClaimedToast: "🎁 ¡Bonus reclamado!",
     bonusClaimedDesc: "+15 XP extra por ver el video",
