@@ -22,7 +22,8 @@ const TOTAL_ROUNDS = 3;
 const SABOTAGE_DURATION = 15;
 
 type GamePhase = "action" | "meeting" | "round-summary";
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins") => void };
+type WordGuessInfo = { playerName: string; playerEmoji: string };
+type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[]) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
