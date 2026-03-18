@@ -24,7 +24,7 @@ type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
 type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; secretWords?: SecretWordInfo[]; onBackToHome: () => void };
 
-const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: GameResultScreenProps) => {
+const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const hasRecorded = useRef(false);
