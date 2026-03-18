@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
+import type { GameStats } from "./GameScreen";
 import { playVictory, playDefeat, playTap } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import Confetti from "./Confetti";
-import { Gift, Play, Star, Eye, Flag, Key, BookOpen } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2 } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import { useTranslation } from "@/lib/i18n";
 
