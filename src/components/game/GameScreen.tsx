@@ -22,7 +22,8 @@ const TOTAL_ROUNDS = 3;
 const SABOTAGE_DURATION = 15;
 
 type GamePhase = "action" | "meeting" | "round-summary";
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins") => void };
+type WordGuessInfo = { playerName: string; playerEmoji: string };
+type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[]) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
@@ -37,6 +38,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
   const [currentZone, setCurrentZone] = useState<Zone>("library");
   const [showTutorial, setShowTutorial] = useState(true);
+  const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
@@ -71,10 +73,15 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
   const addXp = useProgressionStore((s) => s.addXp);
-  const handleWordGuessed = useCallback(() => { addXp(XP_REWARDS.WORD_GUESS); }, [addXp]);
+  const handleWordGuessed = useCallback((playerName?: string, playerEmoji?: string) => {
+    addXp(XP_REWARDS.WORD_GUESS);
+    if (playerName && playerEmoji) {
+      setWordGuessers((prev) => [...prev, { playerName, playerEmoji }]);
+    }
+  }, [addXp]);
 
   const handleNextRound = useCallback(() => {
-    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins"); return; }
+    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
   }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd]);
 

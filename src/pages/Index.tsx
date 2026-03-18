@@ -53,6 +53,7 @@ const Index = () => {
   const [isHost, setIsHost] = useState(false);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
   const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
+  const [wordGuessers, setWordGuessers] = useState<{ playerName: string; playerEmoji: string }[]>([]);
 
   const handleSplashComplete = useCallback(() => setStep("login"), []);
   const handleLogin = useCallback(() => setStep("age-gate"), []);
@@ -181,8 +182,9 @@ const Index = () => {
       return (
         <GameScreen
           role={myRole}
-          onGameEnd={(result) => {
+          onGameEnd={(result, guessers) => {
             setGameResult(result);
+            setWordGuessers(guessers);
             setStep("game-result");
           }}
         />
@@ -192,6 +194,7 @@ const Index = () => {
         <GameResultScreen
           result={gameResult}
           myRole={myRole}
+          wordGuessers={wordGuessers}
           onBackToHome={() => setStep("home")}
         />
       );

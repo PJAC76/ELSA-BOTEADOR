@@ -25,7 +25,7 @@ type MeetingScreenProps = {
   isGhost: boolean;
   playerZones?: Record<string, Zone>;
   onVoteResult: (eliminatedId: string | null) => void;
-  onWordGuessed?: () => void;
+  onWordGuessed?: (playerName?: string, playerEmoji?: string) => void;
   secretWord: string | null; // null for saboteur
   secretCategory: string;
   secretClues: string[]; // contextual clues for the word
@@ -475,7 +475,7 @@ const MeetingScreen = ({
     if (guess === answer) {
       setGuessResult("correct");
       setHasGuessedCorrectly(true);
-      onWordGuessed?.();
+      onWordGuessed?.("Tú", "🕵️");
       playTap();
     } else {
       setGuessResult("wrong");
@@ -565,6 +565,7 @@ const MeetingScreen = ({
         const guessesCorrectly = isAgent && Math.random() < 0.4;
 
         if (guessesCorrectly) {
+          onWordGuessed?.(bot.name, bot.emoji);
           setMessages((prev) => [
             ...prev,
             {
