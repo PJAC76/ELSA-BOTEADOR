@@ -24,7 +24,8 @@ const SABOTAGE_DURATION = 15;
 type GamePhase = "action" | "meeting" | "round-summary";
 type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[]) => void };
+export type GameStats = { tasksCompleted: number; zonesVisited: number; cluesGiven: number };
+type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
