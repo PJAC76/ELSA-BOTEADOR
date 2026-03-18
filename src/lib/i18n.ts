@@ -627,6 +627,8 @@ const translations = {
     guessCorrect: "🎉 You guessed the word!",
     guessCorrectXp: "+25 XP bonus",
     guessWrong: "❌ That's not the word...",
+    botGuessCorrect: "🔑 {name} guessed the secret word!",
+    botGuessWrong: "🔑 {name} tried to guess: \"{guess}\" — Wrong!",
     guessAlreadyCorrect: "✅ You already guessed it!",
     wordGuessTitle: "Guess the secret word",
 
