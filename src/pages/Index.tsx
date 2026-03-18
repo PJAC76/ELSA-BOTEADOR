@@ -53,6 +53,7 @@ const Index = () => {
   const [isHost, setIsHost] = useState(false);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
   const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
+  const [wordGuessers, setWordGuessers] = useState<{ playerName: string; playerEmoji: string }[]>([]);
 
   const handleSplashComplete = useCallback(() => setStep("login"), []);
   const handleLogin = useCallback(() => setStep("age-gate"), []);
