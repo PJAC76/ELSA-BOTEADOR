@@ -107,6 +107,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: G
         </motion.div>
       )}
 
+      <AnimatePresence>
         {!bonusClaimed && (
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ delay: 0.9 }} className="mt-4 w-full max-w-xs">
             <button onClick={handleBonusVideo} className="flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-campus-yellow/20 to-campus-peach/20 p-4 shadow-soft transition-all active:scale-[0.97]">
