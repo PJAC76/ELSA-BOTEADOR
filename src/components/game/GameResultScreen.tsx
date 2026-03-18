@@ -82,6 +82,37 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
         </div>
       </motion.div>
 
+      {/* Game Stats Section */}
+      {gameStats && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }} className="mt-4 w-full max-w-xs">
+          <div className="rounded-2xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("gameStatsTitle")}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: CheckCircle2, value: gameStats.tasksCompleted, label: t("tasksCompletedStat") },
+                { icon: MapPin, value: gameStats.zonesVisited, label: t("zonesVisitedStat") },
+                { icon: MessageCircle, value: gameStats.cluesGiven, label: t("cluesGivenStat") },
+              ].map((stat, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.75 + idx * 0.1 }}
+                  className="flex flex-col items-center gap-1 rounded-xl bg-muted/50 p-3"
+                >
+                  <stat.icon className="h-4 w-4 text-primary" />
+                  <span className="font-display text-xl font-black text-foreground">{stat.value}</span>
+                  <span className="font-body text-[10px] text-muted-foreground text-center leading-tight">{stat.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Secret Words Section */}
       {secretWords.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="mt-4 w-full max-w-xs">
