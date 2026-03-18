@@ -565,6 +565,7 @@ const MeetingScreen = ({
         const guessesCorrectly = isAgent && Math.random() < 0.4;
 
         if (guessesCorrectly) {
+          onWordGuessed?.(bot.name, bot.emoji);
           setMessages((prev) => [
             ...prev,
             {
