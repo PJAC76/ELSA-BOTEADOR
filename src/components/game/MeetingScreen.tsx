@@ -547,6 +547,56 @@ const MeetingScreen = ({
     return () => timers.forEach(clearTimeout);
   }, [phase, players, myPlayerId]);
 
+  // Bot word guess attempts during discussion
+  useEffect(() => {
+    if (phase !== "discussion" || !secretWord) return;
+    const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    const wrongGuesses = ["manzana", "elefante", "guitarra", "castillo", "tormenta", "volcán", "pirata", "diamante", "cometa", "robot"];
+
+    botPlayers.forEach((bot, i) => {
+      // Only some bots try to guess (60% chance)
+      if (Math.random() > 0.6) return;
+
+      const timer = setTimeout(() => {
+        const isAgent = bot.role === "agent";
+        // Agents guess correctly 40% of the time, saboteur never guesses correctly
+        const guessesCorrectly = isAgent && Math.random() < 0.4;
+
+        if (guessesCorrectly) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `bot-guess-${Date.now()}-${i}`,
+              senderId: bot.id,
+              senderName: bot.name,
+              messageType: "preset" as const,
+              content: t("botGuessCorrect").replace("{name}", bot.name),
+              createdAt: Date.now(),
+            },
+          ]);
+        } else {
+          const wrongWord = wrongGuesses[Math.floor(Math.random() * wrongGuesses.length)];
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `bot-guess-${Date.now()}-${i}`,
+              senderId: bot.id,
+              senderName: bot.name,
+              messageType: "preset" as const,
+              content: t("botGuessWrong").replace("{name}", bot.name).replace("{guess}", wrongWord),
+              createdAt: Date.now(),
+            },
+          ]);
+        }
+      }, 8000 + (i + 1) * 3000 + Math.random() * 2000);
+      timers.push(timer);
+    });
+
+    return () => timers.forEach(clearTimeout);
+  }, [phase, players, myPlayerId, secretWord, t]);
+
   // Mock bot votes
   useEffect(() => {
     if (phase !== "voting") return;
