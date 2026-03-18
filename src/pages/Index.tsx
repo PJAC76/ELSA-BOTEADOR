@@ -201,6 +201,7 @@ const Index = () => {
           myRole={myRole}
           wordGuessers={wordGuessers}
           secretWords={secretWords}
+          gameStats={gameStats}
           onBackToHome={() => setStep("home")}
         />
       );
