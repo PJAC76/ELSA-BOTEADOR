@@ -120,13 +120,13 @@ const CluePhasePanel = ({
     const entry: ClueEntry = {
       playerId: "me",
       playerName: t("you"),
-      playerEmoji: "🕵️",
+      emoji: "🕵️",
       clue: sanitized,
     };
     const newClues = [...clues, entry];
     setClues(newClues);
     setMyClueInput("");
-    props.onClueGiven?.();
+    onClueGiven?.();
     advanceTurn(newClues);
   };
 
