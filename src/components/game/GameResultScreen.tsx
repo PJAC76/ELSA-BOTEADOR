@@ -21,7 +21,8 @@ const MOCK_PLAYERS = [
 ];
 
 type WordGuessInfo = { playerName: string; playerEmoji: string };
-type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; onBackToHome: () => void };
+type SecretWordInfo = { round: number; word: string; category: string };
+type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; secretWords?: SecretWordInfo[]; onBackToHome: () => void };
 
 const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
