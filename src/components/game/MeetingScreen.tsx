@@ -26,6 +26,7 @@ type MeetingScreenProps = {
   playerZones?: Record<string, Zone>;
   onVoteResult: (eliminatedId: string | null) => void;
   onWordGuessed?: (playerName?: string, playerEmoji?: string) => void;
+  onClueGiven?: () => void;
   secretWord: string | null; // null for saboteur
   secretCategory: string;
   secretClues: string[]; // contextual clues for the word
@@ -59,6 +60,7 @@ const CluePhasePanel = ({
   secretClues,
   myRole,
   onCluesComplete,
+  onClueGiven,
 }: {
   players: MeetingPlayer[];
   myPlayerId: string;
@@ -67,6 +69,7 @@ const CluePhasePanel = ({
   secretClues: string[];
   myRole: PlayerRole;
   onCluesComplete: (clues: ClueEntry[]) => void;
+  onClueGiven?: () => void;
 }) => {
   const { t } = useTranslation();
   const alivePlayers = players.filter((p) => p.isAlive);
@@ -117,14 +120,15 @@ const CluePhasePanel = ({
   const submitMyClue = (clue: string) => {
     const sanitized = clue.trim().split(/\s+/)[0] || "..."; // Only first word
     const entry: ClueEntry = {
-      playerId: myPlayerId,
-      playerName: currentPlayer.name,
-      emoji: currentPlayer.emoji,
+      playerId: "me",
+      playerName: t("you"),
+      emoji: "🕵️",
       clue: sanitized,
     };
     const newClues = [...clues, entry];
     setClues(newClues);
     setMyClueInput("");
+    onClueGiven?.();
     advanceTurn(newClues);
   };
 
@@ -447,6 +451,7 @@ const MeetingScreen = ({
   playerZones = {},
   onVoteResult,
   onWordGuessed,
+  onClueGiven,
   secretWord,
   secretCategory,
   secretClues,
@@ -728,6 +733,7 @@ const MeetingScreen = ({
                 secretClues={secretClues}
                 myRole={myRole}
                 onCluesComplete={handleCluesComplete}
+                onClueGiven={onClueGiven}
               />
             </motion.div>
           )}

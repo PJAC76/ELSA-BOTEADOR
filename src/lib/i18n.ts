@@ -234,6 +234,10 @@ const translations = {
     secretWordsTitle: "Palabras secretas",
     roundLabel: "Ronda",
     achievementUnlocked: "¡Logro desbloqueado!",
+    gameStatsTitle: "Resumen de la partida",
+    tasksCompletedStat: "Tareas completadas",
+    zonesVisitedStat: "Zonas visitadas",
+    cluesGivenStat: "Pistas dadas",
     bonusClaimedToast: "🎁 ¡Bonus reclamado!",
     bonusClaimedDesc: "+15 XP extra por ver el video",
 
@@ -682,6 +686,10 @@ const translations = {
     secretWordsTitle: "Secret words",
     roundLabel: "Round",
     achievementUnlocked: "Achievement unlocked!",
+    gameStatsTitle: "Game summary",
+    tasksCompletedStat: "Tasks completed",
+    zonesVisitedStat: "Zones visited",
+    cluesGivenStat: "Clues given",
     bonusClaimedToast: "🎁 Bonus claimed!",
     bonusClaimedDesc: "+15 extra XP from watching the video",
 

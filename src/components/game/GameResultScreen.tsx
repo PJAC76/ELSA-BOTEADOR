@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
+import type { GameStats } from "./GameScreen";
 import { playVictory, playDefeat, playTap } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import Confetti from "./Confetti";
-import { Gift, Play, Star, Eye, Flag, Key, BookOpen } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2 } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import { useTranslation } from "@/lib/i18n";
 
@@ -22,9 +23,9 @@ const MOCK_PLAYERS = [
 
 type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
-type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; secretWords?: SecretWordInfo[]; onBackToHome: () => void };
+type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; secretWords?: SecretWordInfo[]; gameStats?: GameStats; onBackToHome: () => void };
 
-const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], onBackToHome }: GameResultScreenProps) => {
+const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], gameStats, onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const hasRecorded = useRef(false);
@@ -80,6 +81,37 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
           <div className="h-2.5 rounded-full bg-muted overflow-hidden"><motion.div className="h-full rounded-full bg-campus-yellow" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ delay: 0.8, duration: 0.8 }} /></div>
         </div>
       </motion.div>
+
+      {/* Game Stats Section */}
+      {gameStats && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }} className="mt-4 w-full max-w-xs">
+          <div className="rounded-2xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("gameStatsTitle")}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: CheckCircle2, value: gameStats.tasksCompleted, label: t("tasksCompletedStat") },
+                { icon: MapPin, value: gameStats.zonesVisited, label: t("zonesVisitedStat") },
+                { icon: MessageCircle, value: gameStats.cluesGiven, label: t("cluesGivenStat") },
+              ].map((stat, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.75 + idx * 0.1 }}
+                  className="flex flex-col items-center gap-1 rounded-xl bg-muted/50 p-3"
+                >
+                  <stat.icon className="h-4 w-4 text-primary" />
+                  <span className="font-display text-xl font-black text-foreground">{stat.value}</span>
+                  <span className="font-body text-[10px] text-muted-foreground text-center leading-tight">{stat.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Secret Words Section */}
       {secretWords.length > 0 && (

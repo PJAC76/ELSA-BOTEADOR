@@ -15,6 +15,7 @@ import ProfileScreen from "@/components/profile/ProfileScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
 import GameScreen from "@/components/game/GameScreen";
 import GameResultScreen from "@/components/game/GameResultScreen";
+import type { GameStats } from "@/components/game/GameScreen";
 import InventoryScreen from "@/components/inventory/InventoryScreen";
 import HowToPlayScreen from "@/components/help/HowToPlayScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
@@ -55,6 +56,7 @@ const Index = () => {
   const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
   const [wordGuessers, setWordGuessers] = useState<{ playerName: string; playerEmoji: string }[]>([]);
   const [secretWords, setSecretWords] = useState<{ round: number; word: string; category: string }[]>([]);
+  const [gameStats, setGameStats] = useState<GameStats>({ tasksCompleted: 0, zonesVisited: 0, cluesGiven: 0 });
 
   const handleSplashComplete = useCallback(() => setStep("login"), []);
   const handleLogin = useCallback(() => setStep("age-gate"), []);
@@ -183,10 +185,11 @@ const Index = () => {
       return (
         <GameScreen
           role={myRole}
-          onGameEnd={(result, guessers, words) => {
+          onGameEnd={(result, guessers, words, stats) => {
             setGameResult(result);
             setWordGuessers(guessers);
             setSecretWords(words);
+            setGameStats(stats);
             setStep("game-result");
           }}
         />
@@ -198,6 +201,7 @@ const Index = () => {
           myRole={myRole}
           wordGuessers={wordGuessers}
           secretWords={secretWords}
+          gameStats={gameStats}
           onBackToHome={() => setStep("home")}
         />
       );

@@ -24,7 +24,8 @@ const SABOTAGE_DURATION = 15;
 type GamePhase = "action" | "meeting" | "round-summary";
 type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[]) => void };
+export type GameStats = { tasksCompleted: number; zonesVisited: number; cluesGiven: number };
+type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
@@ -41,6 +42,8 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [showTutorial, setShowTutorial] = useState(true);
   const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
   const [secretWords, setSecretWords] = useState<SecretWordInfo[]>([]);
+  const [zonesVisited, setZonesVisited] = useState<Set<Zone>>(new Set(["library"]));
+  const [cluesGiven, setCluesGiven] = useState(0);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
@@ -65,7 +68,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     return () => clearTimeout(timer);
   }, [sabotagedZones]);
 
-  const handleSelectZone = useCallback((zone: Zone) => { setCurrentZone(zone); if (role === "saboteur") return; if (sabotagedZones.includes(zone)) return; if (completedZones.includes(zone)) return; setActiveTask(zone); }, [role, sabotagedZones, completedZones]);
+  const handleSelectZone = useCallback((zone: Zone) => { setCurrentZone(zone); setZonesVisited((prev) => new Set(prev).add(zone)); if (role === "saboteur") return; if (sabotagedZones.includes(zone)) return; if (completedZones.includes(zone)) return; setActiveTask(zone); }, [role, sabotagedZones, completedZones]);
   const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
   const handleTaskComplete = useCallback((success: boolean) => { if (success && activeTask) { setTasksCompleted((c) => c + 1); setTotalTasksCompleted((c) => c + 1); setCompletedZones((prev) => [...prev, activeTask]); } setActiveTask(null); }, [activeTask]);
   const handleSabotage = useCallback((zone: Zone) => { setSabotagedZones((prev) => [...prev, zone]); }, []);
@@ -93,7 +96,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   }, [phase, round, secretWord, secretCategory]);
 
   const handleNextRound = useCallback(() => {
-    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords); return; }
+    if (round >= TOTAL_ROUNDS) { const stats: GameStats = { tasksCompleted: totalTasksCompleted + tasksCompleted, zonesVisited: zonesVisited.size, cluesGiven }; onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords, stats); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
   }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd, wordGuessers, secretWords]);
 
@@ -115,6 +118,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
+            onClueGiven={() => setCluesGiven((c) => c + 1)}
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}
