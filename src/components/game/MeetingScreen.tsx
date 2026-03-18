@@ -733,6 +733,7 @@ const MeetingScreen = ({
                 secretClues={secretClues}
                 myRole={myRole}
                 onCluesComplete={handleCluesComplete}
+                onClueGiven={onClueGiven}
               />
             </motion.div>
           )}
