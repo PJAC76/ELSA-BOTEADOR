@@ -451,6 +451,7 @@ const MeetingScreen = ({
   playerZones = {},
   onVoteResult,
   onWordGuessed,
+  onClueGiven,
   secretWord,
   secretCategory,
   secretClues,
