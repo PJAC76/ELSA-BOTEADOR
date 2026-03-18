@@ -42,6 +42,8 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [showTutorial, setShowTutorial] = useState(true);
   const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
   const [secretWords, setSecretWords] = useState<SecretWordInfo[]>([]);
+  const [zonesVisited, setZonesVisited] = useState<Set<Zone>>(new Set(["library"]));
+  const [cluesGiven, setCluesGiven] = useState(0);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
