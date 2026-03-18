@@ -118,6 +118,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
+            onClueGiven={() => setCluesGiven((c) => c + 1)}
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}

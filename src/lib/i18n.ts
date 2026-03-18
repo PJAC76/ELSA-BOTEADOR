@@ -686,6 +686,10 @@ const translations = {
     secretWordsTitle: "Secret words",
     roundLabel: "Round",
     achievementUnlocked: "Achievement unlocked!",
+    gameStatsTitle: "Game summary",
+    tasksCompletedStat: "Tasks completed",
+    zonesVisitedStat: "Zones visited",
+    cluesGivenStat: "Clues given",
     bonusClaimedToast: "🎁 Bonus claimed!",
     bonusClaimedDesc: "+15 extra XP from watching the video",
 
