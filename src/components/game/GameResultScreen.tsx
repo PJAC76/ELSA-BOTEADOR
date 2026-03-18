@@ -8,7 +8,7 @@ import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } 
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import Confetti from "./Confetti";
-import { Gift, Play, Star, Eye, Flag } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag, Key } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import { useTranslation } from "@/lib/i18n";
 
