@@ -82,10 +82,20 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     }
   }, [addXp]);
 
+  // Track secret word for current round when entering meeting
+  useEffect(() => {
+    if (phase === "meeting") {
+      setSecretWords((prev) => {
+        if (prev.some((sw) => sw.round === round)) return prev;
+        return [...prev, { round, word: secretWord, category: secretCategory }];
+      });
+    }
+  }, [phase, round, secretWord, secretCategory]);
+
   const handleNextRound = useCallback(() => {
-    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers); return; }
+    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
-  }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd]);
+  }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd, wordGuessers, secretWords]);
 
   return (
     <AnimatePresence mode="wait">

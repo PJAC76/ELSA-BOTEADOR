@@ -679,6 +679,8 @@ const translations = {
     agentRole: "🕵️ Agent",
     backToHome: "Back to home",
     wordGuessedTitle: "🔑 Guessed the secret word",
+    secretWordsTitle: "Secret words",
+    roundLabel: "Round",
     achievementUnlocked: "Achievement unlocked!",
     bonusClaimedToast: "🎁 Bonus claimed!",
     bonusClaimedDesc: "+15 extra XP from watching the video",

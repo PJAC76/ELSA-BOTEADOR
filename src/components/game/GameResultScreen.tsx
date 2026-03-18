@@ -81,6 +81,33 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
         </div>
       </motion.div>
 
+      {/* Secret Words Section */}
+      {secretWords.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="mt-4 w-full max-w-xs">
+          <div className="rounded-2xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("secretWordsTitle")}</span>
+            </div>
+            <div className="space-y-2">
+              {secretWords.map((sw, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + idx * 0.12 }}
+                  className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2"
+                >
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 font-display text-[10px] font-bold text-primary">{t("roundLabel")} {sw.round}</span>
+                  <span className="flex-1 font-display text-sm font-bold text-foreground">{sw.word}</span>
+                  <span className="font-body text-xs text-muted-foreground">{sw.category}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Word Guessers Section */}
       {wordGuessers.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }} className="mt-4 w-full max-w-xs">
