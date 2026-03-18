@@ -96,7 +96,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   }, [phase, round, secretWord, secretCategory]);
 
   const handleNextRound = useCallback(() => {
-    if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords); return; }
+    if (round >= TOTAL_ROUNDS) { const stats: GameStats = { tasksCompleted: totalTasksCompleted + tasksCompleted, zonesVisited: zonesVisited.size, cluesGiven }; onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins", wordGuessers, secretWords, stats); return; }
     setRound((r) => r + 1); setTimeLeft(ROUND_TIME); setTasksCompleted(0); setCompletedZones([]); setSabotagedZones([]); setPhase("action");
   }, [round, totalTasksCompleted, tasksCompleted, globalTasksTotal, onGameEnd, wordGuessers, secretWords]);
 
