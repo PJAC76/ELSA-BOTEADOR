@@ -475,7 +475,7 @@ const MeetingScreen = ({
     if (guess === answer) {
       setGuessResult("correct");
       setHasGuessedCorrectly(true);
-      onWordGuessed?.();
+      onWordGuessed?.("Tú", "🕵️");
       playTap();
     } else {
       setGuessResult("wrong");
