@@ -80,7 +80,33 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: G
         </div>
       </motion.div>
 
-      <AnimatePresence>
+      {/* Word Guessers Section */}
+      {wordGuessers.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }} className="mt-4 w-full max-w-xs">
+          <div className="rounded-2xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center gap-2">
+              <Key className="h-4 w-4 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("wordGuessedTitle")}</span>
+            </div>
+            <div className="space-y-2">
+              {wordGuessers.map((guesser, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.85 + idx * 0.15 }}
+                  className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2"
+                >
+                  <span className="text-lg">{guesser.playerEmoji}</span>
+                  <span className="flex-1 font-display text-xs font-bold text-foreground">{guesser.playerName}</span>
+                  <span className="rounded-full bg-primary/20 px-2 py-0.5 font-display text-[10px] font-bold text-primary">+{XP_REWARDS.WORD_GUESS} XP</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
         {!bonusClaimed && (
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ delay: 0.9 }} className="mt-4 w-full max-w-xs">
             <button onClick={handleBonusVideo} className="flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-campus-yellow/20 to-campus-peach/20 p-4 shadow-soft transition-all active:scale-[0.97]">
