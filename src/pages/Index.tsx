@@ -15,6 +15,7 @@ import ProfileScreen from "@/components/profile/ProfileScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
 import GameScreen from "@/components/game/GameScreen";
 import GameResultScreen from "@/components/game/GameResultScreen";
+import type { GameStats } from "@/components/game/GameScreen";
 import InventoryScreen from "@/components/inventory/InventoryScreen";
 import HowToPlayScreen from "@/components/help/HowToPlayScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
