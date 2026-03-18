@@ -73,7 +73,12 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
   const addXp = useProgressionStore((s) => s.addXp);
-  const handleWordGuessed = useCallback(() => { addXp(XP_REWARDS.WORD_GUESS); }, [addXp]);
+  const handleWordGuessed = useCallback((playerName?: string, playerEmoji?: string) => {
+    addXp(XP_REWARDS.WORD_GUESS);
+    if (playerName && playerEmoji) {
+      setWordGuessers((prev) => [...prev, { playerName, playerEmoji }]);
+    }
+  }, [addXp]);
 
   const handleNextRound = useCallback(() => {
     if (round >= TOTAL_ROUNDS) { onGameEnd(totalTasksCompleted + tasksCompleted >= Math.floor(globalTasksTotal * 0.6) ? "agents-win" : "saboteur-wins"); return; }
