@@ -20,9 +20,10 @@ const MOCK_PLAYERS = [
   { id: "p5", name: "StarGirl", emoji: "⭐", role: "agent" as PlayerRole },
 ];
 
-type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; onBackToHome: () => void };
+type WordGuessInfo = { playerName: string; playerEmoji: string };
+type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: PlayerRole; wordGuessers?: WordGuessInfo[]; onBackToHome: () => void };
 
-const GameResultScreen = ({ result, myRole, onBackToHome }: GameResultScreenProps) => {
+const GameResultScreen = ({ result, myRole, wordGuessers = [], onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const hasRecorded = useRef(false);
