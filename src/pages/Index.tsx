@@ -183,9 +183,10 @@ const Index = () => {
       return (
         <GameScreen
           role={myRole}
-          onGameEnd={(result, guessers) => {
+          onGameEnd={(result, guessers, words) => {
             setGameResult(result);
             setWordGuessers(guessers);
+            setSecretWords(words);
             setStep("game-result");
           }}
         />
