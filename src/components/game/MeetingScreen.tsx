@@ -60,6 +60,7 @@ const CluePhasePanel = ({
   secretClues,
   myRole,
   onCluesComplete,
+  onClueGiven,
 }: {
   players: MeetingPlayer[];
   myPlayerId: string;
@@ -68,6 +69,7 @@ const CluePhasePanel = ({
   secretClues: string[];
   myRole: PlayerRole;
   onCluesComplete: (clues: ClueEntry[]) => void;
+  onClueGiven?: () => void;
 }) => {
   const { t } = useTranslation();
   const alivePlayers = players.filter((p) => p.isAlive);
