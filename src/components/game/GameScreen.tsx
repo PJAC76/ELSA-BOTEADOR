@@ -68,7 +68,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
     return () => clearTimeout(timer);
   }, [sabotagedZones]);
 
-  const handleSelectZone = useCallback((zone: Zone) => { setCurrentZone(zone); if (role === "saboteur") return; if (sabotagedZones.includes(zone)) return; if (completedZones.includes(zone)) return; setActiveTask(zone); }, [role, sabotagedZones, completedZones]);
+  const handleSelectZone = useCallback((zone: Zone) => { setCurrentZone(zone); setZonesVisited((prev) => new Set(prev).add(zone)); if (role === "saboteur") return; if (sabotagedZones.includes(zone)) return; if (completedZones.includes(zone)) return; setActiveTask(zone); }, [role, sabotagedZones, completedZones]);
   const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
   const handleTaskComplete = useCallback((success: boolean) => { if (success && activeTask) { setTasksCompleted((c) => c + 1); setTotalTasksCompleted((c) => c + 1); setCompletedZones((prev) => [...prev, activeTask]); } setActiveTask(null); }, [activeTask]);
   const handleSabotage = useCallback((zone: Zone) => { setSabotagedZones((prev) => [...prev, zone]); }, []);
