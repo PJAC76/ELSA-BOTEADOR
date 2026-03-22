@@ -917,6 +917,9 @@ const translations = {
     leaderboardTitle: "Leaderboard",
     leaderboardSubtitle: "Top players on campus",
     leaderboard: "Ranking",
+    sortByXp: "By XP",
+    sortByWins: "Wins",
+    sortByLevel: "Level",
   },
 } as const;
 
