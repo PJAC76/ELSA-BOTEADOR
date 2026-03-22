@@ -210,6 +210,8 @@ const Index = () => {
       );
     case "how-to-play":
       return <HowToPlayScreen onBack={() => setStep("home")} />;
+    case "leaderboard":
+      return <LeaderboardScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }

@@ -909,6 +909,11 @@ const translations = {
     "chat-trust-me": "Trust me",
     "chat-skip-vote": "Let's skip the vote",
     "chat-where-were-you": "Where were you?",
+
+    // Leaderboard
+    leaderboardTitle: "Leaderboard",
+    leaderboardSubtitle: "Top players on campus",
+    leaderboard: "Ranking",
   },
 } as const;
 

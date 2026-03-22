@@ -72,10 +72,16 @@ const HomeScreen = ({
             </div>
           </Button>
 
-          <button onClick={onHowToPlay} className="flex w-full items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
-            <HelpCircle className="h-5 w-5 text-muted-foreground" />
-            <span className="font-display text-sm font-bold text-foreground">{t("howToPlay")}</span>
-          </button>
+          <div className="flex gap-3">
+            <button onClick={onHowToPlay} className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+              <HelpCircle className="h-5 w-5 text-muted-foreground" />
+              <span className="font-display text-sm font-bold text-foreground">{t("howToPlay")}</span>
+            </button>
+            <button onClick={onLeaderboard} className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+              <Trophy className="h-5 w-5 text-campus-yellow" />
+              <span className="font-display text-sm font-bold text-foreground">{t("leaderboard")}</span>
+            </button>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 px-0">
