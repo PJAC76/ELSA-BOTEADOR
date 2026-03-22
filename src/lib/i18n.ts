@@ -457,6 +457,9 @@ const translations = {
     leaderboardTitle: "Ranking",
     leaderboardSubtitle: "Las mejores jugadoras del campus",
     leaderboard: "Ranking",
+    sortByXp: "Por XP",
+    sortByWins: "Victorias",
+    sortByLevel: "Nivel",
   },
   en: {
     // Common
