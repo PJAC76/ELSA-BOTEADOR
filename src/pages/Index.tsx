@@ -18,6 +18,7 @@ import GameResultScreen from "@/components/game/GameResultScreen";
 import type { GameStats } from "@/components/game/GameScreen";
 import InventoryScreen from "@/components/inventory/InventoryScreen";
 import HowToPlayScreen from "@/components/help/HowToPlayScreen";
+import LeaderboardScreen from "@/components/leaderboard/LeaderboardScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
