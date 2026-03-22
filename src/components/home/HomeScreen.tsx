@@ -15,6 +15,7 @@ type HomeScreenProps = {
   onProfile?: () => void;
   onSettings?: () => void;
   onHowToPlay?: () => void;
+  onLeaderboard?: () => void;
 };
 
 const HomeScreen = ({
