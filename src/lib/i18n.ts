@@ -452,6 +452,11 @@ const translations = {
     "chat-trust-me": "Confíen en mí",
     "chat-skip-vote": "Saltemos el voto",
     "chat-where-were-you": "¿Dónde estabas?",
+
+    // Leaderboard
+    leaderboardTitle: "Ranking",
+    leaderboardSubtitle: "Las mejores jugadoras del campus",
+    leaderboard: "Ranking",
   },
   en: {
     // Common
