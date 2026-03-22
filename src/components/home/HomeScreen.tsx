@@ -20,7 +20,7 @@ type HomeScreenProps = {
 
 const HomeScreen = ({
   displayName, level = 1, xp = 0,
-  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay,
+  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
 
