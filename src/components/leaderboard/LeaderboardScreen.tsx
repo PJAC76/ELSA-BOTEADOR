@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Star, Flame, Crown, Medal } from "lucide-react";
 import { useProgressionStore, getLevelForXp } from "@/stores/progression-store";
 import { useTranslation } from "@/lib/i18n";
+
+type SortKey = "xp" | "wins" | "level";
 
 type LeaderboardEntry = {
   rank: number;
@@ -26,10 +29,10 @@ const MOCK_LEADERBOARD: Omit<LeaderboardEntry, "rank">[] = [
   { name: "NewbieRose", emoji: "🌹", xp: 120, wins: 1, level: 2 },
 ];
 
-const RANK_STYLES: Record<number, { bg: string; icon: typeof Crown }> = {
-  1: { bg: "bg-campus-yellow/20 ring-2 ring-campus-yellow/40", icon: Crown },
-  2: { bg: "bg-muted/80 ring-1 ring-muted-foreground/20", icon: Medal },
-  3: { bg: "bg-campus-peach/20 ring-1 ring-campus-peach/40", icon: Medal },
+const SORT_COMPARATORS: Record<SortKey, (a: Omit<LeaderboardEntry, "rank">, b: Omit<LeaderboardEntry, "rank">) => number> = {
+  xp: (a, b) => b.xp - a.xp,
+  wins: (a, b) => b.wins - a.wins,
+  level: (a, b) => b.level - a.level || b.xp - a.xp,
 };
 
 type Props = { onBack: () => void };
@@ -38,8 +41,8 @@ const LeaderboardScreen = ({ onBack }: Props) => {
   const { t } = useTranslation();
   const { totalXp, gamesWon } = useProgressionStore();
   const myLevel = getLevelForXp(totalXp);
+  const [sortBy, setSortBy] = useState<SortKey>("xp");
 
-  // Merge player into leaderboard
   const myEntry: Omit<LeaderboardEntry, "rank"> = {
     name: t("you"),
     emoji: "🕵️",
@@ -50,10 +53,22 @@ const LeaderboardScreen = ({ onBack }: Props) => {
   };
 
   const merged = [...MOCK_LEADERBOARD, myEntry]
-    .sort((a, b) => b.xp - a.xp)
+    .sort(SORT_COMPARATORS[sortBy])
     .map((e, i) => ({ ...e, rank: i + 1 }));
 
   const myRank = merged.find((e) => e.isMe)!;
+
+  const tabs: { key: SortKey; label: string }[] = [
+    { key: "xp", label: t("sortByXp") },
+    { key: "wins", label: t("sortByWins") },
+    { key: "level", label: t("sortByLevel") },
+  ];
+
+  const statValue = (entry: LeaderboardEntry) => {
+    if (sortBy === "wins") return `${entry.wins} 🏆`;
+    if (sortBy === "level") return `Lv.${entry.level}`;
+    return `${entry.xp} XP`;
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -91,12 +106,32 @@ const LeaderboardScreen = ({ onBack }: Props) => {
         </motion.div>
       </div>
 
+      {/* Sort tabs */}
+      <div className="px-6 pt-4">
+        <div className="flex gap-2 rounded-2xl bg-muted p-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setSortBy(tab.key)}
+              className={`flex-1 rounded-xl py-2 font-display text-xs font-bold transition-all ${
+                sortBy === tab.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Top 3 podium */}
-      <div className="-mt-2 px-6">
+      <div className="px-6">
         <motion.div
+          key={sortBy}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.1 }}
           className="flex items-end justify-center gap-3 py-4"
         >
           {[merged[1], merged[0], merged[2]].map((entry, podiumIdx) => {
@@ -104,17 +139,17 @@ const LeaderboardScreen = ({ onBack }: Props) => {
             const sizes = ["text-3xl", "text-4xl", "text-2xl"];
             return (
               <motion.div
-                key={entry.rank}
+                key={entry.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + podiumIdx * 0.1 }}
+                transition={{ delay: 0.2 + podiumIdx * 0.1 }}
                 className="flex flex-col items-center"
               >
                 <span className={sizes[podiumIdx]}>{entry.emoji}</span>
                 <p className={`font-display text-xs font-bold ${entry.isMe ? "text-primary" : "text-foreground"} mt-1 truncate max-w-[70px] text-center`}>
                   {entry.name}
                 </p>
-                <p className="font-body text-[10px] text-muted-foreground">{entry.xp} XP</p>
+                <p className="font-body text-[10px] text-muted-foreground">{statValue(entry)}</p>
                 <div className={`${heights[podiumIdx]} w-16 mt-1 rounded-t-xl flex items-start justify-center pt-2 ${
                   podiumIdx === 1 ? "bg-campus-yellow/30" : podiumIdx === 0 ? "bg-muted" : "bg-campus-peach/30"
                 }`}>
@@ -129,36 +164,33 @@ const LeaderboardScreen = ({ onBack }: Props) => {
       {/* Full list */}
       <div className="flex-1 px-6 pb-6 safe-bottom">
         <div className="space-y-2">
-          {merged.slice(3).map((entry, idx) => {
-            const style = RANK_STYLES[entry.rank];
-            return (
-              <motion.div
-                key={entry.rank}
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + idx * 0.05 }}
-                className={`flex items-center gap-3 rounded-2xl p-3 transition-colors ${
-                  entry.isMe
-                    ? "bg-primary/10 ring-2 ring-primary/30"
-                    : style?.bg || "bg-card"
-                }`}
-              >
-                <span className="w-8 text-center font-display text-sm font-black text-muted-foreground">#{entry.rank}</span>
-                <span className="text-xl">{entry.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-display text-sm font-bold truncate ${entry.isMe ? "text-primary" : "text-foreground"}`}>{entry.name}</p>
-                  <p className="font-body text-[10px] text-muted-foreground">{t("level")} {entry.level}</p>
+          {merged.slice(3).map((entry, idx) => (
+            <motion.div
+              key={entry.name}
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + idx * 0.05 }}
+              className={`flex items-center gap-3 rounded-2xl p-3 transition-colors ${
+                entry.isMe
+                  ? "bg-primary/10 ring-2 ring-primary/30"
+                  : "bg-card"
+              }`}
+            >
+              <span className="w-8 text-center font-display text-sm font-black text-muted-foreground">#{entry.rank}</span>
+              <span className="text-xl">{entry.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <p className={`font-display text-sm font-bold truncate ${entry.isMe ? "text-primary" : "text-foreground"}`}>{entry.name}</p>
+                <p className="font-body text-[10px] text-muted-foreground">{t("level")} {entry.level}</p>
+              </div>
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-1">
+                  <Star className="h-3 w-3 text-campus-yellow" />
+                  <span className="font-display text-xs font-bold text-foreground">{statValue(entry)}</span>
                 </div>
-                <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 text-campus-yellow" />
-                    <span className="font-display text-xs font-bold text-foreground">{entry.xp}</span>
-                  </div>
-                  <span className="font-body text-[10px] text-muted-foreground">{entry.wins} {t("victories").toLowerCase()}</span>
-                </div>
-              </motion.div>
-            );
-          })}
+                <span className="font-body text-[10px] text-muted-foreground">{entry.wins} {t("victories").toLowerCase()}</span>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
