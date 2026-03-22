@@ -108,6 +108,7 @@ const Index = () => {
           onProfile={() => setStep("profile")}
           onSettings={() => setStep("settings")}
           onHowToPlay={() => setStep("how-to-play")}
+          onLeaderboard={() => setStep("leaderboard")}
         />
       );
     case "play-friends":
