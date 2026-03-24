@@ -214,6 +214,8 @@ const Index = () => {
       return <HowToPlayScreen onBack={() => setStep("home")} />;
     case "leaderboard":
       return <LeaderboardScreen onBack={() => setStep("home")} />;
+    case "achievements":
+      return <AchievementsScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }

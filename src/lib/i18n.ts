@@ -716,6 +716,10 @@ const translations = {
     losses: "Losses",
     currentStreak: "Current streak",
     achievements: "Achievements",
+    achievementsSubtitle: "Unlock badges by playing",
+    achievementsComplete: "complete",
+    achievementsHint: "Keep playing to unlock more badges 🏅",
+    viewAchievements: "View achievements",
 
     // Settings
     settingsTitle: "Settings",
