@@ -19,6 +19,7 @@ import type { GameStats } from "@/components/game/GameScreen";
 import InventoryScreen from "@/components/inventory/InventoryScreen";
 import HowToPlayScreen from "@/components/help/HowToPlayScreen";
 import LeaderboardScreen from "@/components/leaderboard/LeaderboardScreen";
+import AchievementsScreen from "@/components/achievements/AchievementsScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
@@ -43,7 +44,8 @@ type Step =
   | "game"
   | "game-result"
   | "how-to-play"
-  | "leaderboard";
+  | "leaderboard"
+  | "achievements";
 
 const Index = () => {
   const { totalXp } = useProgressionStore();
@@ -109,6 +111,7 @@ const Index = () => {
           onSettings={() => setStep("settings")}
           onHowToPlay={() => setStep("how-to-play")}
           onLeaderboard={() => setStep("leaderboard")}
+          onAchievements={() => setStep("achievements")}
         />
       );
     case "play-friends":
@@ -154,6 +157,7 @@ const Index = () => {
           gamesWon={useProgressionStore.getState().gamesWon}
           onBack={() => setStep("home")}
           onAvatarSave={setAvatarConfig}
+          onAchievements={() => setStep("achievements")}
         />
       );
     case "settings":
@@ -212,6 +216,8 @@ const Index = () => {
       return <HowToPlayScreen onBack={() => setStep("home")} />;
     case "leaderboard":
       return <LeaderboardScreen onBack={() => setStep("home")} />;
+    case "achievements":
+      return <AchievementsScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }

@@ -252,6 +252,10 @@ const translations = {
     losses: "Derrotas",
     currentStreak: "Racha actual",
     achievements: "Logros",
+    achievementsSubtitle: "Desbloquea insignias jugando",
+    achievementsComplete: "completado",
+    achievementsHint: "Sigue jugando para desbloquear más insignias 🏅",
+    viewAchievements: "Ver logros",
 
     // Settings
     settingsTitle: "Ajustes",
@@ -712,6 +716,10 @@ const translations = {
     losses: "Losses",
     currentStreak: "Current streak",
     achievements: "Achievements",
+    achievementsSubtitle: "Unlock badges by playing",
+    achievementsComplete: "complete",
+    achievementsHint: "Keep playing to unlock more badges 🏅",
+    viewAchievements: "View achievements",
 
     // Settings
     settingsTitle: "Settings",

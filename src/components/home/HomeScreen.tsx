@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy } from "lucide-react";
+import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 import { useTranslation } from "@/lib/i18n";
 
@@ -16,11 +16,12 @@ type HomeScreenProps = {
   onSettings?: () => void;
   onHowToPlay?: () => void;
   onLeaderboard?: () => void;
+  onAchievements?: () => void;
 };
 
 const HomeScreen = ({
   displayName, level = 1, xp = 0,
-  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard,
+  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
 
@@ -82,6 +83,10 @@ const HomeScreen = ({
               <span className="font-display text-sm font-bold text-foreground">{t("leaderboard")}</span>
             </button>
           </div>
+          <button onClick={onAchievements} className="flex w-full items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+            <Award className="h-5 w-5 text-primary" />
+            <span className="font-display text-sm font-bold text-foreground">{t("achievements")}</span>
+          </button>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 px-0">
