@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 
 type ProfileScreenProps = { displayName: string; avatarConfig: AvatarConfig; level?: number; xp?: number; totalXp?: number; gamesPlayed?: number; gamesWon?: number; onBack: () => void; onAvatarSave: (config: AvatarConfig) => void; onAchievements?: () => void };
 
-const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, onBack, onAvatarSave }: ProfileScreenProps) => {
+const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, onBack, onAvatarSave, onAchievements }: ProfileScreenProps) => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const achievements = getUnlockedAchievements({ gamesPlayed, gamesWon, totalXp });
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
