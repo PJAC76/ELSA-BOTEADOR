@@ -252,6 +252,10 @@ const translations = {
     losses: "Derrotas",
     currentStreak: "Racha actual",
     achievements: "Logros",
+    achievementsSubtitle: "Desbloquea insignias jugando",
+    achievementsComplete: "completado",
+    achievementsHint: "Sigue jugando para desbloquear más insignias 🏅",
+    viewAchievements: "Ver logros",
 
     // Settings
     settingsTitle: "Ajustes",
