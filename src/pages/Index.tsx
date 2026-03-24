@@ -157,6 +157,7 @@ const Index = () => {
           gamesWon={useProgressionStore.getState().gamesWon}
           onBack={() => setStep("home")}
           onAvatarSave={setAvatarConfig}
+          onAchievements={() => setStep("achievements")}
         />
       );
     case "settings":

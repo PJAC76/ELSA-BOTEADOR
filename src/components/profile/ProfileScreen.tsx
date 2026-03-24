@@ -68,7 +68,10 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 rounded-3xl bg-card p-5 shadow-soft">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2"><Award className="h-5 w-5 text-primary" /><h3 className="font-display text-sm font-bold text-foreground">{t("achievements")}</h3></div>
-            <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{unlockedCount}/{achievements.length}</span>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{unlockedCount}/{achievements.length}</span>
+              {onAchievements && <button onClick={onAchievements} className="rounded-full bg-muted px-3 py-1 font-display text-[10px] font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">{t("viewAchievements")}</button>}
+            </div>
           </div>
           <div className="space-y-2.5">
             {achievements.map(({ achievement, unlocked }, i) => {
