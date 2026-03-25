@@ -939,6 +939,17 @@ const translations = {
     sortByXp: "By XP",
     sortByWins: "Wins",
     sortByLevel: "Level",
+
+    // Daily Streak
+    streakDay: "day",
+    streakDays: "days",
+    streakPlayedToday: "You already played today! 🎉",
+    streakPlayToKeep: "Play today to keep your streak!",
+    streakPlayToStart: "Play a game to start your streak!",
+    streakNext: "Next",
+    streakRecord: "Record",
+    streakBonusToast: "🔥 {days}-day streak!",
+    streakBonusDesc: "+{xp} XP streak bonus",
   },
 } as const;
 
