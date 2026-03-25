@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award } from "lucide-react";
+import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award, ShoppingBag } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 import DailyStreakBanner from "@/components/home/DailyStreakBanner";
 import { useTranslation } from "@/lib/i18n";
