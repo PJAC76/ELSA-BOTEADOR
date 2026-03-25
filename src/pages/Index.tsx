@@ -20,6 +20,7 @@ import InventoryScreen from "@/components/inventory/InventoryScreen";
 import HowToPlayScreen from "@/components/help/HowToPlayScreen";
 import LeaderboardScreen from "@/components/leaderboard/LeaderboardScreen";
 import AchievementsScreen from "@/components/achievements/AchievementsScreen";
+import ShopScreen from "@/components/shop/ShopScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
