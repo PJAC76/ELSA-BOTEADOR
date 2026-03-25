@@ -29,6 +29,7 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+        achievement: "border-campus-yellow/40 bg-gradient-to-r from-campus-yellow/15 via-background to-campus-peach/15 text-foreground shadow-[0_0_20px_hsl(var(--campus-yellow)/0.25)] animate-[pulse_2s_ease-in-out_1]",
       },
     },
     defaultVariants: {

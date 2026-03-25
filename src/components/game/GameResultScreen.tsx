@@ -48,8 +48,17 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
     useChallengesStore.getState().recordWeeklyGame(iWon);
     const updated = useProgressionStore.getState();
     const after = getUnlockedAchievements({ gamesPlayed: updated.gamesPlayed, gamesWon: updated.gamesWon, totalXp: updated.totalXp });
-    after.filter((a, i) => a.unlocked && !before[i].unlocked).forEach((item, idx) => {
-      setTimeout(() => { toast({ title: `${item.achievement.emoji} ${t("achievementUnlocked")}`, description: `${item.achievement.name} — ${item.achievement.description}` }); }, 2500 + idx * 800);
+    const newlyUnlocked = after.filter((a, i) => a.unlocked && !before[i].unlocked);
+    newlyUnlocked.forEach((item, idx) => {
+      setTimeout(() => {
+        playTap();
+        toast({
+          title: `${item.achievement.emoji} ${t("achievementUnlocked")}`,
+          description: `${item.achievement.name} — ${item.achievement.description}`,
+          variant: "achievement" as any,
+          duration: 5000,
+        });
+      }, 2500 + idx * 1200);
     });
   }, [iWon, toast, t]);
 
