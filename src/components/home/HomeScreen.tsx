@@ -18,6 +18,7 @@ type HomeScreenProps = {
   onHowToPlay?: () => void;
   onLeaderboard?: () => void;
   onAchievements?: () => void;
+  onShop?: () => void;
 };
 
 const HomeScreen = ({
