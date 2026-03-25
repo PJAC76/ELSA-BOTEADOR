@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
+import DailyStreakBanner from "@/components/home/DailyStreakBanner";
 import { useTranslation } from "@/lib/i18n";
 
 type HomeScreenProps = {
@@ -89,7 +90,11 @@ const HomeScreen = ({
           </button>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 px-0">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }} className="mt-4 px-0">
+          <DailyStreakBanner />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-3 px-0">
           <WeeklyChallenges compact />
         </motion.div>
 

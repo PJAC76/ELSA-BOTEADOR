@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
+import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
 import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2 } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
@@ -46,6 +47,20 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
     const before = getUnlockedAchievements({ gamesPlayed: store.gamesPlayed, gamesWon: store.gamesWon, totalXp: store.totalXp });
     store.recordGame(iWon);
     useChallengesStore.getState().recordWeeklyGame(iWon);
+    const streakXp = useStreakStore.getState().recordDailyPlay();
+    if (streakXp > 0) {
+      useProgressionStore.getState().addXp(streakXp);
+      const streakDays = useStreakStore.getState().currentStreak;
+      setTimeout(() => {
+        playTap();
+        toast({
+          title: t("streakBonusToast", { days: String(streakDays) }),
+          description: t("streakBonusDesc", { xp: String(streakXp) }),
+          variant: "achievement" as any,
+          duration: 5000,
+        });
+      }, 1800);
+    }
     const updated = useProgressionStore.getState();
     const after = getUnlockedAchievements({ gamesPlayed: updated.gamesPlayed, gamesWon: updated.gamesWon, totalXp: updated.totalXp });
     const newlyUnlocked = after.filter((a, i) => a.unlocked && !before[i].unlocked);
