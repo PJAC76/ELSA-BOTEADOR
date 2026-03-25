@@ -464,6 +464,17 @@ const translations = {
     sortByXp: "Por XP",
     sortByWins: "Victorias",
     sortByLevel: "Nivel",
+
+    // Daily Streak
+    streakDay: "día",
+    streakDays: "días",
+    streakPlayedToday: "¡Ya jugaste hoy! 🎉",
+    streakPlayToKeep: "¡Juega hoy para mantener tu racha!",
+    streakPlayToStart: "¡Juega una partida para empezar tu racha!",
+    streakNext: "Siguiente",
+    streakRecord: "Récord",
+    streakBonusToast: "🔥 ¡Racha de {days} días!",
+    streakBonusDesc: "+{xp} XP de bonificación por racha",
   },
   en: {
     // Common
