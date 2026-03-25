@@ -46,7 +46,8 @@ type Step =
   | "game-result"
   | "how-to-play"
   | "leaderboard"
-  | "achievements";
+  | "achievements"
+  | "shop";
 
 const Index = () => {
   const { totalXp } = useProgressionStore();
