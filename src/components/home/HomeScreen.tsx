@@ -85,10 +85,16 @@ const HomeScreen = ({
               <span className="font-display text-sm font-bold text-foreground">{t("leaderboard")}</span>
             </button>
           </div>
-          <button onClick={onAchievements} className="flex w-full items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
-            <Award className="h-5 w-5 text-primary" />
-            <span className="font-display text-sm font-bold text-foreground">{t("achievements")}</span>
-          </button>
+          <div className="flex gap-3">
+            <button onClick={onAchievements} className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+              <Award className="h-5 w-5 text-primary" />
+              <span className="font-display text-sm font-bold text-foreground">{t("achievements")}</span>
+            </button>
+            <button onClick={onShop} className="flex flex-1 items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+              <ShoppingBag className="h-5 w-5 text-campus-peach" />
+              <span className="font-display text-sm font-bold text-foreground">{t("shopTitle" as any)}</span>
+            </button>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }} className="mt-4 px-0">

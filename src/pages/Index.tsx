@@ -221,6 +221,8 @@ const Index = () => {
       return <LeaderboardScreen onBack={() => setStep("home")} />;
     case "achievements":
       return <AchievementsScreen onBack={() => setStep("home")} />;
+    case "shop":
+      return <ShopScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }
