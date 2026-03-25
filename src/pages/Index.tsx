@@ -114,6 +114,7 @@ const Index = () => {
           onHowToPlay={() => setStep("how-to-play")}
           onLeaderboard={() => setStep("leaderboard")}
           onAchievements={() => setStep("achievements")}
+          onShop={() => setStep("shop")}
         />
       );
     case "play-friends":
