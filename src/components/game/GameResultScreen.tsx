@@ -10,6 +10,7 @@ import { getUnlockedAchievements } from "@/stores/achievements";
 import { useChallengesStore } from "@/stores/challenges-store";
 import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
+import { useShopStore } from "@/stores/shop-store";
 import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2 } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import { useTranslation } from "@/lib/i18n";
@@ -84,12 +85,13 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   const { totalXp } = useProgressionStore();
   const level = getLevelForXp(totalXp);
   const { progress } = getXpForCurrentLevel(totalXp);
+  const equippedEffect = useShopStore((s) => s.equippedEffect);
 
   const players = MOCK_PLAYERS.map(p => p.id === "me" ? { ...p, name: t("you") } : p);
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-background px-6 py-8 safe-top safe-bottom overflow-y-auto">
-      {iWon && <Confetti count={60} />}
+      {iWon && <Confetti count={60} effectId={equippedEffect} />}
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }} className="flex flex-col items-center gap-3 mt-8">
         <motion.span className="text-7xl" animate={{ rotate: [0, -10, 10, -10, 0] }} transition={{ delay: 0.5, duration: 0.6 }}>{iWon ? "🏆" : "😢"}</motion.span>
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="font-display text-3xl font-black text-foreground text-center">{iWon ? t("victory") : t("defeat")}</motion.h1>
