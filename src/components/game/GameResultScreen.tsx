@@ -85,6 +85,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   const { totalXp } = useProgressionStore();
   const level = getLevelForXp(totalXp);
   const { progress } = getXpForCurrentLevel(totalXp);
+  const equippedEffect = useShopStore((s) => s.equippedEffect);
 
   const players = MOCK_PLAYERS.map(p => p.id === "me" ? { ...p, name: t("you") } : p);
 
