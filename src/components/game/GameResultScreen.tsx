@@ -91,7 +91,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-background px-6 py-8 safe-top safe-bottom overflow-y-auto">
-      {iWon && <Confetti count={60} />}
+      {iWon && <Confetti count={60} effectId={equippedEffect} />}
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }} className="flex flex-col items-center gap-3 mt-8">
         <motion.span className="text-7xl" animate={{ rotate: [0, -10, 10, -10, 0] }} transition={{ delay: 0.5, duration: 0.6 }}>{iWon ? "🏆" : "😢"}</motion.span>
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="font-display text-3xl font-black text-foreground text-center">{iWon ? t("victory") : t("defeat")}</motion.h1>
