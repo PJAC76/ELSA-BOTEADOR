@@ -160,6 +160,13 @@ const translations = {
     findPairs: "¡Encuentra los pares!",
     taskCompleted: "¡Tarea completada!",
     taskFailed: "¡Fallaste!",
+    unscrambleWord: "¡Descifra la palabra!",
+    typeAnswer: "Escribe tu respuesta",
+    hint: "Pista",
+    connectWires: "¡Conecta los cables!",
+    connectWiresHint: "Empareja cada símbolo con su pareja correcta",
+    completePattern: "¿Qué sigue en el patrón?",
+    patternType: "patrón",
 
     // Emergency button
     emergency: "🚨 ¡Emergencia!",
