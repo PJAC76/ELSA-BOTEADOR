@@ -160,6 +160,13 @@ const translations = {
     findPairs: "¡Encuentra los pares!",
     taskCompleted: "¡Tarea completada!",
     taskFailed: "¡Fallaste!",
+    unscrambleWord: "¡Descifra la palabra!",
+    typeAnswer: "Escribe tu respuesta",
+    hint: "Pista",
+    connectWires: "¡Conecta los cables!",
+    connectWiresHint: "Empareja cada símbolo con su pareja correcta",
+    completePattern: "¿Qué sigue en el patrón?",
+    patternType: "patrón",
 
     // Emergency button
     emergency: "🚨 ¡Emergencia!",
@@ -681,6 +688,13 @@ const translations = {
     findPairs: "Find the pairs!",
     taskCompleted: "Task completed!",
     taskFailed: "Failed!",
+    unscrambleWord: "Unscramble the word!",
+    typeAnswer: "Type your answer",
+    hint: "Hint",
+    connectWires: "Connect the wires!",
+    connectWiresHint: "Match each symbol with its correct pair",
+    completePattern: "What comes next?",
+    patternType: "pattern",
 
     // Emergency button
     emergency: "🚨 Emergency!",

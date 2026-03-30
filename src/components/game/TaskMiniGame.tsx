@@ -1,117 +1,317 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Timer, X } from "lucide-react";
 import type { Zone } from "@/types/game";
 import { ZONE_INFO } from "@/types/game";
-import { playTaskComplete, playTaskFail, playTimerUrgent, playTap } from "@/lib/sounds";
+import { playTaskComplete, playTaskFail, playTimerUrgent } from "@/lib/sounds";
 import { useTranslation, useZoneNames } from "@/lib/i18n";
 
-type TaskMiniGameProps = { zone: Zone; onComplete: (success: boolean) => void; onCancel: () => void };
-type MiniGameType = "tap-sequence" | "memory-match" | "quick-math";
-const GAME_TIME = 12;
+type TaskMiniGameProps = { zone: Zone; round: number; onComplete: (success: boolean) => void; onCancel: () => void };
+type MiniGameType = "word-unscramble" | "wire-connect" | "pattern-logic";
+type Difficulty = "easy" | "medium" | "hard";
 
-const TapSequenceGame = ({ onResult, t }: { onResult: (success: boolean) => void; t: (k: any) => string }) => {
-  const [sequence] = useState(() => Array.from({ length: 4 }, () => Math.floor(Math.random() * 4)));
-  const [step, setStep] = useState(0);
-  const [showingSequence, setShowingSequence] = useState(true);
-  const [highlightIdx, setHighlightIdx] = useState(-1);
-  const colors = ["bg-primary", "bg-accent", "bg-campus-yellow", "bg-secondary"];
-  const labels = ["🔴", "🟢", "🟡", "🟣"];
+const getDifficulty = (round: number): Difficulty => {
+  if (round <= 1) return "easy";
+  if (round <= 2) return "medium";
+  return "hard";
+};
 
-  useEffect(() => {
-    if (!showingSequence) return;
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < sequence.length) { setHighlightIdx(sequence[i]); setTimeout(() => setHighlightIdx(-1), 400); i++; }
-      else { clearInterval(interval); setShowingSequence(false); }
-    }, 700);
-    return () => clearInterval(interval);
-  }, [sequence, showingSequence]);
+const getGameTime = (diff: Difficulty) => ({ easy: 15, medium: 18, hard: 22 }[diff]);
 
-  const handleTap = (idx: number) => {
-    if (showingSequence) return;
-    if (idx === sequence[step]) { if (step + 1 >= sequence.length) onResult(true); else setStep(step + 1); }
-    else onResult(false);
+// ─── WORD UNSCRAMBLE ────────────────────────────────────────
+const WORD_POOLS: Record<Difficulty, { es: string[]; en: string[] }> = {
+  easy: {
+    es: ["GATO", "LUNA", "CASA", "ROJO", "AGUA", "FLOR", "PATO", "MESA", "NUBE", "CIELO"],
+    en: ["MOON", "FIRE", "BIRD", "STAR", "FISH", "TREE", "BOAT", "CAKE", "GOLD", "WIND"],
+  },
+  medium: {
+    es: ["PIRATA", "DRAGON", "BOSQUE", "TESORO", "SIRENA", "CORONA", "ESPEJO", "PIEDRA", "TRUENO", "PLANTA"],
+    en: ["PIRATE", "DRAGON", "FOREST", "SECRET", "PUZZLE", "SHADOW", "CASTLE", "ROCKET", "THRONE", "BRIDGE"],
+  },
+  hard: {
+    es: ["VOLCAN", "GALAXIA", "TORNADO", "CASCADA", "RELAMPAGO", "UNICORNIO", "AVENTURA", "MISTERIO", "UNIVERSO", "FANTASMA"],
+    en: ["VOLCANO", "TORNADO", "MYSTERY", "PHOENIX", "ECLIPSE", "LABYRINTH", "CRYSTAL", "SERPENT", "THUNDER", "HORIZON"],
+  },
+};
+
+function scrambleWord(word: string): string {
+  const arr = word.split("");
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const result = arr.join("");
+  return result === word ? scrambleWord(word) : result;
+}
+
+const WordUnscrambleGame = ({ onResult, t, difficulty, language }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty; language: string }) => {
+  const pool = language === "en" ? WORD_POOLS[difficulty].en : WORD_POOLS[difficulty].es;
+  const [word] = useState(() => pool[Math.floor(Math.random() * pool.length)]);
+  const [scrambled] = useState(() => scrambleWord(word));
+  const [guess, setGuess] = useState("");
+  const [shake, setShake] = useState(false);
+  const hintCount = difficulty === "easy" ? 2 : difficulty === "medium" ? 1 : 0;
+  const [hints, setHints] = useState<number[]>([]);
+
+  const revealHint = () => {
+    if (hints.length >= hintCount) return;
+    const unrevealed = word.split("").map((_, i) => i).filter((i) => !hints.includes(i));
+    if (unrevealed.length > 0) {
+      const idx = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+      setHints((h) => [...h, idx]);
+    }
+  };
+
+  const handleSubmit = () => {
+    const normalized = guess.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const target = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized === target) {
+      onResult(true);
+    } else {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <p className="font-display text-sm font-bold text-foreground text-center">{showingSequence ? t("memorizeSequence") : t("repeatSequence")}</p>
-      <div className="grid grid-cols-2 gap-3">
-        {[0, 1, 2, 3].map((idx) => (
-          <motion.button key={idx} animate={{ scale: highlightIdx === idx ? 1.2 : 1, opacity: highlightIdx === idx ? 1 : showingSequence ? 0.5 : 0.9 }} onClick={() => handleTap(idx)} className={`flex h-20 w-20 items-center justify-center rounded-2xl text-2xl shadow-soft transition-colors ${colors[idx]} ${!showingSequence ? "active:scale-90" : ""}`}>{labels[idx]}</motion.button>
+    <div className="flex flex-col items-center gap-5">
+      <p className="font-display text-sm font-bold text-foreground text-center">{t("unscrambleWord")}</p>
+      <motion.div animate={shake ? { x: [-8, 8, -8, 8, 0] } : {}} transition={{ duration: 0.4 }}
+        className="rounded-2xl bg-card px-6 py-4 shadow-soft">
+        <span className="font-display text-3xl font-black tracking-[0.3em] text-primary">{scrambled}</span>
+      </motion.div>
+      {/* Hint letters */}
+      <div className="flex gap-2">
+        {word.split("").map((letter, i) => (
+          <div key={i} className={`flex h-10 w-10 items-center justify-center rounded-lg border-2 font-display text-lg font-bold transition-all ${
+            hints.includes(i) ? "border-accent bg-accent/20 text-accent" : "border-muted bg-muted/30 text-transparent"
+          }`}>
+            {hints.includes(i) ? letter : "·"}
+          </div>
         ))}
       </div>
-      {!showingSequence && <p className="font-body text-xs text-muted-foreground">{t("step")} {step + 1} {t("of")} {sequence.length}</p>}
+      <div className="flex gap-2 w-full max-w-xs">
+        <input
+          type="text"
+          value={guess}
+          onChange={(e) => setGuess(e.target.value.toUpperCase())}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          placeholder={t("typeAnswer")}
+          maxLength={word.length + 2}
+          className="flex-1 rounded-xl border-2 border-muted bg-card px-4 py-3 font-display text-lg font-bold text-foreground text-center placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          autoFocus
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={handleSubmit} className="rounded-xl font-display font-bold" size="lg">{t("confirm")}</Button>
+        {hintCount > 0 && hints.length < hintCount && (
+          <Button onClick={revealHint} variant="outline" className="rounded-xl font-display text-xs">
+            💡 {t("hint")} ({hintCount - hints.length})
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
 
-const QuickMathGame = ({ onResult, t }: { onResult: (success: boolean) => void; t: (k: any) => string }) => {
-  const [problem] = useState(() => {
-    const a = Math.floor(Math.random() * 20) + 1; const b = Math.floor(Math.random() * 20) + 1;
-    const op = Math.random() > 0.5 ? "+" : "-"; const answer = op === "+" ? a + b : a - b;
-    const options = [answer];
-    while (options.length < 4) { const wrong = answer + Math.floor(Math.random() * 10) - 5; if (wrong !== answer && !options.includes(wrong)) options.push(wrong); }
-    return { a, b, op, answer, options: options.sort(() => Math.random() - 0.5) };
+// ─── WIRE CONNECT (themed puzzle) ───────────────────────────
+type WirePair = { left: string; right: string };
+
+const WIRE_SETS: Record<Difficulty, WirePair[][]> = {
+  easy: [
+    [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }],
+    [{ left: "🌱", right: "🌳" }, { left: "🥚", right: "🐣" }, { left: "🎵", right: "🎶" }],
+  ],
+  medium: [
+    [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }],
+    [{ left: "📡", right: "📺" }, { left: "🔋", right: "📱" }, { left: "💧", right: "🌊" }, { left: "🪨", right: "⛰️" }],
+  ],
+  hard: [
+    [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }, { left: "📡", right: "📺" }],
+    [{ left: "🧬", right: "🔬" }, { left: "🪐", right: "🚀" }, { left: "🎭", right: "🎪" }, { left: "⚡", right: "🔋" }, { left: "🧩", right: "🖼️" }],
+  ],
+};
+
+const WireConnectGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty }) => {
+  const [pairs] = useState(() => {
+    const sets = WIRE_SETS[difficulty];
+    return sets[Math.floor(Math.random() * sets.length)];
   });
+  const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
+  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
+  const [connections, setConnections] = useState<Map<number, number>>(new Map());
+  const [wrongPair, setWrongPair] = useState<[number, number] | null>(null);
 
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <p className="font-display text-sm font-bold text-foreground">{t("solveQuickly")}</p>
-      <div className="rounded-2xl bg-card px-8 py-4 shadow-soft">
-        <span className="font-display text-3xl font-black text-foreground">{problem.a} {problem.op} {problem.b} = ?</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {problem.options.map((opt, i) => (<Button key={i} onClick={() => onResult(opt === problem.answer)} className="h-14 w-24 rounded-2xl font-display text-lg font-bold" variant="outline">{opt}</Button>))}
-      </div>
-    </div>
-  );
-};
+  const handleLeftClick = (idx: number) => {
+    if (connections.has(idx)) return;
+    setSelectedLeft(idx);
+    setWrongPair(null);
+  };
 
-const MemoryMatchGame = ({ onResult, t }: { onResult: (success: boolean) => void; t: (k: any) => string }) => {
-  const emojis = ["🔑", "📱", "💡", "🎯"];
-  const [cards] = useState(() => [...emojis, ...emojis].sort(() => Math.random() - 0.5));
-  const [revealed, setRevealed] = useState<number[]>([]);
-  const [matched, setMatched] = useState<number[]>([]);
-  const [locked, setLocked] = useState(false);
+  const handleRightClick = (rightIdx: number) => {
+    if (selectedLeft === null) return;
+    // Check if this right is already connected
+    const alreadyUsed = Array.from(connections.values()).includes(rightIdx);
+    if (alreadyUsed) return;
 
-  const handleFlip = useCallback((idx: number) => {
-    if (locked || revealed.includes(idx) || matched.includes(idx)) return;
-    const next = [...revealed, idx]; setRevealed(next);
-    if (next.length === 2) {
-      setLocked(true);
-      if (cards[next[0]] === cards[next[1]]) {
-        const newMatched = [...matched, next[0], next[1]]; setMatched(newMatched); setRevealed([]); setLocked(false);
-        if (newMatched.length === cards.length) onResult(true);
-      } else { setTimeout(() => { setRevealed([]); setLocked(false); }, 600); }
+    const leftEmoji = pairs[selectedLeft].left;
+    const rightEmoji = shuffledRight[rightIdx].right;
+    const correct = pairs.some((p) => p.left === leftEmoji && p.right === rightEmoji);
+
+    if (correct) {
+      const newConn = new Map(connections);
+      newConn.set(selectedLeft, rightIdx);
+      setConnections(newConn);
+      setSelectedLeft(null);
+      if (newConn.size === pairs.length) onResult(true);
+    } else {
+      setWrongPair([selectedLeft, rightIdx]);
+      setTimeout(() => { setWrongPair(null); setSelectedLeft(null); }, 600);
     }
-  }, [revealed, matched, locked, cards, onResult]);
+  };
+
+  const isRightConnected = (ri: number) => Array.from(connections.values()).includes(ri);
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="font-display text-sm font-bold text-foreground">{t("findPairs")}</p>
-      <div className="grid grid-cols-4 gap-2">
-        {cards.map((card, idx) => {
-          const isVisible = revealed.includes(idx) || matched.includes(idx);
-          return (
-            <motion.button key={idx} animate={{ rotateY: isVisible ? 0 : 180 }} onClick={() => handleFlip(idx)} className={`flex h-16 w-16 items-center justify-center rounded-xl text-xl shadow-soft transition-colors ${matched.includes(idx) ? "bg-accent/30" : isVisible ? "bg-card" : "gradient-primary"}`}>{isVisible ? card : "❓"}</motion.button>
-          );
-        })}
+      <p className="font-display text-sm font-bold text-foreground text-center">{t("connectWires")}</p>
+      <p className="font-body text-xs text-muted-foreground">{t("connectWiresHint")}</p>
+      <div className="flex gap-8">
+        {/* Left column */}
+        <div className="flex flex-col gap-3">
+          {pairs.map((pair, i) => (
+            <motion.button key={i}
+              animate={wrongPair?.[0] === i ? { x: [-4, 4, -4, 4, 0] } : {}}
+              onClick={() => handleLeftClick(i)}
+              className={`flex h-14 w-14 items-center justify-center rounded-xl text-2xl shadow-soft transition-all ${
+                connections.has(i) ? "bg-accent/30 border-2 border-accent" :
+                selectedLeft === i ? "bg-primary/20 border-2 border-primary scale-110" :
+                "bg-card border-2 border-muted hover:border-primary/50"
+              }`}>{pair.left}</motion.button>
+          ))}
+        </div>
+        {/* Connection lines visual */}
+        <div className="flex items-center">
+          <div className="flex flex-col gap-3">
+            {pairs.map((_, i) => (
+              <div key={i} className={`h-14 flex items-center`}>
+                <div className={`h-0.5 w-8 transition-colors ${connections.has(i) ? "bg-accent" : "bg-muted"}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Right column */}
+        <div className="flex flex-col gap-3">
+          {shuffledRight.map((pair, i) => (
+            <motion.button key={i}
+              animate={wrongPair?.[1] === i ? { x: [-4, 4, -4, 4, 0] } : {}}
+              onClick={() => handleRightClick(i)}
+              className={`flex h-14 w-14 items-center justify-center rounded-xl text-2xl shadow-soft transition-all ${
+                isRightConnected(i) ? "bg-accent/30 border-2 border-accent" :
+                "bg-card border-2 border-muted hover:border-primary/50"
+              }`}>{pair.right}</motion.button>
+          ))}
+        </div>
       </div>
+      <p className="font-body text-xs text-muted-foreground">{connections.size}/{pairs.length} ✓</p>
     </div>
   );
 };
 
-const MINI_GAMES: MiniGameType[] = ["tap-sequence", "quick-math", "memory-match"];
+// ─── PATTERN LOGIC ──────────────────────────────────────────
+const SHAPE_SETS = ["🔵🔴🔵🔴", "⭐🌙⭐🌙", "🟢🟡🔵🟢", "🔺🔻🔺🔻", "💎❤️💎❤️"];
+const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢🟡🔵🟢🟡🔵", "💎💎❤️💎💎❤️"];
 
-const TaskMiniGame = ({ zone, onComplete, onCancel }: TaskMiniGameProps) => {
+function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: string; options: string[] } {
+  if (diff === "easy") {
+    // Simple AB pattern
+    const setStr = SHAPE_SETS[Math.floor(Math.random() * SHAPE_SETS.length)];
+    const emojis = [...setStr.match(/./gu)!];
+    const patLen = 2;
+    const pattern = emojis.slice(0, patLen);
+    const sequence = [];
+    for (let i = 0; i < 5; i++) sequence.push(pattern[i % patLen]);
+    const answer = pattern[5 % patLen];
+    const others = emojis.filter((e) => e !== answer);
+    const options = [answer, ...others.slice(0, 3)].sort(() => Math.random() - 0.5);
+    return { sequence, answer, options };
+  } else if (diff === "medium") {
+    // ABC pattern
+    const emojis = ["🔵", "🔴", "🟡", "🟢", "🟣"];
+    const patLen = 3;
+    const shuffled = [...emojis].sort(() => Math.random() - 0.5);
+    const pattern = shuffled.slice(0, patLen);
+    const sequence = [];
+    for (let i = 0; i < 7; i++) sequence.push(pattern[i % patLen]);
+    const answer = pattern[7 % patLen];
+    const options = [answer, ...shuffled.filter((e) => e !== answer).slice(0, 3)].sort(() => Math.random() - 0.5);
+    return { sequence, answer, options };
+  } else {
+    // AABAA pattern
+    const setStr = HARD_PATTERNS[Math.floor(Math.random() * HARD_PATTERNS.length)];
+    const emojis = [...setStr.match(/./gu)!];
+    const uniqueEmojis = [...new Set(emojis)];
+    const patLen = emojis.length;
+    const sequence = [...emojis, emojis[0]]; // repeat start
+    const answer = emojis[1 % patLen];
+    // Remove last and make it the question
+    sequence.pop();
+    const all = ["🔵", "🔴", "🟡", "🟢", "🟣", "⭐", "🌙", "💎", "❤️", "🔺", "🔻"];
+    const others = all.filter((e) => e !== answer && !uniqueEmojis.includes(e));
+    const options = [answer, ...others.slice(0, 3)].sort(() => Math.random() - 0.5);
+    return { sequence, answer, options };
+  }
+}
+
+const PatternLogicGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty }) => {
+  const [puzzle] = useState(() => generatePatternPuzzle(difficulty));
+  const [selected, setSelected] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+
+  const handleSelect = (opt: string) => {
+    setSelected(opt);
+    if (opt === puzzle.answer) {
+      onResult(true);
+    } else {
+      setShake(true);
+      setTimeout(() => { setShake(false); setSelected(null); }, 500);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-5">
+      <p className="font-display text-sm font-bold text-foreground text-center">{t("completePattern")}</p>
+      <motion.div animate={shake ? { x: [-6, 6, -6, 6, 0] } : {}} className="flex items-center gap-2 rounded-2xl bg-card px-4 py-3 shadow-soft">
+        {puzzle.sequence.map((emoji, i) => (
+          <span key={i} className="text-2xl">{emoji}</span>
+        ))}
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-dashed border-primary text-xl font-bold text-primary">?</span>
+      </motion.div>
+      <div className="grid grid-cols-2 gap-3">
+        {puzzle.options.map((opt, i) => (
+          <Button key={i} onClick={() => handleSelect(opt)}
+            className={`h-16 w-20 rounded-2xl text-2xl transition-all ${selected === opt && opt !== puzzle.answer ? "bg-destructive/20 border-destructive" : ""}`}
+            variant="outline">{opt}</Button>
+        ))}
+      </div>
+      <p className="font-body text-xs text-muted-foreground">
+        {difficulty === "easy" ? "A-B" : difficulty === "medium" ? "A-B-C" : "A-A-B"} {t("patternType")}
+      </p>
+    </div>
+  );
+};
+
+// ─── MAIN COMPONENT ─────────────────────────────────────────
+const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic"];
+
+const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) => {
   const [gameType] = useState<MiniGameType>(() => MINI_GAMES[Math.floor(Math.random() * MINI_GAMES.length)]);
-  const [timeLeft, setTimeLeft] = useState(GAME_TIME);
+  const difficulty = getDifficulty(round);
+  const [timeLeft, setTimeLeft] = useState(() => getGameTime(difficulty));
   const [result, setResult] = useState<"playing" | "success" | "fail">("playing");
   const info = ZONE_INFO[zone];
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const zoneNames = useZoneNames();
 
   useEffect(() => {
@@ -131,12 +331,15 @@ const TaskMiniGame = ({ zone, onComplete, onCancel }: TaskMiniGameProps) => {
     }
   }, [result, onComplete]);
 
+  const diffLabel = difficulty === "easy" ? "⭐" : difficulty === "medium" ? "⭐⭐" : "⭐⭐⭐";
+
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 pt-4 safe-top">
         <div className="flex items-center gap-2">
           <span className="text-xl">{info.emoji}</span>
           <span className="font-display text-sm font-bold text-foreground">{t("taskLabel")}: {zoneNames[zone]}</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{diffLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-1 rounded-full px-3 py-1 font-display text-xs font-bold ${timeLeft <= 5 ? "bg-destructive/20 text-destructive animate-pulse" : "bg-muted text-muted-foreground"}`}>
@@ -149,9 +352,9 @@ const TaskMiniGame = ({ zone, onComplete, onCancel }: TaskMiniGameProps) => {
         <AnimatePresence mode="wait">
           {result === "playing" ? (
             <motion.div key="game">
-              {gameType === "tap-sequence" && <TapSequenceGame onResult={handleResult} t={t} />}
-              {gameType === "quick-math" && <QuickMathGame onResult={handleResult} t={t} />}
-              {gameType === "memory-match" && <MemoryMatchGame onResult={handleResult} t={t} />}
+              {gameType === "word-unscramble" && <WordUnscrambleGame onResult={handleResult} t={t} difficulty={difficulty} language={language} />}
+              {gameType === "wire-connect" && <WireConnectGame onResult={handleResult} t={t} difficulty={difficulty} />}
+              {gameType === "pattern-logic" && <PatternLogicGame onResult={handleResult} t={t} difficulty={difficulty} />}
             </motion.div>
           ) : (
             <motion.div key="result" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-3">

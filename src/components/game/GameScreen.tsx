@@ -147,7 +147,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
               <button onClick={() => setShowTutorial(true)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-soft text-muted-foreground" aria-label="Tutorial"><HelpCircle className="h-5 w-5" /></button>
             </motion.div>
           )}
-          <AnimatePresence>{activeTask && <TaskMiniGame zone={activeTask} onComplete={handleTaskComplete} onCancel={() => setActiveTask(null)} />}</AnimatePresence>
+          <AnimatePresence>{activeTask && <TaskMiniGame zone={activeTask} round={round} onComplete={handleTaskComplete} onCancel={() => setActiveTask(null)} />}</AnimatePresence>
           <AnimatePresence>
             {phase === "round-summary" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1, filter: "blur(6px)" }} transition={{ duration: 0.5 }} className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm px-6">
