@@ -305,7 +305,7 @@ const PatternLogicGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) 
 };
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────
-const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic"];
+const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic", "connections", "emoji-guess"];
 
 const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) => {
   const [gameType] = useState<MiniGameType>(() => MINI_GAMES[Math.floor(Math.random() * MINI_GAMES.length)]);
