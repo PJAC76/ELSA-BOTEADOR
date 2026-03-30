@@ -686,9 +686,9 @@ const MeetingScreen = ({
         </div>
         <p className="mt-1 font-body text-xs text-primary-foreground/70">
           {phase === "clues"
-            ? `${t("cluePhaseSubtitle")} (${t("clueRoundLabel")} ${clueRoundNumber}/${MIN_CLUE_ROUNDS})`
+            ? `${t("cluePhaseSubtitle")} (${t("clueRoundLabel")} ${clueRoundNumber}/${TOTAL_CLUE_ROUNDS})`
             : phase === "discussion"
-            ? clueRoundNumber < MIN_CLUE_ROUNDS ? t("discussSaboteur") + ` — ${t("clueRoundLabel")} ${clueRoundNumber + 1} ${t("nextRound").replace("→", "").trim()}...` : t("discussSaboteur")
+            ? t("discussSaboteur")
             : phase === "voting"
             ? t("voteNow")
             : t("voteResult")}
