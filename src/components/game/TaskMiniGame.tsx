@@ -6,9 +6,11 @@ import type { Zone } from "@/types/game";
 import { ZONE_INFO } from "@/types/game";
 import { playTaskComplete, playTaskFail, playTimerUrgent } from "@/lib/sounds";
 import { useTranslation, useZoneNames } from "@/lib/i18n";
+import { ConnectionsGame } from "./minigames/ConnectionsGame";
+import { EmojiGuessGame } from "./minigames/EmojiGuessGame";
 
 type TaskMiniGameProps = { zone: Zone; round: number; onComplete: (success: boolean) => void; onCancel: () => void };
-type MiniGameType = "word-unscramble" | "wire-connect" | "pattern-logic";
+type MiniGameType = "word-unscramble" | "wire-connect" | "pattern-logic" | "connections" | "emoji-guess";
 type Difficulty = "easy" | "medium" | "hard";
 
 const getDifficulty = (round: number): Difficulty => {
@@ -303,7 +305,7 @@ const PatternLogicGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) 
 };
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────
-const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic"];
+const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic", "connections", "emoji-guess"];
 
 const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) => {
   const [gameType] = useState<MiniGameType>(() => MINI_GAMES[Math.floor(Math.random() * MINI_GAMES.length)]);
@@ -355,6 +357,8 @@ const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) 
               {gameType === "word-unscramble" && <WordUnscrambleGame onResult={handleResult} t={t} difficulty={difficulty} language={language} />}
               {gameType === "wire-connect" && <WireConnectGame onResult={handleResult} t={t} difficulty={difficulty} />}
               {gameType === "pattern-logic" && <PatternLogicGame onResult={handleResult} t={t} difficulty={difficulty} />}
+              {gameType === "connections" && <ConnectionsGame onResult={handleResult} t={t} difficulty={difficulty} language={language} />}
+              {gameType === "emoji-guess" && <EmojiGuessGame onResult={handleResult} t={t} difficulty={difficulty} language={language} />}
             </motion.div>
           ) : (
             <motion.div key="result" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-3">
