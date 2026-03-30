@@ -491,9 +491,15 @@ const MeetingScreen = ({
 
   const handleCluesComplete = useCallback((clues: ClueEntry[]) => {
     setRoundClues((prev) => [...prev, ...clues]);
-    setPhase("discussion");
-    setTimeLeft(DISCUSSION_TIME);
-  }, []);
+    // Do both clue rounds back-to-back before discussion
+    if (clueRoundNumber < TOTAL_CLUE_ROUNDS) {
+      setClueRoundNumber((r) => r + 1);
+      setPhase("clues");
+    } else {
+      setPhase("discussion");
+      setTimeLeft(DISCUSSION_TIME);
+    }
+  }, [clueRoundNumber]);
 
   // Timer for discussion and voting phases
   useEffect(() => {
