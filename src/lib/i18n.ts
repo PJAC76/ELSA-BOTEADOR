@@ -688,6 +688,13 @@ const translations = {
     findPairs: "Find the pairs!",
     taskCompleted: "Task completed!",
     taskFailed: "Failed!",
+    unscrambleWord: "Unscramble the word!",
+    typeAnswer: "Type your answer",
+    hint: "Hint",
+    connectWires: "Connect the wires!",
+    connectWiresHint: "Match each symbol with its correct pair",
+    completePattern: "What comes next?",
+    patternType: "pattern",
 
     // Emergency button
     emergency: "🚨 Emergency!",
