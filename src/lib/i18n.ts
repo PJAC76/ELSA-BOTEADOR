@@ -701,6 +701,12 @@ const translations = {
     connectWiresHint: "Match each symbol with its correct pair",
     completePattern: "What comes next?",
     patternType: "pattern",
+    connectionsTitle: "Group the words!",
+    connectionsHint: "Select {n} words that belong to the same group",
+    groupsSolved: "groups",
+    emojiGuessTitle: "What do these emojis represent?",
+    emojiGuessHint: "Guess the movie, show, person or game",
+    attemptsLeft: "Attempts",
 
     // Emergency button
     emergency: "🚨 Emergency!",
