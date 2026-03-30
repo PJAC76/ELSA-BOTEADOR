@@ -167,6 +167,12 @@ const translations = {
     connectWiresHint: "Empareja cada símbolo con su pareja correcta",
     completePattern: "¿Qué sigue en el patrón?",
     patternType: "patrón",
+    connectionsTitle: "¡Agrupa las palabras!",
+    connectionsHint: "Selecciona {n} palabras que pertenezcan al mismo grupo",
+    groupsSolved: "grupos",
+    emojiGuessTitle: "¿Qué representan estos emojis?",
+    emojiGuessHint: "Adivina la película, serie, persona o juego",
+    attemptsLeft: "Intentos",
 
     // Emergency button
     emergency: "🚨 ¡Emergencia!",
