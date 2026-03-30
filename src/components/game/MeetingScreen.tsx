@@ -35,10 +35,10 @@ type MeetingScreenProps = {
 
 // --- Constants ---
 
-const CLUE_TIME_PER_PLAYER = 8;
+const CLUE_TIME_PER_PLAYER = 12;
 const DISCUSSION_TIME = 30;
 const VOTING_TIME = 15;
-const MIN_CLUE_ROUNDS = 2;
+const TOTAL_CLUE_ROUNDS = 2;
 
 const MOCK_PLAYERS: MeetingPlayer[] = [
   { id: "me", name: "Tú", emoji: "🕵️", role: "agent", isAlive: true, isGhost: false },
@@ -491,9 +491,15 @@ const MeetingScreen = ({
 
   const handleCluesComplete = useCallback((clues: ClueEntry[]) => {
     setRoundClues((prev) => [...prev, ...clues]);
-    setPhase("discussion");
-    setTimeLeft(DISCUSSION_TIME);
-  }, []);
+    // Do both clue rounds back-to-back before discussion
+    if (clueRoundNumber < TOTAL_CLUE_ROUNDS) {
+      setClueRoundNumber((r) => r + 1);
+      setPhase("clues");
+    } else {
+      setPhase("discussion");
+      setTimeLeft(DISCUSSION_TIME);
+    }
+  }, [clueRoundNumber]);
 
   // Timer for discussion and voting phases
   useEffect(() => {
@@ -502,12 +508,9 @@ const MeetingScreen = ({
       setTimeLeft((t) => {
         if (t <= 1) {
           if (phase === "discussion") {
-            if (clueRoundNumber < MIN_CLUE_ROUNDS) {
-              // Go back to clues for another round
-              setClueRoundNumber((r) => r + 1);
-              setPhase("clues");
-              return CLUE_TIME_PER_PLAYER;
-            }
+            setPhase("voting");
+            setTimeLeft(VOTING_TIME);
+            playVoteAlarm();
             setPhase("voting");
             setTimeLeft(VOTING_TIME);
             playVoteAlarm();
@@ -683,9 +686,9 @@ const MeetingScreen = ({
         </div>
         <p className="mt-1 font-body text-xs text-primary-foreground/70">
           {phase === "clues"
-            ? `${t("cluePhaseSubtitle")} (${t("clueRoundLabel")} ${clueRoundNumber}/${MIN_CLUE_ROUNDS})`
+            ? `${t("cluePhaseSubtitle")} (${t("clueRoundLabel")} ${clueRoundNumber}/${TOTAL_CLUE_ROUNDS})`
             : phase === "discussion"
-            ? clueRoundNumber < MIN_CLUE_ROUNDS ? t("discussSaboteur") + ` — ${t("clueRoundLabel")} ${clueRoundNumber + 1} ${t("nextRound").replace("→", "").trim()}...` : t("discussSaboteur")
+            ? t("discussSaboteur")
             : phase === "voting"
             ? t("voteNow")
             : t("voteResult")}
