@@ -8,6 +8,11 @@ export type AvatarConfig = {
   hairColor: number;
   outfit: number;
   accessory: number;
+  makeup: number;
+  piercing: number;
+  nails: number;
+  eyeStyle: number;
+  shoes: number;
 };
 
 export type UserProfile = {
