@@ -82,7 +82,7 @@ const ShareMomentCard = ({
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: "ELSA-BOTEADOR",
-          text: t("shareMomentText"),
+          text: t("shareMomentText" as any),
           files: [file],
         });
       } else {
