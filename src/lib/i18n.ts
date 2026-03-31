@@ -867,7 +867,22 @@ const translations = {
     bonusClaimedToast: "🎁 Bonus claimed!",
     bonusClaimedDesc: "+15 extra XP from watching the video",
 
-    // Profile
+    // Share moments
+    shareMomentText: "Check out my epic moment in ELSA-BOTEADOR! 🎮",
+    shareTitleVictory: "VICTORY! 🏆",
+    shareTitleDefeat: "So close... 💀",
+    shareTitleWordGuess: "I guessed the word! 🧠",
+    shareTitleVote: "Dramatic vote! 🗳️",
+    shareTitleReveal: "The saboteur was...! 💣",
+    shareSubSaboteur: "I played as Saboteur 💣",
+    shareSubAgent: "I played as Agent 🕵️",
+    shareSubVoted: "was voted out",
+    shareJoinUs: "Dare to play? 👀",
+    shareExporting: "Creating...",
+    shareButton: "Share",
+    shareExported: "Image saved!",
+    shareYourMoment: "📸 Share moment",
+    shareMomentTitle: "Share",
     myProfile: "My Profile",
     editAvatar: "Edit Avatar",
     stats: "Statistics",
