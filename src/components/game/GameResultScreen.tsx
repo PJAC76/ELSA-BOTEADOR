@@ -36,6 +36,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   const [bonusClaimed, setBonusClaimed] = useState(false);
   const [xpAnimated, setXpAnimated] = useState(0);
   const [reportTarget, setReportTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   const iWon = (result === "agents-win" && myRole === "agent") || (result === "saboteur-wins" && myRole === "saboteur");
   const xpEarned = iWon ? XP_REWARDS.WIN : XP_REWARDS.LOSS;
