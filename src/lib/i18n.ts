@@ -254,7 +254,22 @@ const translations = {
     bonusClaimedToast: "🎁 ¡Bonus reclamado!",
     bonusClaimedDesc: "+15 XP extra por ver el video",
 
-    // Profile
+    // Share moments
+    shareMomentText: "¡Mira mi momento épico en ELSA-BOTEADOR! 🎮",
+    shareTitleVictory: "¡VICTORIA! 🏆",
+    shareTitleDefeat: "Casi lo logramos... 💀",
+    shareTitleWordGuess: "¡Adiviné la palabra! 🧠",
+    shareTitleVote: "¡Votación dramática! 🗳️",
+    shareTitleReveal: "¡La saboteadora era...! 💣",
+    shareSubSaboteur: "Jugué como Saboteadora 💣",
+    shareSubAgent: "Jugué como Agente 🕵️",
+    shareSubVoted: "fue expulsada",
+    shareJoinUs: "¿Te atreves a jugar? 👀",
+    shareExporting: "Creando...",
+    shareButton: "Compartir",
+    shareExported: "¡Imagen guardada!",
+    shareYourMoment: "📸 Compartir momento",
+    shareMomentTitle: "Compartir",
     myProfile: "Mi Perfil",
     editAvatar: "Editar Avatar",
     stats: "Estadísticas",
