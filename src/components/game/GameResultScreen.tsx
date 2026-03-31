@@ -11,8 +11,9 @@ import { useChallengesStore } from "@/stores/challenges-store";
 import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
 import { useShopStore } from "@/stores/shop-store";
-import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2 } from "lucide-react";
+import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2, Camera } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
+import ShareMomentCard from "./ShareMomentCard";
 import { useTranslation } from "@/lib/i18n";
 
 const MOCK_PLAYERS = [
