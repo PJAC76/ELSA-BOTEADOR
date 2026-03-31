@@ -27,7 +27,7 @@ const HomeScreen = ({
   onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
-
+  const { squadMembers, stats: squadStats, squadName } = useBffStore();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="gradient-primary px-6 pb-8 pt-12 safe-top">
