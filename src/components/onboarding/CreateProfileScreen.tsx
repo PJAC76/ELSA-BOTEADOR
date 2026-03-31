@@ -22,7 +22,7 @@ const ACCESSORIES = ["🎀", "🕶️", "🎒", "💍", "🧢"];
 const CreateProfileScreen = ({ onComplete }: CreateProfileScreenProps) => {
   const [displayName, setDisplayName] = useState("");
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
-    skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0,
+    skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0, makeup: 0, piercing: 0, nails: 0, eyeStyle: 0, shoes: 0,
   });
   const [language, setLanguage] = useState<Language>("es");
   const { t } = useTranslation();

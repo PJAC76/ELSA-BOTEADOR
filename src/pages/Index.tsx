@@ -24,7 +24,7 @@ import ShopScreen from "@/components/shop/ShopScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 
-const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0 };
+const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0, makeup: 0, piercing: 0, nails: 0, eyeStyle: 0, shoes: 0 };
 
 type Step =
   | "splash"
