@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award, ShoppingBag } from "lucide-react";
+import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award, ShoppingBag, Heart } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 import DailyStreakBanner from "@/components/home/DailyStreakBanner";
 import { useTranslation } from "@/lib/i18n";
+import { useBffStore } from "@/stores/bff-store";
 
 type HomeScreenProps = {
   displayName: string;
@@ -26,7 +27,7 @@ const HomeScreen = ({
   onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
-
+  const { squadMembers, stats: squadStats, squadName } = useBffStore();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="gradient-primary px-6 pb-8 pt-12 safe-top">
@@ -100,6 +101,36 @@ const HomeScreen = ({
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }} className="mt-4 px-0">
           <DailyStreakBanner />
         </motion.div>
+
+        {/* BFF Squad Widget */}
+        {squadMembers.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }} className="mt-3">
+            <button onClick={onFriends} className="w-full rounded-2xl bg-gradient-to-r from-primary/8 via-secondary/5 to-campus-peach/8 p-4 shadow-soft text-left transition-all active:scale-[0.98]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-primary" />
+                  <span className="font-display text-xs font-bold text-foreground">{squadName}</span>
+                </div>
+                {squadStats.sharedStreak > 0 && (
+                  <span className="flex items-center gap-1 rounded-full bg-campus-yellow/20 px-2 py-0.5 font-display text-[10px] font-bold text-foreground">
+                    🔥 {squadStats.sharedStreak}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                {squadMembers.map((m) => (
+                  <div key={m.id} className="flex h-9 w-9 items-center justify-center rounded-xl gradient-fun">
+                    <span className="text-base">{m.emoji}</span>
+                  </div>
+                ))}
+                <div className="ml-auto flex items-center gap-3 text-muted-foreground">
+                  <span className="font-display text-[10px] font-bold">🎮 {squadStats.gamesPlayedTogether}</span>
+                  <span className="font-display text-[10px] font-bold">🏆 {squadStats.winsTogetherAgent + squadStats.winsTogetherSaboteur}</span>
+                </div>
+              </div>
+            </button>
+          </motion.div>
+        )}
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-3 px-0">
           <WeeklyChallenges compact />
