@@ -96,11 +96,11 @@ const ShareMomentCard = ({
 
   const getTitleText = () => {
     switch (type) {
-      case "victory": return iWon ? t("shareTitleVictory") : t("shareTitleDefeat");
-      case "defeat": return t("shareTitleDefeat");
-      case "word-guess": return t("shareTitleWordGuess");
-      case "dramatic-vote": return t("shareTitleVote");
-      case "saboteur-reveal": return t("shareTitleReveal");
+      case "victory": return iWon ? t("shareTitleVictory" as any) : t("shareTitleDefeat" as any);
+      case "defeat": return t("shareTitleDefeat" as any);
+      case "word-guess": return t("shareTitleWordGuess" as any);
+      case "dramatic-vote": return t("shareTitleVote" as any);
+      case "saboteur-reveal": return t("shareTitleReveal" as any);
     }
   };
 
@@ -108,11 +108,11 @@ const ShareMomentCard = ({
     switch (type) {
       case "victory":
       case "defeat":
-        return myRole === "saboteur" ? t("shareSubSaboteur") : t("shareSubAgent");
+        return myRole === "saboteur" ? t("shareSubSaboteur" as any) : t("shareSubAgent" as any);
       case "word-guess":
         return secretWord ? `"${secretWord}"` : "";
       case "dramatic-vote":
-        return eliminatedPlayer ? `${eliminatedPlayer} ${t("shareSubVoted")}` : "";
+        return eliminatedPlayer ? `${eliminatedPlayer} ${t("shareSubVoted" as any)}` : "";
       case "saboteur-reveal":
         return eliminatedPlayer || "";
     }
@@ -234,7 +234,7 @@ const ShareMomentCard = ({
             {/* Bottom CTA */}
             <div className="relative z-10 flex flex-col items-center pb-6 px-6">
               <div className="w-full rounded-xl bg-white/20 backdrop-blur-sm p-3 text-center">
-                <p className="text-white/90 font-bold text-xs">{t("shareJoinUs")}</p>
+                <p className="text-white/90 font-bold text-xs">{t("shareJoinUs" as any)}</p>
                 <p className="text-white font-black text-sm mt-0.5">elsa-boteador.app</p>
               </div>
             </div>
@@ -252,7 +252,7 @@ const ShareMomentCard = ({
               className="flex-1 h-12 rounded-2xl gradient-primary text-primary-foreground font-display text-sm font-bold shadow-soft gap-2"
             >
               <Share2 className="h-4 w-4" />
-              {isExporting ? t("shareExporting") : t("shareButton")}
+              {isExporting ? t("shareExporting" as any) : t("shareButton" as any)}
             </Button>
             <Button
               onClick={handleDownload}
@@ -270,7 +270,7 @@ const ShareMomentCard = ({
               animate={{ opacity: 1, y: 0 }}
               className="font-display text-xs font-bold text-primary-foreground/80"
             >
-              {t("shareExported")} ✨
+              {t("shareExported" as any)} ✨
             </motion.p>
           )}
 
