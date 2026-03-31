@@ -6,6 +6,7 @@ import TaskMiniGame from "./TaskMiniGame";
 import SabotagePanel from "./SabotagePanel";
 import MeetingScreen from "./MeetingScreen";
 import EmergencyButton from "./EmergencyButton";
+import ReactionsPanel from "./ReactionsPanel";
 import GameTutorialOverlay from "./GameTutorialOverlay";
 import type { Zone, PlayerRole } from "@/types/game";
 import { motion } from "framer-motion";
