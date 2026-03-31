@@ -230,11 +230,35 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
         </AnimatePresence>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }} className="mt-6 w-full max-w-xs">
+      {/* Share moment button */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-4 w-full max-w-xs">
+        <button
+          onClick={() => { setShowShare(true); playTap(); }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 p-3.5 shadow-soft font-display text-sm font-bold text-foreground transition-all active:scale-[0.97]"
+        >
+          <Camera className="h-4 w-4 text-primary" />
+          {t("shareYourMoment" as any)}
+        </button>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }} className="mt-3 w-full max-w-xs">
         <Button onClick={onBackToHome} className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground font-display text-base font-bold shadow-soft">{t("backToHome")}</Button>
       </motion.div>
 
       <ReportPlayerModal isOpen={!!reportTarget} onClose={() => setReportTarget(null)} playerId={reportTarget?.id ?? ""} playerName={reportTarget?.name ?? ""} />
+
+      {/* Share Moment Modal */}
+      {showShare && (
+        <ShareMomentCard
+          type={iWon ? "victory" : "defeat"}
+          result={result}
+          myRole={myRole}
+          gameStats={gameStats}
+          wordGuessers={wordGuessers}
+          secretWord={secretWords[0]?.word}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 };
