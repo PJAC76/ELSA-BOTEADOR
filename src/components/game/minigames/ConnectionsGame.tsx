@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CONNECTIONS_PUZZLES } from "@/data/connections-puzzles";
+import { pickUnused } from "@/lib/minigame-history";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -25,7 +26,8 @@ export const ConnectionsGame = ({
 }) => {
   const [puzzle] = useState(() => {
     const pool = language === "en" ? CONNECTIONS_PUZZLES[difficulty].en : CONNECTIONS_PUZZLES[difficulty].es;
-    return pool[Math.floor(Math.random() * pool.length)];
+    const idx = pickUnused(`connections-${difficulty}-${language}`, pool.length);
+    return pool[idx];
   });
 
   const [allWords] = useState(() => {

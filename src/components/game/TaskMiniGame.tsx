@@ -8,6 +8,7 @@ import { playTaskComplete, playTaskFail, playTimerUrgent } from "@/lib/sounds";
 import { useTranslation, useZoneNames } from "@/lib/i18n";
 import { ConnectionsGame } from "./minigames/ConnectionsGame";
 import { EmojiGuessGame } from "./minigames/EmojiGuessGame";
+import { pickUnused, pickUnusedItem } from "@/lib/minigame-history";
 
 type TaskMiniGameProps = { zone: Zone; round: number; onComplete: (success: boolean) => void; onCancel: () => void };
 type MiniGameType = "word-unscramble" | "wire-connect" | "pattern-logic" | "connections" | "emoji-guess";
@@ -49,7 +50,7 @@ function scrambleWord(word: string): string {
 
 const WordUnscrambleGame = ({ onResult, t, difficulty, language }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty; language: string }) => {
   const pool = language === "en" ? WORD_POOLS[difficulty].en : WORD_POOLS[difficulty].es;
-  const [word] = useState(() => pool[Math.floor(Math.random() * pool.length)]);
+  const [word] = useState(() => pickUnusedItem(`word-${difficulty}-${language}`, pool));
   const [scrambled] = useState(() => scrambleWord(word));
   const [guess, setGuess] = useState("");
   const [shake, setShake] = useState(false);
@@ -124,21 +125,33 @@ const WIRE_SETS: Record<Difficulty, WirePair[][]> = {
   easy: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }],
     [{ left: "🌱", right: "🌳" }, { left: "🥚", right: "🐣" }, { left: "🎵", right: "🎶" }],
+    [{ left: "🌕", right: "🌑" }, { left: "📝", right: "✏️" }, { left: "🧊", right: "💧" }],
+    [{ left: "🌸", right: "🍯" }, { left: "⛅", right: "🌈" }, { left: "🪵", right: "🔥" }],
+    [{ left: "🐛", right: "🦋" }, { left: "📦", right: "🎁" }, { left: "🌾", right: "🍞" }],
+    [{ left: "🧲", right: "🔩" }, { left: "🎨", right: "🖼️" }, { left: "🪴", right: "🌻" }],
   ],
   medium: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }],
     [{ left: "📡", right: "📺" }, { left: "🔋", right: "📱" }, { left: "💧", right: "🌊" }, { left: "🪨", right: "⛰️" }],
+    [{ left: "🥚", right: "🐣" }, { left: "🌕", right: "🌑" }, { left: "🧊", right: "💧" }, { left: "🎵", right: "💃" }],
+    [{ left: "🐛", right: "🦋" }, { left: "🌸", right: "🍯" }, { left: "📝", right: "📖" }, { left: "⚡", right: "💡" }],
+    [{ left: "🧬", right: "🔬" }, { left: "🪵", right: "🔥" }, { left: "🧲", right: "🔩" }, { left: "🌾", right: "🍞" }],
+    [{ left: "🎨", right: "🖼️" }, { left: "🪴", right: "🌻" }, { left: "📦", right: "🎁" }, { left: "⛅", right: "🌈" }],
   ],
   hard: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }, { left: "📡", right: "📺" }],
     [{ left: "🧬", right: "🔬" }, { left: "🪐", right: "🚀" }, { left: "🎭", right: "🎪" }, { left: "⚡", right: "🔋" }, { left: "🧩", right: "🖼️" }],
+    [{ left: "🐛", right: "🦋" }, { left: "🌸", right: "🍯" }, { left: "🪵", right: "🔥" }, { left: "🧊", right: "💧" }, { left: "🌕", right: "🌑" }],
+    [{ left: "📝", right: "📖" }, { left: "🧲", right: "🔩" }, { left: "🌾", right: "🍞" }, { left: "🥚", right: "🐣" }, { left: "🎨", right: "🖼️" }],
+    [{ left: "🪴", right: "🌻" }, { left: "📦", right: "🎁" }, { left: "⛅", right: "🌈" }, { left: "🎵", right: "💃" }, { left: "📡", right: "📺" }],
   ],
 };
 
 const WireConnectGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty }) => {
   const [pairs] = useState(() => {
     const sets = WIRE_SETS[difficulty];
-    return sets[Math.floor(Math.random() * sets.length)];
+    const idx = pickUnused(`wire-${difficulty}`, sets.length);
+    return sets[idx];
   });
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
@@ -222,13 +235,14 @@ const WireConnectGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) =
 };
 
 // ─── PATTERN LOGIC ──────────────────────────────────────────
-const SHAPE_SETS = ["🔵🔴🔵🔴", "⭐🌙⭐🌙", "🟢🟡🔵🟢", "🔺🔻🔺🔻", "💎❤️💎❤️"];
-const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢🟡🔵🟢🟡🔵", "💎💎❤️💎💎❤️"];
+const SHAPE_SETS = ["🔵🔴🔵🔴", "⭐🌙⭐🌙", "🟢🟡🔵🟢", "🔺🔻🔺🔻", "💎❤️💎❤️", "🟣🟠🟣🟠", "🔷🔶🔷🔶"];
+const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢🟡🔵🟢🟡🔵", "💎💎❤️💎💎❤️", "🟣🟠🟣🟣🟠🟣", "🔷🔶🔶🔷🔶🔶"];
 
 function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: string; options: string[] } {
   if (diff === "easy") {
     // Simple AB pattern
-    const setStr = SHAPE_SETS[Math.floor(Math.random() * SHAPE_SETS.length)];
+    const idx = pickUnused("pattern-easy", SHAPE_SETS.length);
+    const setStr = SHAPE_SETS[idx];
     const emojis = [...setStr.match(/./gu)!];
     const patLen = 2;
     const pattern = emojis.slice(0, patLen);
@@ -251,7 +265,8 @@ function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: 
     return { sequence, answer, options };
   } else {
     // AABAA pattern
-    const setStr = HARD_PATTERNS[Math.floor(Math.random() * HARD_PATTERNS.length)];
+    const hidx = pickUnused("pattern-hard", HARD_PATTERNS.length);
+    const setStr = HARD_PATTERNS[hidx];
     const emojis = [...setStr.match(/./gu)!];
     const uniqueEmojis = [...new Set(emojis)];
     const patLen = emojis.length;
@@ -308,7 +323,10 @@ const PatternLogicGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) 
 const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic", "connections", "emoji-guess"];
 
 const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) => {
-  const [gameType] = useState<MiniGameType>(() => MINI_GAMES[Math.floor(Math.random() * MINI_GAMES.length)]);
+  const [gameType] = useState<MiniGameType>(() => {
+    const idx = pickUnused("minigame-type", MINI_GAMES.length);
+    return MINI_GAMES[idx];
+  });
   const difficulty = getDifficulty(round);
   const [timeLeft, setTimeLeft] = useState(() => getGameTime(difficulty));
   const [result, setResult] = useState<"playing" | "success" | "fail">("playing");
