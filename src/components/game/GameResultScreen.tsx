@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
 import type { GameStats } from "./GameScreen";
-import { playVictory, playDefeat, playTap } from "@/lib/sounds";
+import { playVictory, playDefeat, playTap, playReward } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
