@@ -53,7 +53,7 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       toast({ title: t("shopNotEnoughXp" as any), description: t("shopNeedMore" as any, { xp: String(item.price - totalXp) }), variant: "destructive" });
       return;
     }
-    playTap();
+    playPurchase();
     const deductXp = (cost: number) => addXp(-cost);
     purchaseItem(item.id, item.price, deductXp);
     toast({ title: `${item.emoji} ${t("shopPurchased" as any)}`, description: t("shopPurchasedDesc" as any, { name: t(item.nameKey as any) }), variant: "achievement" as any });
