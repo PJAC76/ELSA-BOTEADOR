@@ -78,7 +78,7 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
     updateCombo();
   }, [updateCombo]);
 
-  const handleReaction = useCallback((r: typeof REACTIONS[0]) => {
+  const handleReaction = useCallback((r: typeof REACTIONS[0] | typeof customEmotes[0]) => {
     if (cooldown) return;
     r.sound();
     speakPhrase(pick(r.phrases));
