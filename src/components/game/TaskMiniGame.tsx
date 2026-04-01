@@ -150,7 +150,8 @@ const WIRE_SETS: Record<Difficulty, WirePair[][]> = {
 const WireConnectGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty }) => {
   const [pairs] = useState(() => {
     const sets = WIRE_SETS[difficulty];
-    return sets[Math.floor(Math.random() * sets.length)];
+    const idx = pickUnused(`wire-${difficulty}`, sets.length);
+    return sets[idx];
   });
   const [shuffledRight] = useState(() => [...pairs].sort(() => Math.random() - 0.5));
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
