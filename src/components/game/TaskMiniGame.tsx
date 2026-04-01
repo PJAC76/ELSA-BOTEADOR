@@ -235,8 +235,8 @@ const WireConnectGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) =
 };
 
 // ─── PATTERN LOGIC ──────────────────────────────────────────
-const SHAPE_SETS = ["🔵🔴🔵🔴", "⭐🌙⭐🌙", "🟢🟡🔵🟢", "🔺🔻🔺🔻", "💎❤️💎❤️"];
-const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢🟡🔵🟢🟡🔵", "💎💎❤️💎💎❤️"];
+const SHAPE_SETS = ["🔵🔴🔵🔴", "⭐🌙⭐🌙", "🟢🟡🔵🟢", "🔺🔻🔺🔻", "💎❤️💎❤️", "🟣🟠🟣🟠", "🔷🔶🔷🔶"];
+const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢🟡🔵🟢🟡🔵", "💎💎❤️💎💎❤️", "🟣🟠🟣🟣🟠🟣", "🔷🔶🔶🔷🔶🔶"];
 
 function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: string; options: string[] } {
   if (diff === "easy") {
