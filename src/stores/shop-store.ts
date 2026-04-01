@@ -34,6 +34,18 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "fx-sparkle", emoji: "💫", nameKey: "shop-sparkle-fx", descKey: "shop-sparkle-fx-desc", category: "effects", price: 90 },
   { id: "fx-fireworks", emoji: "🎆", nameKey: "shop-fireworks-fx", descKey: "shop-fireworks-fx-desc", category: "effects", price: 130 },
   { id: "fx-confetti", emoji: "🎊", nameKey: "shop-confetti-fx", descKey: "shop-confetti-fx-desc", category: "effects", price: 100 },
+
+  // Emotes de reacción
+  { id: "emote-skull", emoji: "💀", nameKey: "shop-skull-emote", descKey: "shop-skull-emote-desc", category: "emotes", price: 40 },
+  { id: "emote-nails", emoji: "💅", nameKey: "shop-nails-emote", descKey: "shop-nails-emote-desc", category: "emotes", price: 40 },
+  { id: "emote-clown", emoji: "🤡", nameKey: "shop-clown-emote", descKey: "shop-clown-emote-desc", category: "emotes", price: 50 },
+  { id: "emote-devil", emoji: "😈", nameKey: "shop-devil-emote", descKey: "shop-devil-emote-desc", category: "emotes", price: 60 },
+  { id: "emote-cry", emoji: "😭", nameKey: "shop-cry-emote", descKey: "shop-cry-emote-desc", category: "emotes", price: 35 },
+  { id: "emote-fire", emoji: "🔥", nameKey: "shop-fire-emote", descKey: "shop-fire-emote-desc", category: "emotes", price: 45 },
+  { id: "emote-eyes", emoji: "👀", nameKey: "shop-eyes-emote", descKey: "shop-eyes-emote-desc", category: "emotes", price: 30 },
+  { id: "emote-crown", emoji: "👑", nameKey: "shop-crown-emote", descKey: "shop-crown-emote-desc", category: "emotes", price: 80 },
+  { id: "emote-butterfly", emoji: "🦋", nameKey: "shop-butterfly-emote", descKey: "shop-butterfly-emote-desc", category: "emotes", price: 55 },
+  { id: "emote-star", emoji: "🌟", nameKey: "shop-star-emote", descKey: "shop-star-emote-desc", category: "emotes", price: 50 },
 ];
 
 type ShopStore = {
