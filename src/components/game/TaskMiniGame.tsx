@@ -8,6 +8,7 @@ import { playTaskComplete, playTaskFail, playTimerUrgent } from "@/lib/sounds";
 import { useTranslation, useZoneNames } from "@/lib/i18n";
 import { ConnectionsGame } from "./minigames/ConnectionsGame";
 import { EmojiGuessGame } from "./minigames/EmojiGuessGame";
+import { pickUnused, pickUnusedItem } from "@/lib/minigame-history";
 
 type TaskMiniGameProps = { zone: Zone; round: number; onComplete: (success: boolean) => void; onCancel: () => void };
 type MiniGameType = "word-unscramble" | "wire-connect" | "pattern-logic" | "connections" | "emoji-guess";
