@@ -618,17 +618,32 @@ const MeetingScreen = ({
     return () => timers.forEach(clearTimeout);
   }, [phase, players, myPlayerId, secretWord, t]);
 
-  // Mock bot votes
+  // Mock bot votes — bots coordinate somewhat realistically
   useEffect(() => {
     if (phase !== "voting") return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const alivePlayers = players.filter((p) => p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
 
+    // Pick a "consensus target" that most bots will vote for (simulates group dynamics)
+    const nonMePlayers = alivePlayers.filter((p) => p.id !== myPlayerId);
+    const consensusTarget = nonMePlayers[Math.floor(Math.random() * nonMePlayers.length)];
+
     botPlayers.forEach((bot, i) => {
       const timer = setTimeout(() => {
-        const target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
-        setVotes((prev) => ({ ...prev, [bot.id]: Math.random() < 0.2 ? "skip" : target.id }));
+        let target: typeof alivePlayers[0];
+        if (Math.random() < 0.15) {
+          // 15% skip
+          setVotes((prev) => ({ ...prev, [bot.id]: "skip" }));
+          return;
+        } else if (Math.random() < 0.6) {
+          // 60% follow consensus
+          target = consensusTarget;
+        } else {
+          // 25% vote someone else
+          target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
+        }
+        setVotes((prev) => ({ ...prev, [bot.id]: target.id }));
       }, (i + 1) * 2000);
       timers.push(timer);
     });
@@ -636,9 +651,15 @@ const MeetingScreen = ({
     return () => timers.forEach(clearTimeout);
   }, [phase, players, myPlayerId]);
 
+  // Use a ref to always have current votes for resolveVotes
+  const votesRef = useRef(votes);
+  const myVoteRef = useRef(myVote);
+  useEffect(() => { votesRef.current = votes; }, [votes]);
+  useEffect(() => { myVoteRef.current = myVote; }, [myVote]);
+
   const resolveVotes = useCallback(() => {
-    const allVotes = { ...votes };
-    if (myVote) allVotes[myPlayerId] = myVote;
+    const allVotes = { ...votesRef.current };
+    if (myVoteRef.current) allVotes[myPlayerId] = myVoteRef.current;
 
     const counts: Record<string, number> = {};
     Object.values(allVotes).forEach((v) => { if (v && v !== "skip") counts[v] = (counts[v] || 0) + 1; });
@@ -656,7 +677,7 @@ const MeetingScreen = ({
     if (eliminated) playElimination();
 
     setTimeout(() => { onVoteResult(eliminated?.id || null); }, 3500);
-  }, [votes, myVote, myPlayerId, players, onVoteResult]);
+  }, [myPlayerId, players, onVoteResult]);
 
   const handleSendPreset = (content: string) => {
     if (isGhost) return;
