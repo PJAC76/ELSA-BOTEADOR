@@ -638,6 +638,35 @@ const translations = {
     "shop-fireworks-fx-desc": "Explosión de colores al ganar",
     "shop-confetti-fx": "Confetti premium",
     "shop-confetti-fx-desc": "Lluvia de confetti especial",
+
+    // Emotes de tienda
+    shopEmotes: "Emotes",
+    "shop-skull-emote": "Calavera",
+    "shop-skull-emote-desc": "Estoy muerta de risa",
+    "shop-nails-emote": "Uñas",
+    "shop-nails-emote-desc": "Reina, eso ni me afecta",
+    "shop-clown-emote": "Payaso",
+    "shop-clown-emote-desc": "Menudo payaso eres",
+    "shop-devil-emote": "Diablilla",
+    "shop-devil-emote-desc": "Soy malísima y lo sabes",
+    "shop-cry-emote": "Llorando",
+    "shop-cry-emote-desc": "No puedo más, estoy llorando",
+    "shop-fire-emote": "Fuego",
+    "shop-fire-emote-desc": "¡Eso ha sido brutal!",
+    "shop-eyes-emote": "Ojitos",
+    "shop-eyes-emote-desc": "Te estoy vigilando...",
+    "shop-crown-emote": "Corona",
+    "shop-crown-emote-desc": "La reina del campus",
+    "shop-butterfly-emote": "Mariposa",
+    "shop-butterfly-emote-desc": "Libre y bonita",
+    "shop-star-emote": "Estrella",
+    "shop-star-emote-desc": "Brillo propio, bro",
+
+    // Inventario emotes
+    emotesCategory: "Emotes",
+    noEmotesYet: "No tienes emotes aún",
+    buyEmotesInShop: "¡Compra emotes en la tienda para usarlos en partida!",
+    emotesSlotInfo: "Máx. 4 emotes equipados · Aparecen en tus reacciones",
   },
   en: {
     // Common
@@ -1276,6 +1305,35 @@ const translations = {
     "shop-fireworks-fx-desc": "Color explosion on victory",
     "shop-confetti-fx": "Premium confetti",
     "shop-confetti-fx-desc": "Special confetti rain",
+
+    // Shop emotes
+    shopEmotes: "Emotes",
+    "shop-skull-emote": "Skull",
+    "shop-skull-emote-desc": "I'm dead laughing",
+    "shop-nails-emote": "Nails",
+    "shop-nails-emote-desc": "Queen, that doesn't affect me",
+    "shop-clown-emote": "Clown",
+    "shop-clown-emote-desc": "What a clown you are",
+    "shop-devil-emote": "Devil",
+    "shop-devil-emote-desc": "I'm evil and I know it",
+    "shop-cry-emote": "Crying",
+    "shop-cry-emote-desc": "I can't stop crying",
+    "shop-fire-emote": "Fire",
+    "shop-fire-emote-desc": "That was fire!",
+    "shop-eyes-emote": "Eyes",
+    "shop-eyes-emote-desc": "I'm watching you...",
+    "shop-crown-emote": "Crown",
+    "shop-crown-emote-desc": "Campus queen",
+    "shop-butterfly-emote": "Butterfly",
+    "shop-butterfly-emote-desc": "Free and pretty",
+    "shop-star-emote": "Star",
+    "shop-star-emote-desc": "Born to shine",
+
+    // Inventory emotes
+    emotesCategory: "Emotes",
+    noEmotesYet: "No emotes yet",
+    buyEmotesInShop: "Buy emotes in the shop to use them in-game!",
+    emotesSlotInfo: "Max 4 equipped emotes · They show in your reactions",
   },
 } as const;
 

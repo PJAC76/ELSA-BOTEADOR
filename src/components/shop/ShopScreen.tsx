@@ -21,12 +21,13 @@ const FRAME_STYLES: Record<string, string> = {
 const ShopScreen = ({ onBack }: ShopScreenProps) => {
   const { t } = useTranslation();
   const { totalXp, addXp } = useProgressionStore();
-  const { purchasedItems, equippedFrame, equippedEffect, purchaseItem, equipFrame, equipEffect, isOwned } = useShopStore();
+  const { purchasedItems, equippedFrame, equippedEffect, equippedEmotes, purchaseItem, equipFrame, equipEffect, toggleEmote, isOwned } = useShopStore();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<ShopItemCategory>("emojis");
 
   const CATEGORIES: { key: ShopItemCategory; label: string; emoji: string }[] = [
     { key: "emojis", label: t("shopEmojis" as any), emoji: "😎" },
+    { key: "emotes", label: t("shopEmotes" as any), emoji: "💬" },
     { key: "frames", label: t("shopFrames" as any), emoji: "🖼️" },
     { key: "effects", label: t("shopEffects" as any), emoji: "🎆" },
   ];
@@ -42,6 +43,9 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       } else if (item.category === "effects") {
         equipEffect(equippedEffect === item.id ? null : item.id);
         playTap();
+      } else if (item.category === "emotes") {
+        toggleEmote(item.id);
+        playTap();
       }
       return;
     }
@@ -53,14 +57,16 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
     const deductXp = (cost: number) => addXp(-cost);
     purchaseItem(item.id, item.price, deductXp);
     toast({ title: `${item.emoji} ${t("shopPurchased" as any)}`, description: t("shopPurchasedDesc" as any, { name: t(item.nameKey as any) }), variant: "achievement" as any });
-    // Auto-equip frames/effects
+    // Auto-equip
     if (item.category === "frames") equipFrame(item.id);
     if (item.category === "effects") equipEffect(item.id);
+    if (item.category === "emotes") toggleEmote(item.id);
   };
 
   const isEquipped = (item: typeof SHOP_ITEMS[0]) => {
     if (item.category === "frames") return equippedFrame === item.id;
     if (item.category === "effects") return equippedEffect === item.id;
+    if (item.category === "emotes") return equippedEmotes.includes(item.id);
     return false;
   };
 

@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { REACTIONS, BOT_NAMES, pick, speakPhrase, playComboSound } from "./reactions/ReactionSounds";
 import ReactionParticles from "./reactions/ReactionParticles";
 import Shockwave from "./reactions/Shockwave";
 import ComboIndicator from "./reactions/ComboIndicator";
+import { useShopStore, SHOP_ITEMS } from "@/stores/shop-store";
 
 type FloatingReaction = { id: number; emoji: string; sender: string; x: number; color: string };
 
@@ -33,6 +34,24 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
   const [effects, setEffects] = useState<{ id: number; x: number; bottom: number; color: string }[]>([]);
   const reactionTimestamps = useRef<number[]>([]);
   const comboTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { equippedEmotes } = useShopStore();
+
+  // Build custom emote reactions from equipped shop emotes
+  const customEmotes = useMemo(() => {
+    return equippedEmotes
+      .map((emoteId) => SHOP_ITEMS.find((i) => i.id === emoteId))
+      .filter(Boolean)
+      .map((item) => ({
+        id: `custom-${item!.id}`,
+        emoji: item!.emoji,
+        label: item!.emoji,
+        color: "hsl(280, 70%, 60%)",
+        sound: REACTIONS[0].sound, // default sound
+        phrases: ["¡Mola!", "¡Qué fuerte!", "¡Eso!"],
+      }));
+  }, [equippedEmotes]);
+
+  const allReactions = useMemo(() => [...REACTIONS, ...customEmotes], [customEmotes]);
 
   const updateCombo = useCallback(() => {
     const now = Date.now();
@@ -59,7 +78,7 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
     updateCombo();
   }, [updateCombo]);
 
-  const handleReaction = useCallback((r: typeof REACTIONS[0]) => {
+  const handleReaction = useCallback((r: typeof REACTIONS[0] | typeof customEmotes[0]) => {
     if (cooldown) return;
     r.sound();
     speakPhrase(pick(r.phrases));
@@ -128,9 +147,9 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-[8.5rem] right-4 z-[65] grid grid-cols-4 gap-1.5 rounded-2xl bg-card p-3 shadow-xl border border-border"
+            className={`fixed bottom-[8.5rem] right-4 z-[65] grid gap-1.5 rounded-2xl bg-card p-3 shadow-xl border border-border ${allReactions.length > 8 ? "grid-cols-4 max-h-[280px] overflow-y-auto scrollbar-hide" : "grid-cols-4"}`}
           >
-            {REACTIONS.map((r) => (
+            {allReactions.map((r) => (
               <motion.button
                 key={r.id}
                 whileTap={{ scale: 0.8 }}
