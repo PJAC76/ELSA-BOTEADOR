@@ -265,7 +265,8 @@ function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: 
     return { sequence, answer, options };
   } else {
     // AABAA pattern
-    const setStr = HARD_PATTERNS[Math.floor(Math.random() * HARD_PATTERNS.length)];
+    const hidx = pickUnused("pattern-hard", HARD_PATTERNS.length);
+    const setStr = HARD_PATTERNS[hidx];
     const emojis = [...setStr.match(/./gu)!];
     const uniqueEmojis = [...new Set(emojis)];
     const patLen = emojis.length;
