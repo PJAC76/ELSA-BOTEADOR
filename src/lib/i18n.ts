@@ -638,6 +638,35 @@ const translations = {
     "shop-fireworks-fx-desc": "Explosión de colores al ganar",
     "shop-confetti-fx": "Confetti premium",
     "shop-confetti-fx-desc": "Lluvia de confetti especial",
+
+    // Emotes de tienda
+    shopEmotes: "Emotes",
+    "shop-skull-emote": "Calavera",
+    "shop-skull-emote-desc": "Estoy muerta de risa",
+    "shop-nails-emote": "Uñas",
+    "shop-nails-emote-desc": "Reina, eso ni me afecta",
+    "shop-clown-emote": "Payaso",
+    "shop-clown-emote-desc": "Menudo payaso eres",
+    "shop-devil-emote": "Diablilla",
+    "shop-devil-emote-desc": "Soy malísima y lo sabes",
+    "shop-cry-emote": "Llorando",
+    "shop-cry-emote-desc": "No puedo más, estoy llorando",
+    "shop-fire-emote": "Fuego",
+    "shop-fire-emote-desc": "¡Eso ha sido brutal!",
+    "shop-eyes-emote": "Ojitos",
+    "shop-eyes-emote-desc": "Te estoy vigilando...",
+    "shop-crown-emote": "Corona",
+    "shop-crown-emote-desc": "La reina del campus",
+    "shop-butterfly-emote": "Mariposa",
+    "shop-butterfly-emote-desc": "Libre y bonita",
+    "shop-star-emote": "Estrella",
+    "shop-star-emote-desc": "Brillo propio, bro",
+
+    // Inventario emotes
+    emotesCategory: "Emotes",
+    noEmotesYet: "No tienes emotes aún",
+    buyEmotesInShop: "¡Compra emotes en la tienda para usarlos en partida!",
+    emotesSlotInfo: "Máx. 4 emotes equipados · Aparecen en tus reacciones",
   },
   en: {
     // Common
