@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key } from "lucide-react";
@@ -77,6 +77,7 @@ const CluePhasePanel = ({
   const [clues, setClues] = useState<ClueEntry[]>([]);
   const [myClueInput, setMyClueInput] = useState("");
   const [timeLeft, setTimeLeft] = useState(CLUE_TIME_PER_PLAYER);
+  const turnSubmittedRef = useRef(false);
 
   const currentPlayer = alivePlayers[currentTurnIndex];
   const isMyTurn = currentPlayer?.id === myPlayerId;
@@ -97,28 +98,25 @@ const CluePhasePanel = ({
     return fallback[Math.floor(Math.random() * fallback.length)];
   }, [secretWord, secretClues]);
 
-  // Timer per turn
+  // Reset guard when turn changes
   useEffect(() => {
-    if (currentTurnIndex >= alivePlayers.length) return;
-    const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          // Auto-submit
-          if (isMyTurn) {
-            submitMyClue(myClueInput || "...");
-          } else {
-            submitBotClue();
-          }
-          return CLUE_TIME_PER_PLAYER;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [currentTurnIndex, isMyTurn]);
+    turnSubmittedRef.current = false;
+  }, [currentTurnIndex]);
 
-  const submitMyClue = (clue: string) => {
-    const sanitized = clue.trim().split(/\s+/)[0] || "..."; // Only first word
+  const advanceTurn = useCallback((currentClues: ClueEntry[]) => {
+    const nextIndex = currentTurnIndex + 1;
+    if (nextIndex >= alivePlayers.length) {
+      onCluesComplete(currentClues);
+    } else {
+      setCurrentTurnIndex(nextIndex);
+      setTimeLeft(CLUE_TIME_PER_PLAYER);
+    }
+  }, [currentTurnIndex, alivePlayers.length, onCluesComplete]);
+
+  const submitMyClue = useCallback((clue: string) => {
+    if (turnSubmittedRef.current) return;
+    turnSubmittedRef.current = true;
+    const sanitized = clue.trim().split(/\s+/)[0] || "...";
     const entry: ClueEntry = {
       playerId: "me",
       playerName: t("you"),
@@ -130,9 +128,11 @@ const CluePhasePanel = ({
     setMyClueInput("");
     onClueGiven?.();
     advanceTurn(newClues);
-  };
+  }, [clues, t, onClueGiven, advanceTurn]);
 
-  const submitBotClue = () => {
+  const submitBotClue = useCallback(() => {
+    if (turnSubmittedRef.current) return;
+    turnSubmittedRef.current = true;
     if (!currentPlayer) return;
     const entry: ClueEntry = {
       playerId: currentPlayer.id,
@@ -143,28 +143,39 @@ const CluePhasePanel = ({
     const newClues = [...clues, entry];
     setClues(newClues);
     advanceTurn(newClues);
-  };
+  }, [clues, currentPlayer, generateBotClue, advanceTurn]);
 
-  const advanceTurn = (currentClues: ClueEntry[]) => {
-    const nextIndex = currentTurnIndex + 1;
-    if (nextIndex >= alivePlayers.length) {
-      onCluesComplete(currentClues);
-    } else {
-      setCurrentTurnIndex(nextIndex);
-      setTimeLeft(CLUE_TIME_PER_PLAYER);
-    }
-  };
+  // Timer per turn
+  useEffect(() => {
+    if (currentTurnIndex >= alivePlayers.length) return;
+    const interval = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          if (!turnSubmittedRef.current) {
+            if (isMyTurn) {
+              submitMyClue(myClueInput || "...");
+            } else {
+              submitBotClue();
+            }
+          }
+          return CLUE_TIME_PER_PLAYER;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentTurnIndex, isMyTurn, alivePlayers.length, submitMyClue, submitBotClue, myClueInput]);
 
-  // Auto-trigger bot clue after short delay
+  // Auto-trigger bot clue after short delay (immediate advance, no waiting for timer)
   useEffect(() => {
     if (currentTurnIndex >= alivePlayers.length) return;
     if (!isMyTurn) {
       const delay = setTimeout(() => {
         submitBotClue();
-      }, 2000 + Math.random() * 2000);
+      }, 1500 + Math.random() * 1500);
       return () => clearTimeout(delay);
     }
-  }, [currentTurnIndex, isMyTurn]);
+  }, [currentTurnIndex, isMyTurn, alivePlayers.length, submitBotClue]);
 
   return (
     <div className="flex flex-col gap-3">
