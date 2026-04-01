@@ -41,7 +41,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   const iWon = (result === "agents-win" && myRole === "agent") || (result === "saboteur-wins" && myRole === "saboteur");
   const xpEarned = iWon ? XP_REWARDS.WIN : XP_REWARDS.LOSS;
 
-  useEffect(() => { if (iWon) playVictory(); else playDefeat(); }, [iWon]);
+  useEffect(() => { if (iWon) playVictory(); else playDefeat(); setTimeout(() => playReward(), 600); }, [iWon]);
 
   useEffect(() => {
     if (hasRecorded.current) return;
