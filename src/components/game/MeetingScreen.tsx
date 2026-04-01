@@ -538,29 +538,57 @@ const MeetingScreen = ({
     return () => clearInterval(interval);
   }, [phase]);
 
-  // Mock bot messages during discussion
+  // Mock bot messages during discussion — agents accuse the saboteur
   useEffect(() => {
     if (phase !== "discussion") return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
+    const saboteurPlayer = players.find((p) => p.role === "saboteur" && p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    const botMessages = [
+    const genericMessages = [
       "Yo estaba en la Biblioteca 📚",
-      "Vi a alguien raro en el Laboratorio",
-      "🤔",
       "No fui yo, lo juro",
+      "🤔",
       "¿Dónde estabas tú?",
       "Creo que deberíamos votar",
     ];
 
-    botMessages.slice(0, 3).forEach((msg, i) => {
+    const accusationTemplates = [
+      "Yo creo que es {name} 👀",
+      "{name} actuó muy raro esta ronda",
+      "Vi a {name} cerca de una zona saboteada 🤨",
+      "No confío en {name} para nada",
+      "{name} no dio buenas pistas, voto por {name}",
+      "Seguro es {name}, sus pistas no tenían sentido",
+    ];
+
+    botPlayers.forEach((bot, i) => {
       const timer = setTimeout(() => {
-        const sender = botPlayers[i % botPlayers.length];
+        let msg: string;
+
+        if (bot.role === "agent" && saboteurPlayer && Math.random() < 0.7) {
+          // 70% chance agent bots accuse the saboteur
+          const template = accusationTemplates[Math.floor(Math.random() * accusationTemplates.length)];
+          msg = template.replace(/\{name\}/g, saboteurPlayer.name);
+        } else if (bot.role === "saboteur") {
+          // Saboteur deflects blame to a random agent
+          const agents = players.filter((p) => p.role === "agent" && p.isAlive && p.id !== myPlayerId);
+          const randomAgent = agents[Math.floor(Math.random() * agents.length)];
+          if (randomAgent && Math.random() < 0.6) {
+            const template = accusationTemplates[Math.floor(Math.random() * accusationTemplates.length)];
+            msg = template.replace(/\{name\}/g, randomAgent.name);
+          } else {
+            msg = genericMessages[Math.floor(Math.random() * genericMessages.length)];
+          }
+        } else {
+          msg = genericMessages[Math.floor(Math.random() * genericMessages.length)];
+        }
+
         setMessages((prev) => [
           ...prev,
-          { id: `bot-${Date.now()}-${i}`, senderId: sender.id, senderName: sender.name, messageType: msg.length <= 3 ? "emoji" : "preset", content: msg, createdAt: Date.now() },
+          { id: `bot-${Date.now()}-${i}`, senderId: bot.id, senderName: bot.name, messageType: msg.length <= 3 ? "emoji" : "preset", content: msg, createdAt: Date.now() },
         ]);
-      }, (i + 1) * 4000);
+      }, 2000 + i * 3500 + Math.random() * 2000);
       timers.push(timer);
     });
 
