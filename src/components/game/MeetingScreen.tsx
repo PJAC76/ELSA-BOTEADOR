@@ -106,6 +106,7 @@ const CluePhasePanel = ({
   const advanceTurn = useCallback((currentClues: ClueEntry[]) => {
     const nextIndex = currentTurnIndex + 1;
     if (nextIndex >= alivePlayers.length) {
+      setCurrentTurnIndex(nextIndex); // Move past last player to stop timer
       onCluesComplete(currentClues);
     } else {
       setCurrentTurnIndex(nextIndex);
@@ -158,7 +159,7 @@ const CluePhasePanel = ({
               submitBotClue();
             }
           }
-          return CLUE_TIME_PER_PLAYER;
+          return 0; // Don't reset — advanceTurn handles the next turn's timer
         }
         return t - 1;
       });
