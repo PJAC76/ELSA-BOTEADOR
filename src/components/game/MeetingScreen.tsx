@@ -159,7 +159,7 @@ const CluePhasePanel = ({
               submitBotClue();
             }
           }
-          return CLUE_TIME_PER_PLAYER;
+          return 0; // Don't reset — advanceTurn handles the next turn's timer
         }
         return t - 1;
       });
