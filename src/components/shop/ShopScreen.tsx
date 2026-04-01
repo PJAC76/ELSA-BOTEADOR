@@ -27,6 +27,7 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
 
   const CATEGORIES: { key: ShopItemCategory; label: string; emoji: string }[] = [
     { key: "emojis", label: t("shopEmojis" as any), emoji: "😎" },
+    { key: "emotes", label: t("shopEmotes" as any), emoji: "💬" },
     { key: "frames", label: t("shopFrames" as any), emoji: "🖼️" },
     { key: "effects", label: t("shopEffects" as any), emoji: "🎆" },
   ];
