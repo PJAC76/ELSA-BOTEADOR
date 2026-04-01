@@ -618,31 +618,45 @@ const MeetingScreen = ({
     return () => timers.forEach(clearTimeout);
   }, [phase, players, myPlayerId, secretWord, t]);
 
-  // Mock bot votes — bots coordinate somewhat realistically
+  // Mock bot votes — agents tend to vote for the saboteur, saboteur votes randomly
   useEffect(() => {
     if (phase !== "voting") return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const alivePlayers = players.filter((p) => p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // Pick a "consensus target" that most bots will vote for (simulates group dynamics)
-    const nonMePlayers = alivePlayers.filter((p) => p.id !== myPlayerId);
-    const consensusTarget = nonMePlayers[Math.floor(Math.random() * nonMePlayers.length)];
+    // Find the actual saboteur among alive players (for agent bots to target)
+    const saboteurPlayer = alivePlayers.find((p) => p.role === "saboteur");
+    const nonSaboteurPlayers = alivePlayers.filter((p) => p.role !== "saboteur");
 
     botPlayers.forEach((bot, i) => {
       const timer = setTimeout(() => {
-        let target: typeof alivePlayers[0];
-        if (Math.random() < 0.15) {
-          // 15% skip
+        if (Math.random() < 0.1) {
+          // 10% skip vote
           setVotes((prev) => ({ ...prev, [bot.id]: "skip" }));
           return;
-        } else if (Math.random() < 0.6) {
-          // 60% follow consensus
-          target = consensusTarget;
-        } else {
-          // 25% vote someone else
-          target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
         }
+
+        let target: typeof alivePlayers[0];
+
+        if (bot.role === "agent" && saboteurPlayer) {
+          // Agents: 55% vote saboteur, 25% vote random non-saboteur, 20% vote random anyone
+          const roll = Math.random();
+          if (roll < 0.55) {
+            target = saboteurPlayer;
+          } else if (roll < 0.80 && nonSaboteurPlayers.length > 0) {
+            target = nonSaboteurPlayers[Math.floor(Math.random() * nonSaboteurPlayers.length)];
+          } else {
+            target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
+          }
+        } else {
+          // Saboteur bot: vote a random agent to deflect suspicion
+          const agents = alivePlayers.filter((p) => p.role === "agent" && p.id !== myPlayerId);
+          target = agents.length > 0
+            ? agents[Math.floor(Math.random() * agents.length)]
+            : alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
+        }
+
         setVotes((prev) => ({ ...prev, [bot.id]: target.id }));
       }, (i + 1) * 2000);
       timers.push(timer);
