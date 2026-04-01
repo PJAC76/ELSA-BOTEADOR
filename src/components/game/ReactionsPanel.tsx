@@ -7,6 +7,7 @@ type Reaction = {
   emoji: string;
   label: string;
   sound: () => void;
+  phrases: string[];
 };
 
 // --- Synthesized reaction sounds via Web Audio API ---
