@@ -130,6 +130,7 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
     { key: "nails", label: t("nailsCategory" as any), emoji: "💅" },
     { key: "accessories", label: t("accsCategory"), emoji: "🎀" },
     { key: "stickers", label: t("stickersCategory"), emoji: "✨" },
+    { key: "emotes", label: t("emotesCategory" as any), emoji: "💬" },
     { key: "words", label: t("wordsCategory" as any), emoji: "📖" },
   ];
 
