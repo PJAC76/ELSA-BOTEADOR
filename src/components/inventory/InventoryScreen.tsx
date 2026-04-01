@@ -210,6 +210,30 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
               );
             })}
           </motion.div>
+        ) : selectedCategory === "emotes" ? (
+          <motion.div key="emotes" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="flex flex-col gap-3">
+            {ownedEmotes.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <span className="text-4xl">💬</span>
+                <p className="font-display text-sm font-bold text-muted-foreground">{t("noEmotesYet" as any)}</p>
+                <p className="font-body text-xs text-muted-foreground">{t("buyEmotesInShop" as any)}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {ownedEmotes.map((item, idx) => {
+                  const equipped = equippedEmotes.includes(item.id);
+                  return (
+                    <motion.button key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }} whileTap={{ scale: 0.92 }} onClick={() => { toggleEmote(item.id); playTap(); }} className={`relative flex flex-col items-center gap-1.5 rounded-2xl p-4 transition-all ${equipped ? "bg-primary/15 ring-2 ring-primary shadow-soft" : "bg-card shadow-soft active:shadow-none"}`}>
+                      <span className="text-3xl">{item.emoji}</span>
+                      <span className="font-display text-[11px] font-bold text-foreground">{t(item.nameKey as any)}</span>
+                      {equipped && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary"><Check className="h-3 w-3 text-primary-foreground" /></motion.div>}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-center font-body text-[10px] text-muted-foreground mt-2">{t("emotesSlotInfo" as any)}</p>
+          </motion.div>
         ) : (
           <motion.div key={selectedCategory} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="grid grid-cols-3 gap-3">
             {categoryItems.map((item, idx) => {
