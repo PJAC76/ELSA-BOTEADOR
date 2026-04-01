@@ -133,15 +133,30 @@ function playThink() {
   ])();
 }
 
+function speakPhrase(phrase: string) {
+  if (!isSoundEnabled()) return;
+  if (!('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(phrase);
+  utter.lang = "es-ES";
+  utter.rate = 1.2;
+  utter.pitch = 1.3;
+  utter.volume = 0.7;
+  // Try to pick a Spanish voice
+  const voices = speechSynthesis.getVoices();
+  const esVoice = voices.find(v => v.lang.startsWith("es"));
+  if (esVoice) utter.voice = esVoice;
+  speechSynthesis.speak(utter);
+}
+
 const REACTIONS: Reaction[] = [
-  { id: "laugh", emoji: "😂", label: "Jaja", sound: playLaugh },
-  { id: "scream", emoji: "😱", label: "¡Ahhh!", sound: playScream },
-  { id: "clap", emoji: "👏", label: "Bravo", sound: playClap },
-  { id: "shock", emoji: "😮", label: "¡Qué fuerte!", sound: playShock },
-  { id: "sus", emoji: "🤨", label: "Sospechoso", sound: playSus },
-  { id: "love", emoji: "😍", label: "Me encanta", sound: playLove },
-  { id: "angry", emoji: "😤", label: "Grr", sound: playAngry },
-  { id: "think", emoji: "🤔", label: "Hmm", sound: playThink },
+  { id: "laugh", emoji: "😂", label: "Jaja", sound: playLaugh, phrases: ["¡Jajaja!", "¡Me muero!", "¡No puedo más!"] },
+  { id: "scream", emoji: "😱", label: "¡Ahhh!", sound: playScream, phrases: ["¡Ahhh!", "¡Socorro!", "¡No me lo creo!"] },
+  { id: "clap", emoji: "👏", label: "Bravo", sound: playClap, phrases: ["¡Bravo!", "¡Genial!", "¡Olé!"] },
+  { id: "shock", emoji: "😮", label: "¡Qué fuerte!", sound: playShock, phrases: ["¡Qué fuerte!", "¡Madre mía!", "¡Flipa!"] },
+  { id: "sus", emoji: "🤨", label: "Sospechoso", sound: playSus, phrases: ["Sospechoso...", "No me fío", "¡Eres tú!"] },
+  { id: "love", emoji: "😍", label: "Me encanta", sound: playLove, phrases: ["¡Me encanta!", "¡Qué mono!", "¡Te quiero!"] },
+  { id: "angry", emoji: "😤", label: "Grr", sound: playAngry, phrases: ["¡Grr!", "¡Qué rabia!", "¡No es justo!"] },
+  { id: "think", emoji: "🤔", label: "Hmm", sound: playThink, phrases: ["Hmm...", "Déjame pensar...", "Interesante..."] },
 ];
 
 const BOT_NAMES = ["Luna 🌙", "Mía 🦋", "Noa ⭐", "Alma 🌸"];
