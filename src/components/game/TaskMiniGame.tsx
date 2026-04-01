@@ -50,7 +50,7 @@ function scrambleWord(word: string): string {
 
 const WordUnscrambleGame = ({ onResult, t, difficulty, language }: { onResult: (s: boolean) => void; t: (k: any) => string; difficulty: Difficulty; language: string }) => {
   const pool = language === "en" ? WORD_POOLS[difficulty].en : WORD_POOLS[difficulty].es;
-  const [word] = useState(() => pool[Math.floor(Math.random() * pool.length)]);
+  const [word] = useState(() => pickUnusedItem(`word-${difficulty}-${language}`, pool));
   const [scrambled] = useState(() => scrambleWord(word));
   const [guess, setGuess] = useState("");
   const [shake, setShake] = useState(false);
