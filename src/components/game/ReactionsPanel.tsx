@@ -18,127 +18,118 @@ function getCtx(): AudioContext {
   return audioCtx;
 }
 
-function playLaugh() {
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function playNotes(freqs: number[], gap: number, type: OscillatorType, vol: number, noteDur: number) {
   if (!isSoundEnabled()) return;
   const ctx = getCtx();
-  [300, 400, 350, 420, 380].forEach((freq, i) => {
+  freqs.forEach((freq, i) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "sine";
+    osc.type = type;
     osc.frequency.value = freq;
-    gain.gain.value = 0.12;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.1);
+    gain.gain.value = vol;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * gap + noteDur);
     osc.connect(gain).connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.1);
-    osc.stop(ctx.currentTime + i * 0.1 + 0.12);
+    osc.start(ctx.currentTime + i * gap);
+    osc.stop(ctx.currentTime + i * gap + noteDur + 0.02);
   });
 }
 
-function playScream() {
+function playSweep(from: number, to: number, dur: number, type: OscillatorType, vol: number) {
   if (!isSoundEnabled()) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.type = "sawtooth";
-  osc.frequency.value = 500;
-  osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.15);
-  osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.4);
-  gain.gain.value = 0.1;
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+  osc.type = type;
+  osc.frequency.value = from;
+  osc.frequency.exponentialRampToValueAtTime(to, ctx.currentTime + dur * 0.7);
+  gain.gain.value = vol;
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
   osc.connect(gain).connect(ctx.destination);
-  osc.start(); osc.stop(ctx.currentTime + 0.5);
+  osc.start(); osc.stop(ctx.currentTime + dur);
 }
 
-function playClap() {
+function playNoise(count: number, gap: number, noiseDur: number, vol: number) {
   if (!isSoundEnabled()) return;
   const ctx = getCtx();
-  [0, 0.12, 0.24].forEach((t) => {
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+  for (let c = 0; c < count; c++) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * noiseDur, ctx.sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
     const src = ctx.createBufferSource();
     const gain = ctx.createGain();
     src.buffer = buf;
-    gain.gain.value = 0.2;
+    gain.gain.value = vol;
     src.connect(gain).connect(ctx.destination);
-    src.start(ctx.currentTime + t);
-  });
+    src.start(ctx.currentTime + c * gap);
+  }
+}
+
+// --- Variantes por reacción (2-3 cada una) ---
+
+function playLaugh() {
+  pick([
+    () => playNotes([300, 400, 350, 420, 380], 0.1, "sine", 0.12, 0.1),
+    () => playNotes([350, 500, 400, 520, 450, 540], 0.08, "sine", 0.1, 0.09),
+    () => playNotes([280, 360, 320, 400], 0.12, "triangle", 0.11, 0.11),
+  ])();
+}
+
+function playScream() {
+  pick([
+    () => playSweep(500, 1200, 0.5, "sawtooth", 0.1),
+    () => playSweep(400, 1400, 0.4, "square", 0.08),
+    () => { playSweep(600, 1100, 0.3, "sawtooth", 0.09); setTimeout(() => playSweep(700, 1300, 0.25, "sawtooth", 0.07), 200); },
+  ])();
+}
+
+function playClap() {
+  pick([
+    () => playNoise(3, 0.12, 0.06, 0.2),
+    () => playNoise(5, 0.09, 0.04, 0.18),
+    () => playNoise(2, 0.18, 0.08, 0.22),
+  ])();
 }
 
 function playShock() {
-  if (!isSoundEnabled()) return;
-  const ctx = getCtx();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = "square";
-  osc.frequency.value = 800;
-  osc.frequency.setValueAtTime(800, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
-  gain.gain.value = 0.08;
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(); osc.stop(ctx.currentTime + 0.4);
+  pick([
+    () => playSweep(800, 200, 0.4, "square", 0.08),
+    () => playSweep(1000, 150, 0.35, "sawtooth", 0.07),
+    () => { playSweep(900, 300, 0.25, "square", 0.06); setTimeout(() => playSweep(700, 200, 0.2, "square", 0.05), 200); },
+  ])();
 }
 
 function playSus() {
-  if (!isSoundEnabled()) return;
-  const ctx = getCtx();
-  [440, 466, 440, 415].forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.1;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.14);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.15);
-    osc.stop(ctx.currentTime + i * 0.15 + 0.15);
-  });
+  pick([
+    () => playNotes([440, 466, 440, 415], 0.15, "triangle", 0.1, 0.14),
+    () => playNotes([466, 440, 415, 392], 0.18, "sine", 0.09, 0.16),
+    () => playNotes([415, 440, 466, 440, 415], 0.12, "triangle", 0.08, 0.11),
+  ])();
 }
 
 function playLove() {
-  if (!isSoundEnabled()) return;
-  const ctx = getCtx();
-  [523, 659, 784, 1047].forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.1;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.15);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.12);
-    osc.stop(ctx.currentTime + i * 0.12 + 0.18);
-  });
+  pick([
+    () => playNotes([523, 659, 784, 1047], 0.12, "sine", 0.1, 0.15),
+    () => playNotes([440, 554, 659, 880], 0.14, "sine", 0.09, 0.18),
+    () => playNotes([523, 784, 1047, 1319], 0.1, "triangle", 0.08, 0.13),
+  ])();
 }
 
 function playAngry() {
-  if (!isSoundEnabled()) return;
-  const ctx = getCtx();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = "sawtooth";
-  osc.frequency.value = 150;
-  gain.gain.value = 0.1;
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(); osc.stop(ctx.currentTime + 0.4);
+  pick([
+    () => playSweep(150, 80, 0.4, "sawtooth", 0.1),
+    () => playSweep(200, 60, 0.5, "square", 0.08),
+    () => { playSweep(180, 100, 0.25, "sawtooth", 0.09); setTimeout(() => playSweep(160, 70, 0.3, "sawtooth", 0.08), 200); },
+  ])();
 }
 
 function playThink() {
-  if (!isSoundEnabled()) return;
-  const ctx = getCtx();
-  [330, 392, 330].forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.08;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.2);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.2);
-    osc.stop(ctx.currentTime + i * 0.2 + 0.22);
-  });
+  pick([
+    () => playNotes([330, 392, 330], 0.2, "sine", 0.08, 0.2),
+    () => playNotes([349, 415, 349, 330], 0.22, "sine", 0.07, 0.2),
+    () => playNotes([392, 349, 392], 0.25, "triangle", 0.07, 0.22),
+  ])();
 }
 
 const REACTIONS: Reaction[] = [
