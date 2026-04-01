@@ -147,9 +147,9 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-[8.5rem] right-4 z-[65] grid grid-cols-4 gap-1.5 rounded-2xl bg-card p-3 shadow-xl border border-border"
+            className={`fixed bottom-[8.5rem] right-4 z-[65] grid gap-1.5 rounded-2xl bg-card p-3 shadow-xl border border-border ${allReactions.length > 8 ? "grid-cols-4 max-h-[280px] overflow-y-auto scrollbar-hide" : "grid-cols-4"}`}
           >
-            {REACTIONS.map((r) => (
+            {allReactions.map((r) => (
               <motion.button
                 key={r.id}
                 whileTap={{ scale: 0.8 }}

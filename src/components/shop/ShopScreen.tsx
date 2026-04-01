@@ -66,6 +66,7 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
   const isEquipped = (item: typeof SHOP_ITEMS[0]) => {
     if (item.category === "frames") return equippedFrame === item.id;
     if (item.category === "effects") return equippedEffect === item.id;
+    if (item.category === "emotes") return equippedEmotes.includes(item.id);
     return false;
   };
 
