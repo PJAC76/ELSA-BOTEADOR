@@ -7,6 +7,7 @@ import SabotagePanel from "./SabotagePanel";
 import MeetingScreen from "./MeetingScreen";
 import EmergencyButton from "./EmergencyButton";
 import GameTutorialOverlay from "./GameTutorialOverlay";
+import ReactionsPanel from "./ReactionsPanel";
 import type { Zone, PlayerRole } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
