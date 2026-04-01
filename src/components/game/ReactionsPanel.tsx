@@ -5,6 +5,7 @@ import ReactionParticles from "./reactions/ReactionParticles";
 import Shockwave from "./reactions/Shockwave";
 import ComboIndicator from "./reactions/ComboIndicator";
 import { useShopStore, SHOP_ITEMS } from "@/stores/shop-store";
+import { playComboHit } from "@/lib/sounds";
 
 type FloatingReaction = { id: number; emoji: string; sender: string; x: number; color: string };
 
