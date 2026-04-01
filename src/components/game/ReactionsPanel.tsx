@@ -34,6 +34,24 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
   const [effects, setEffects] = useState<{ id: number; x: number; bottom: number; color: string }[]>([]);
   const reactionTimestamps = useRef<number[]>([]);
   const comboTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { equippedEmotes } = useShopStore();
+
+  // Build custom emote reactions from equipped shop emotes
+  const customEmotes = useMemo(() => {
+    return equippedEmotes
+      .map((emoteId) => SHOP_ITEMS.find((i) => i.id === emoteId))
+      .filter(Boolean)
+      .map((item) => ({
+        id: `custom-${item!.id}`,
+        emoji: item!.emoji,
+        label: item!.emoji,
+        color: "hsl(280, 70%, 60%)",
+        sound: REACTIONS[0].sound, // default sound
+        phrases: ["¡Mola!", "¡Qué fuerte!", "¡Eso!"],
+      }));
+  }, [equippedEmotes]);
+
+  const allReactions = useMemo(() => [...REACTIONS, ...customEmotes], [customEmotes]);
 
   const updateCombo = useCallback(() => {
     const now = Date.now();
