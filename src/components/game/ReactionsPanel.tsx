@@ -194,6 +194,8 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
   const handleReaction = useCallback((r: Reaction) => {
     if (cooldown) return;
     r.sound();
+    const phrase = pick(r.phrases);
+    speakPhrase(phrase);
     spawnReaction(r.emoji, "Tú");
     setCooldown(true);
     setOpen(false);
