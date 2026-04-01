@@ -5,7 +5,7 @@ import { ArrowLeft, ShoppingBag, Sparkles, Check, Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useProgressionStore } from "@/stores/progression-store";
 import { useShopStore, SHOP_ITEMS, type ShopItemCategory } from "@/stores/shop-store";
-import { playTap } from "@/lib/sounds";
+import { playTap, playPurchase, playEquip } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 
 type ShopScreenProps = { onBack: () => void };
