@@ -695,7 +695,7 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId]);
+  }, [phase, players, myPlayerId, round]);
 
   // Use a ref to always have current votes for resolveVotes
   const votesRef = useRef(votes);
