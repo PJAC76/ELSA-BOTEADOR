@@ -39,13 +39,13 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       // Equip/unequip
       if (item.category === "frames") {
         equipFrame(equippedFrame === item.id ? null : item.id);
-        playTap();
+        playEquip();
       } else if (item.category === "effects") {
         equipEffect(equippedEffect === item.id ? null : item.id);
-        playTap();
+        playEquip();
       } else if (item.category === "emotes") {
         toggleEmote(item.id);
-        playTap();
+        playEquip();
       }
       return;
     }
