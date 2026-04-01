@@ -5,6 +5,7 @@ import ReactionParticles from "./reactions/ReactionParticles";
 import Shockwave from "./reactions/Shockwave";
 import ComboIndicator from "./reactions/ComboIndicator";
 import { useShopStore, SHOP_ITEMS } from "@/stores/shop-store";
+import { playComboHit } from "@/lib/sounds";
 
 type FloatingReaction = { id: number; emoji: string; sender: string; x: number; color: string };
 
@@ -59,7 +60,7 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
     reactionTimestamps.current.push(now);
     const count = reactionTimestamps.current.length;
     setCombo(count);
-    if (count >= 2) playComboSound(count);
+    if (count >= 2) { playComboSound(count); playComboHit(count); }
     clearTimeout(comboTimer.current);
     comboTimer.current = setTimeout(() => {
       reactionTimestamps.current = [];

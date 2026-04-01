@@ -5,7 +5,7 @@ import { ArrowLeft, ShoppingBag, Sparkles, Check, Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useProgressionStore } from "@/stores/progression-store";
 import { useShopStore, SHOP_ITEMS, type ShopItemCategory } from "@/stores/shop-store";
-import { playTap } from "@/lib/sounds";
+import { playTap, playPurchase, playEquip } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 
 type ShopScreenProps = { onBack: () => void };
@@ -39,13 +39,13 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       // Equip/unequip
       if (item.category === "frames") {
         equipFrame(equippedFrame === item.id ? null : item.id);
-        playTap();
+        playEquip();
       } else if (item.category === "effects") {
         equipEffect(equippedEffect === item.id ? null : item.id);
-        playTap();
+        playEquip();
       } else if (item.category === "emotes") {
         toggleEmote(item.id);
-        playTap();
+        playEquip();
       }
       return;
     }
@@ -53,7 +53,7 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       toast({ title: t("shopNotEnoughXp" as any), description: t("shopNeedMore" as any, { xp: String(item.price - totalXp) }), variant: "destructive" });
       return;
     }
-    playTap();
+    playPurchase();
     const deductXp = (cost: number) => addXp(-cost);
     purchaseItem(item.id, item.price, deductXp);
     toast({ title: `${item.emoji} ${t("shopPurchased" as any)}`, description: t("shopPurchasedDesc" as any, { name: t(item.nameKey as any) }), variant: "achievement" as any });

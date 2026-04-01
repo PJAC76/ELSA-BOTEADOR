@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { PlayerRole } from "@/types/game";
 import type { GameStats } from "./GameScreen";
-import { playVictory, playDefeat, playTap } from "@/lib/sounds";
+import { playVictory, playDefeat, playTap, playReward } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
@@ -41,7 +41,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   const iWon = (result === "agents-win" && myRole === "agent") || (result === "saboteur-wins" && myRole === "saboteur");
   const xpEarned = iWon ? XP_REWARDS.WIN : XP_REWARDS.LOSS;
 
-  useEffect(() => { if (iWon) playVictory(); else playDefeat(); }, [iWon]);
+  useEffect(() => { if (iWon) playVictory(); else playDefeat(); setTimeout(() => playReward(), 600); }, [iWon]);
 
   useEffect(() => {
     if (hasRecorded.current) return;
