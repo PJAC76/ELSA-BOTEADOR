@@ -21,7 +21,7 @@ const FRAME_STYLES: Record<string, string> = {
 const ShopScreen = ({ onBack }: ShopScreenProps) => {
   const { t } = useTranslation();
   const { totalXp, addXp } = useProgressionStore();
-  const { purchasedItems, equippedFrame, equippedEffect, purchaseItem, equipFrame, equipEffect, isOwned } = useShopStore();
+  const { purchasedItems, equippedFrame, equippedEffect, equippedEmotes, purchaseItem, equipFrame, equipEffect, toggleEmote, isOwned } = useShopStore();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<ShopItemCategory>("emojis");
 
