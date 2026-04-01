@@ -241,7 +241,8 @@ const HARD_PATTERNS = ["🔵🔴🔵🔵🔴🔵", "⭐⭐🌙⭐⭐🌙", "🟢
 function generatePatternPuzzle(diff: Difficulty): { sequence: string[]; answer: string; options: string[] } {
   if (diff === "easy") {
     // Simple AB pattern
-    const setStr = SHAPE_SETS[Math.floor(Math.random() * SHAPE_SETS.length)];
+    const idx = pickUnused("pattern-easy", SHAPE_SETS.length);
+    const setStr = SHAPE_SETS[idx];
     const emojis = [...setStr.match(/./gu)!];
     const patLen = 2;
     const pattern = emojis.slice(0, patLen);
