@@ -40,7 +40,15 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [activeTask, setActiveTask] = useState<Zone | null>(null);
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string[]>([]);
   const [currentZone, setCurrentZone] = useState<Zone>("library");
-  const [showTutorial, setShowTutorial] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    const seen = localStorage.getItem("tutorial_seen");
+    return !seen;
+  });
+
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem("tutorial_seen", "1");
+  };
   const [wordGuessers, setWordGuessers] = useState<WordGuessInfo[]>([]);
   const [secretWords, setSecretWords] = useState<SecretWordInfo[]>([]);
   const [zonesVisited, setZonesVisited] = useState<Set<Zone>>(new Set(["library"]));
@@ -167,7 +175,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
               </motion.div>
             )}
           </AnimatePresence>
-          <AnimatePresence>{showTutorial && <GameTutorialOverlay role={role} onClose={() => setShowTutorial(false)} />}</AnimatePresence>
+          <AnimatePresence>{showTutorial && <GameTutorialOverlay role={role} onClose={closeTutorial} />}</AnimatePresence>
           <ReactionsPanel enabled={phase === "action" && !activeTask && !showTutorial} />
         </motion.div>
       )}
