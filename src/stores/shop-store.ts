@@ -66,6 +66,7 @@ export const useShopStore = create<ShopStore>()(
       purchasedItems: [],
       equippedFrame: null,
       equippedEffect: null,
+      equippedEmotes: [],
       purchaseItem: (itemId, cost, deductXp) => {
         if (get().purchasedItems.includes(itemId)) return false;
         deductXp(cost);
@@ -74,6 +75,13 @@ export const useShopStore = create<ShopStore>()(
       },
       equipFrame: (itemId) => set({ equippedFrame: itemId }),
       equipEffect: (itemId) => set({ equippedEffect: itemId }),
+      toggleEmote: (itemId) => set((s) => ({
+        equippedEmotes: s.equippedEmotes.includes(itemId)
+          ? s.equippedEmotes.filter((id) => id !== itemId)
+          : s.equippedEmotes.length < 4
+            ? [...s.equippedEmotes, itemId]
+            : s.equippedEmotes
+      })),
       isOwned: (itemId) => get().purchasedItems.includes(itemId),
     }),
     { name: "elsa-boteador-shop" }
