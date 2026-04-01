@@ -659,10 +659,13 @@ const MeetingScreen = ({
     const saboteurPlayer = alivePlayers.find((p) => p.role === "saboteur");
     const nonSaboteurPlayers = alivePlayers.filter((p) => p.role !== "saboteur");
 
+    // Vote accuracy scales with round: agents learn over time
+    const saboteurVoteChance = round === 1 ? 0.40 : round === 2 ? 0.60 : 0.80;
+    const skipChance = round === 1 ? 0.15 : round === 2 ? 0.08 : 0.03;
+
     botPlayers.forEach((bot, i) => {
       const timer = setTimeout(() => {
-        if (Math.random() < 0.1) {
-          // 10% skip vote
+        if (Math.random() < skipChance) {
           setVotes((prev) => ({ ...prev, [bot.id]: "skip" }));
           return;
         }
@@ -670,11 +673,10 @@ const MeetingScreen = ({
         let target: typeof alivePlayers[0];
 
         if (bot.role === "agent" && saboteurPlayer) {
-          // Agents: 55% vote saboteur, 25% vote random non-saboteur, 20% vote random anyone
           const roll = Math.random();
-          if (roll < 0.55) {
+          if (roll < saboteurVoteChance) {
             target = saboteurPlayer;
-          } else if (roll < 0.80 && nonSaboteurPlayers.length > 0) {
+          } else if (roll < saboteurVoteChance + 0.20 && nonSaboteurPlayers.length > 0) {
             target = nonSaboteurPlayers[Math.floor(Math.random() * nonSaboteurPlayers.length)];
           } else {
             target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
