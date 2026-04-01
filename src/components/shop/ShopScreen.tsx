@@ -43,6 +43,9 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
       } else if (item.category === "effects") {
         equipEffect(equippedEffect === item.id ? null : item.id);
         playTap();
+      } else if (item.category === "emotes") {
+        toggleEmote(item.id);
+        playTap();
       }
       return;
     }
@@ -54,9 +57,10 @@ const ShopScreen = ({ onBack }: ShopScreenProps) => {
     const deductXp = (cost: number) => addXp(-cost);
     purchaseItem(item.id, item.price, deductXp);
     toast({ title: `${item.emoji} ${t("shopPurchased" as any)}`, description: t("shopPurchasedDesc" as any, { name: t(item.nameKey as any) }), variant: "achievement" as any });
-    // Auto-equip frames/effects
+    // Auto-equip
     if (item.category === "frames") equipFrame(item.id);
     if (item.category === "effects") equipEffect(item.id);
+    if (item.category === "emotes") toggleEmote(item.id);
   };
 
   const isEquipped = (item: typeof SHOP_ITEMS[0]) => {
