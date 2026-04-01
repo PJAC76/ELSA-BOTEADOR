@@ -149,14 +149,14 @@ function speakPhrase(phrase: string) {
 }
 
 const REACTIONS: Reaction[] = [
-  { id: "laugh", emoji: "😂", label: "Jaja", sound: playLaugh, phrases: ["¡Jajaja!", "¡Me muero!", "¡No puedo más!"] },
-  { id: "scream", emoji: "😱", label: "¡Ahhh!", sound: playScream, phrases: ["¡Ahhh!", "¡Socorro!", "¡No me lo creo!"] },
-  { id: "clap", emoji: "👏", label: "Bravo", sound: playClap, phrases: ["¡Bravo!", "¡Genial!", "¡Olé!"] },
-  { id: "shock", emoji: "😮", label: "¡Qué fuerte!", sound: playShock, phrases: ["¡Qué fuerte!", "¡Madre mía!", "¡Flipa!"] },
-  { id: "sus", emoji: "🤨", label: "Sospechoso", sound: playSus, phrases: ["Sospechoso...", "No me fío", "¡Eres tú!"] },
-  { id: "love", emoji: "😍", label: "Me encanta", sound: playLove, phrases: ["¡Me encanta!", "¡Qué mono!", "¡Te quiero!"] },
-  { id: "angry", emoji: "😤", label: "Grr", sound: playAngry, phrases: ["¡Grr!", "¡Qué rabia!", "¡No es justo!"] },
-  { id: "think", emoji: "🤔", label: "Hmm", sound: playThink, phrases: ["Hmm...", "Déjame pensar...", "Interesante..."] },
+  { id: "laugh", emoji: "😂", label: "Jaja", sound: playLaugh, phrases: ["¡Jajaja!", "¡Me muero!", "¡No puedo más!", "¡Estoy muerta!", "¡Para, para!", "¡Qué risa, bro!", "¡Me parto!", "¡Estoy llorando!"] },
+  { id: "scream", emoji: "😱", label: "¡Ahhh!", sound: playScream, phrases: ["¡Ahhh!", "¡Socorro!", "¡No me lo creo!", "¡Estoy flipando!", "¡Qué acaba de pasar!", "¡Me da algo!", "¡Literal gritando!"] },
+  { id: "clap", emoji: "👏", label: "Bravo", sound: playClap, phrases: ["¡Bravo!", "¡Genial!", "¡Olé!", "¡Eres crack!", "¡Menuda pro!", "¡Qué top!", "¡Eso es, reina!"] },
+  { id: "shock", emoji: "😮", label: "¡Qué fuerte!", sound: playShock, phrases: ["¡Qué fuerte!", "¡Madre mía!", "¡Flipa!", "¡Menuda bro!", "¡No puede ser!", "¡Estoy en shock!", "¡Alucino pepinillos!", "¡Dios mío!"] },
+  { id: "sus", emoji: "🤨", label: "Sospechoso", sound: playSus, phrases: ["Sospechoso...", "No me fío", "¡Eres tú!", "Aquí hay gato encerrado", "Te tengo calada", "Eso ha sido muy sus", "Me huele raro..."] },
+  { id: "love", emoji: "😍", label: "Me encanta", sound: playLove, phrases: ["¡Me encanta!", "¡Qué mono!", "¡Te quiero!", "¡Eres lo más!", "¡Crush total!", "¡Icono!", "¡Qué cuqui!", "¡Goals!"] },
+  { id: "angry", emoji: "😤", label: "Grr", sound: playAngry, phrases: ["¡Grr!", "¡Qué rabia!", "¡No es justo!", "¡Estoy tilteada!", "¡Me pica!", "¡Vaya tela!", "¡Qué mal rollo!"] },
+  { id: "think", emoji: "🤔", label: "Hmm", sound: playThink, phrases: ["Hmm...", "Déjame pensar...", "Interesante...", "A ver, a ver...", "Yo creo que...", "No sé, bro...", "Esto me mosquea..."] },
 ];
 
 const BOT_NAMES = ["Luna 🌙", "Mía 🦋", "Noa ⭐", "Alma 🌸"];
