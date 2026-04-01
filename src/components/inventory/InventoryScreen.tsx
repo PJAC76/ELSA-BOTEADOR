@@ -8,6 +8,7 @@ import { useProgressionStore, getLevelForXp } from "@/stores/progression-store";
 import { playTap } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getWordStats } from "@/data/secret-words";
+import { useShopStore, SHOP_ITEMS } from "@/stores/shop-store";
 
 type InventoryCategory = "hair" | "clothes" | "accessories" | "makeup" | "piercings" | "nails" | "eyes" | "shoes" | "stickers" | "words";
 type InventoryItem = { id: string; emoji: string; nameKey: string; category: InventoryCategory; avatarKey?: keyof AvatarConfig; avatarValue?: number; unlockLevel: number };
