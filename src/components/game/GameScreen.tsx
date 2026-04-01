@@ -175,7 +175,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
               </motion.div>
             )}
           </AnimatePresence>
-          <AnimatePresence>{showTutorial && <GameTutorialOverlay role={role} onClose={() => setShowTutorial(false)} />}</AnimatePresence>
+          <AnimatePresence>{showTutorial && <GameTutorialOverlay role={role} onClose={closeTutorial} />}</AnimatePresence>
           <ReactionsPanel enabled={phase === "action" && !activeTask && !showTutorial} />
         </motion.div>
       )}
