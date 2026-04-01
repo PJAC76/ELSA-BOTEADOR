@@ -796,8 +796,8 @@ const MeetingScreen = ({
                 ))}
               </div>
 
-              {/* Word Guess Input - only for agents who know the word */}
-              {myRole === "agent" && secretWord && !isGhost && (
+              {/* Word Guess Input - only for saboteur who needs to guess */}
+              {myRole === "saboteur" && secretWord && !isGhost && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
