@@ -181,14 +181,14 @@ const CluePhasePanel = ({
   return (
     <div className="flex flex-col gap-3">
       {/* Word/Category reminder */}
-      <div className={`rounded-2xl p-3 text-center ${secretWord ? "bg-primary/10" : "bg-destructive/10"}`}>
+      <div className={`rounded-2xl p-3 text-center ${myRole === "agent" ? "bg-primary/10" : "bg-destructive/10"}`}>
         <p className="font-body text-[10px] text-muted-foreground mb-1">
-          {secretWord ? t("secretWordLabel") : t("secretCategoryOnly")}
+          {myRole === "agent" ? t("secretWordLabel") : t("secretCategoryOnly")}
         </p>
         <p className="font-display text-lg font-black text-foreground">
-          {secretWord ? `🔑 ${secretWord}` : `❓ ${secretCategory}`}
+          {myRole === "agent" ? `🔑 ${secretWord}` : `❓ ${secretCategory}`}
         </p>
-        {!secretWord && (
+        {myRole === "saboteur" && (
           <p className="font-body text-[10px] text-muted-foreground mt-1">{t("impostorClueHint")}</p>
         )}
       </div>
@@ -796,8 +796,8 @@ const MeetingScreen = ({
                 ))}
               </div>
 
-              {/* Word Guess Input - only for agents who know the word */}
-              {myRole === "agent" && secretWord && !isGhost && (
+              {/* Word Guess Input - only for saboteur who needs to guess */}
+              {myRole === "saboteur" && secretWord && !isGhost && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
