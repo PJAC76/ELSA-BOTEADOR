@@ -52,9 +52,11 @@ type ShopStore = {
   purchasedItems: string[];
   equippedFrame: string | null;
   equippedEffect: string | null;
+  equippedEmotes: string[];
   purchaseItem: (itemId: string, cost: number, deductXp: (amount: number) => void) => boolean;
   equipFrame: (itemId: string | null) => void;
   equipEffect: (itemId: string | null) => void;
+  toggleEmote: (itemId: string) => void;
   isOwned: (itemId: string) => boolean;
 };
 
