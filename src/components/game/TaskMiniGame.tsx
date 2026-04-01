@@ -125,14 +125,25 @@ const WIRE_SETS: Record<Difficulty, WirePair[][]> = {
   easy: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }],
     [{ left: "🌱", right: "🌳" }, { left: "🥚", right: "🐣" }, { left: "🎵", right: "🎶" }],
+    [{ left: "🌕", right: "🌑" }, { left: "📝", right: "✏️" }, { left: "🧊", right: "💧" }],
+    [{ left: "🌸", right: "🍯" }, { left: "⛅", right: "🌈" }, { left: "🪵", right: "🔥" }],
+    [{ left: "🐛", right: "🦋" }, { left: "📦", right: "🎁" }, { left: "🌾", right: "🍞" }],
+    [{ left: "🧲", right: "🔩" }, { left: "🎨", right: "🖼️" }, { left: "🪴", right: "🌻" }],
   ],
   medium: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }],
     [{ left: "📡", right: "📺" }, { left: "🔋", right: "📱" }, { left: "💧", right: "🌊" }, { left: "🪨", right: "⛰️" }],
+    [{ left: "🥚", right: "🐣" }, { left: "🌕", right: "🌑" }, { left: "🧊", right: "💧" }, { left: "🎵", right: "💃" }],
+    [{ left: "🐛", right: "🦋" }, { left: "🌸", right: "🍯" }, { left: "📝", right: "📖" }, { left: "⚡", right: "💡" }],
+    [{ left: "🧬", right: "🔬" }, { left: "🪵", right: "🔥" }, { left: "🧲", right: "🔩" }, { left: "🌾", right: "🍞" }],
+    [{ left: "🎨", right: "🖼️" }, { left: "🪴", right: "🌻" }, { left: "📦", right: "🎁" }, { left: "⛅", right: "🌈" }],
   ],
   hard: [
     [{ left: "🔌", right: "💡" }, { left: "🔑", right: "🔒" }, { left: "☁️", right: "🌧️" }, { left: "🌱", right: "🌳" }, { left: "📡", right: "📺" }],
     [{ left: "🧬", right: "🔬" }, { left: "🪐", right: "🚀" }, { left: "🎭", right: "🎪" }, { left: "⚡", right: "🔋" }, { left: "🧩", right: "🖼️" }],
+    [{ left: "🐛", right: "🦋" }, { left: "🌸", right: "🍯" }, { left: "🪵", right: "🔥" }, { left: "🧊", right: "💧" }, { left: "🌕", right: "🌑" }],
+    [{ left: "📝", right: "📖" }, { left: "🧲", right: "🔩" }, { left: "🌾", right: "🍞" }, { left: "🥚", right: "🐣" }, { left: "🎨", right: "🖼️" }],
+    [{ left: "🪴", right: "🌻" }, { left: "📦", right: "🎁" }, { left: "⛅", right: "🌈" }, { left: "🎵", right: "💃" }, { left: "📡", right: "📺" }],
   ],
 };
 
