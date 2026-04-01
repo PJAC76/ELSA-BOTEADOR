@@ -566,7 +566,9 @@ const MeetingScreen = ({
       const timer = setTimeout(() => {
         let msg: string;
 
-        if (bot.role === "agent" && saboteurPlayer && Math.random() < 0.7) {
+        // Accusation accuracy increases per round: R1=50%, R2=70%, R3=90%
+        const accuseChance = round === 1 ? 0.5 : round === 2 ? 0.7 : 0.9;
+        if (bot.role === "agent" && saboteurPlayer && Math.random() < accuseChance) {
           // 70% chance agent bots accuse the saboteur
           const template = accusationTemplates[Math.floor(Math.random() * accusationTemplates.length)];
           msg = template.replace(/\{name\}/g, saboteurPlayer.name);
