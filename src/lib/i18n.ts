@@ -1305,6 +1305,35 @@ const translations = {
     "shop-fireworks-fx-desc": "Color explosion on victory",
     "shop-confetti-fx": "Premium confetti",
     "shop-confetti-fx-desc": "Special confetti rain",
+
+    // Shop emotes
+    shopEmotes: "Emotes",
+    "shop-skull-emote": "Skull",
+    "shop-skull-emote-desc": "I'm dead laughing",
+    "shop-nails-emote": "Nails",
+    "shop-nails-emote-desc": "Queen, that doesn't affect me",
+    "shop-clown-emote": "Clown",
+    "shop-clown-emote-desc": "What a clown you are",
+    "shop-devil-emote": "Devil",
+    "shop-devil-emote-desc": "I'm evil and I know it",
+    "shop-cry-emote": "Crying",
+    "shop-cry-emote-desc": "I can't stop crying",
+    "shop-fire-emote": "Fire",
+    "shop-fire-emote-desc": "That was fire!",
+    "shop-eyes-emote": "Eyes",
+    "shop-eyes-emote-desc": "I'm watching you...",
+    "shop-crown-emote": "Crown",
+    "shop-crown-emote-desc": "Campus queen",
+    "shop-butterfly-emote": "Butterfly",
+    "shop-butterfly-emote-desc": "Free and pretty",
+    "shop-star-emote": "Star",
+    "shop-star-emote-desc": "Born to shine",
+
+    // Inventory emotes
+    emotesCategory: "Emotes",
+    noEmotesYet: "No emotes yet",
+    buyEmotesInShop: "Buy emotes in the shop to use them in-game!",
+    emotesSlotInfo: "Max 4 equipped emotes · They show in your reactions",
   },
 } as const;
 
