@@ -209,6 +209,7 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
       const r = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
       const bot = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
       r.sound();
+      if (Math.random() > 0.5) speakPhrase(pick(r.phrases));
       spawnReaction(r.emoji, bot);
     }, 3000 + Math.random() * 5000);
     return () => clearInterval(interval);
