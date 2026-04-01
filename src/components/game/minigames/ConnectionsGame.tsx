@@ -26,7 +26,8 @@ export const ConnectionsGame = ({
 }) => {
   const [puzzle] = useState(() => {
     const pool = language === "en" ? CONNECTIONS_PUZZLES[difficulty].en : CONNECTIONS_PUZZLES[difficulty].es;
-    return pool[Math.floor(Math.random() * pool.length)];
+    const idx = pickUnused(`connections-${difficulty}-${language}`, pool.length);
+    return pool[idx];
   });
 
   const [allWords] = useState(() => {

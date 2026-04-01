@@ -134,7 +134,8 @@ export const EmojiGuessGame = ({
 }) => {
   const [puzzle] = useState(() => {
     const pool = language === "en" ? EMOJI_PUZZLES[difficulty].en : EMOJI_PUZZLES[difficulty].es;
-    return pool[Math.floor(Math.random() * pool.length)];
+    const idx = pickUnused(`emoji-${difficulty}-${language}`, pool.length);
+    return pool[idx];
   });
 
   const [shuffledOptions] = useState(() => [...puzzle.options].sort(() => Math.random() - 0.5));
