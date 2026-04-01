@@ -60,7 +60,7 @@ const ReactionsPanel = ({ enabled }: ReactionsPanelProps) => {
     reactionTimestamps.current.push(now);
     const count = reactionTimestamps.current.length;
     setCombo(count);
-    if (count >= 2) playComboSound(count);
+    if (count >= 2) { playComboSound(count); playComboHit(count); }
     clearTimeout(comboTimer.current);
     comboTimer.current = setTimeout(() => {
       reactionTimestamps.current = [];
