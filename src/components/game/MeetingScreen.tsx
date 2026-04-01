@@ -595,7 +595,7 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId]);
+  }, [phase, players, myPlayerId, round]);
 
   // Bot word guess attempts during discussion
   useEffect(() => {
