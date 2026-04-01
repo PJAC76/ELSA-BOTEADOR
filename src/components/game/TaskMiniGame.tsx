@@ -323,7 +323,10 @@ const PatternLogicGame = ({ onResult, t, difficulty }: { onResult: (s: boolean) 
 const MINI_GAMES: MiniGameType[] = ["word-unscramble", "wire-connect", "pattern-logic", "connections", "emoji-guess"];
 
 const TaskMiniGame = ({ zone, round, onComplete, onCancel }: TaskMiniGameProps) => {
-  const [gameType] = useState<MiniGameType>(() => MINI_GAMES[Math.floor(Math.random() * MINI_GAMES.length)]);
+  const [gameType] = useState<MiniGameType>(() => {
+    const idx = pickUnused("minigame-type", MINI_GAMES.length);
+    return MINI_GAMES[idx];
+  });
   const difficulty = getDifficulty(round);
   const [timeLeft, setTimeLeft] = useState(() => getGameTime(difficulty));
   const [result, setResult] = useState<"playing" | "success" | "fail">("playing");
