@@ -106,6 +106,7 @@ const CluePhasePanel = ({
   const advanceTurn = useCallback((currentClues: ClueEntry[]) => {
     const nextIndex = currentTurnIndex + 1;
     if (nextIndex >= alivePlayers.length) {
+      setCurrentTurnIndex(nextIndex); // Move past last player to stop timer
       onCluesComplete(currentClues);
     } else {
       setCurrentTurnIndex(nextIndex);
