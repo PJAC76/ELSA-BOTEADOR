@@ -116,6 +116,9 @@ const InventoryScreen = ({ avatarConfig, onBack, onAvatarSave }: InventoryScreen
   const [previewConfig, setPreviewConfig] = useState<AvatarConfig>({ ...avatarConfig });
   const [hasChanges, setHasChanges] = useState(false);
   const [equippedStickers, setEquippedStickers] = useState<string[]>([]);
+  const { equippedEmotes, toggleEmote, isOwned: isShopOwned } = useShopStore();
+
+  const ownedEmotes = SHOP_ITEMS.filter((i) => i.category === "emotes" && isShopOwned(i.id));
 
   const CATEGORIES: { key: InventoryCategory; label: string; emoji: string }[] = [
     { key: "hair", label: t("hairCategory"), emoji: "💇‍♀️" },
