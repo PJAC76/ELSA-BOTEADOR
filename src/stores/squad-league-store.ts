@@ -100,6 +100,14 @@ function getTierForPoints(points: number): LeagueTier {
   return tier;
 }
 
+export type LeagueGameResult = {
+  tierChanged: boolean;
+  newTier: LeagueTier | null;
+  oldTier: LeagueTier | null;
+  positionChanged: number; // negative = moved up (good), positive = moved down
+  newPosition: number;
+};
+
 type SquadLeagueState = {
   weeklyPoints: number;
   weeklyWins: number;
@@ -107,13 +115,14 @@ type SquadLeagueState = {
   currentWeek: string;
   rivalSquads: RivalSquad[];
   previousTier: LeagueTier | null;
-  leagueRewardsClaimed: string[]; // week IDs
+  lastPosition: number;
+  leagueRewardsClaimed: string[];
   addWeeklyPoints: (points: number) => void;
-  recordLeagueGame: (won: boolean) => void;
+  recordLeagueGame: (won: boolean, squadName: string) => LeagueGameResult;
   getCurrentTier: () => LeagueTier;
   getRanking: (squadName: string, squadEmoji: string) => (RivalSquad & { isPlayer?: boolean })[];
   getPlayerPosition: (squadName: string) => number;
-  claimWeeklyReward: () => number; // returns XP bonus
+  claimWeeklyReward: () => number;
   ensureCurrentWeek: () => void;
 };
 
