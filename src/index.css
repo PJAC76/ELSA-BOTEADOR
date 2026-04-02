@@ -211,6 +211,55 @@
     --shadow-card: 0 8px 30px -8px hsl(20 40% 55% / 0.2);
     --shadow-glow: 0 0 25px hsl(35 65% 50% / 0.3);
   }
+
+  /* Barbie — Hot pink glam, sparkle aesthetic */
+  [data-theme="barbie"] {
+    --background: 330 60% 96%;
+    --foreground: 330 40% 18%;
+
+    --card: 330 70% 98%;
+    --card-foreground: 330 40% 18%;
+
+    --popover: 330 70% 98%;
+    --popover-foreground: 330 40% 18%;
+
+    --primary: 330 85% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 70% 75%;
+    --secondary-foreground: 330 40% 18%;
+
+    --muted: 330 40% 92%;
+    --muted-foreground: 330 20% 45%;
+
+    --accent: 300 60% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 330 40% 88%;
+    --input: 330 40% 88%;
+    --ring: 330 85% 55%;
+
+    --radius: 1.25rem;
+
+    --campus-pink: 330 85% 55%;
+    --campus-lilac: 300 60% 65%;
+    --campus-mint: 340 70% 75%;
+    --campus-yellow: 45 80% 70%;
+    --campus-peach: 350 70% 75%;
+    --campus-sky: 300 50% 70%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%), hsl(340 70% 75%));
+    --gradient-accent: linear-gradient(135deg, hsl(300 60% 65%), hsl(330 85% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(330 85% 55%), hsl(350 70% 75%));
+    --gradient-fun: linear-gradient(135deg, hsl(300 60% 65%), hsl(340 70% 75%));
+
+    --shadow-soft: 0 4px 20px -4px hsl(330 85% 55% / 0.2);
+    --shadow-card: 0 8px 30px -8px hsl(340 70% 75% / 0.25);
+    --shadow-glow: 0 0 30px hsl(330 85% 55% / 0.35);
+  }
 }
 
 @layer base {

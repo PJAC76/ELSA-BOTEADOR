@@ -678,6 +678,8 @@ const translations = {
     "theme-cottagecore-desc": "Tonos verdes, flores y naturaleza",
     "theme-dark-academia": "Dark Academia",
     "theme-dark-academia-desc": "Tonos oscuros, dorados y estética literaria",
+    "theme-barbie": "Barbie",
+    "theme-barbie-desc": "Rosa intenso, glam y brillos ✨",
   },
   en: {
     // Common
@@ -1356,6 +1358,8 @@ const translations = {
     "theme-cottagecore-desc": "Earthy greens, flowers & nature",
     "theme-dark-academia": "Dark Academia",
     "theme-dark-academia-desc": "Dark tones, gold & scholarly aesthetic",
+    "theme-barbie": "Barbie",
+    "theme-barbie-desc": "Hot pink, glam & sparkles ✨",
   },
 } as const;
 
