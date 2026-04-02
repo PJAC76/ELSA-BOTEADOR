@@ -1345,6 +1345,17 @@ const translations = {
     noEmotesYet: "No emotes yet",
     buyEmotesInShop: "Buy emotes in the shop to use them in-game!",
     emotesSlotInfo: "Max 4 equipped emotes · They show in your reactions",
+
+    // Themes
+    themesSection: "Visual theme",
+    "theme-campus": "Campus",
+    "theme-campus-desc": "The classic pastel campus look",
+    "theme-y2k": "Y2K",
+    "theme-y2k-desc": "Neon, chrome & 2000s cyber vibes",
+    "theme-cottagecore": "Cottagecore",
+    "theme-cottagecore-desc": "Earthy greens, flowers & nature",
+    "theme-dark-academia": "Dark Academia",
+    "theme-dark-academia-desc": "Dark tones, gold & scholarly aesthetic",
   },
 } as const;
 
