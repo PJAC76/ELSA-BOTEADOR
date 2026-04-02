@@ -117,7 +117,7 @@ const Index = () => {
           onLeaderboard={() => setStep("leaderboard")}
           onAchievements={() => setStep("achievements")}
           onShop={() => setStep("shop")}
-        />
+          onSquadLeague={() => setStep("squad-league")}
       );
     case "play-friends":
       return (
