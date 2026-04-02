@@ -11,6 +11,7 @@ import { useChallengesStore } from "@/stores/challenges-store";
 import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
 import { useShopStore } from "@/stores/shop-store";
+import { useSquadLeagueStore } from "@/stores/squad-league-store";
 import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageCircle, CheckCircle2, Camera } from "lucide-react";
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import ShareMomentCard from "./ShareMomentCard";
@@ -51,6 +52,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
     store.recordGame(iWon);
     useChallengesStore.getState().recordWeeklyGame(iWon);
     const streakXp = useStreakStore.getState().recordDailyPlay();
+    useSquadLeagueStore.getState().recordLeagueGame(iWon);
     if (streakXp > 0) {
       useProgressionStore.getState().addXp(streakXp);
       const streakDays = useStreakStore.getState().currentStreak;

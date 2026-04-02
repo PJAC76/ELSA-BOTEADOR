@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award, ShoppingBag, Heart } from "lucide-react";
+import { Users, Zap, UserCircle, Package, Settings, HelpCircle, Trophy, Award, ShoppingBag, Heart, Shield } from "lucide-react";
 import WeeklyChallenges from "@/components/progression/WeeklyChallenges";
 import DailyStreakBanner from "@/components/home/DailyStreakBanner";
 import { useTranslation } from "@/lib/i18n";
@@ -20,11 +20,12 @@ type HomeScreenProps = {
   onLeaderboard?: () => void;
   onAchievements?: () => void;
   onShop?: () => void;
+  onSquadLeague?: () => void;
 };
 
 const HomeScreen = ({
   displayName, level = 1, xp = 0,
-  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop,
+  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop, onSquadLeague,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
   const { squadMembers, stats: squadStats, squadName } = useBffStore();
@@ -96,6 +97,13 @@ const HomeScreen = ({
               <span className="font-display text-sm font-bold text-foreground">{t("shopTitle" as any)}</span>
             </button>
           </div>
+          <button onClick={onSquadLeague} className="flex w-full items-center gap-3 rounded-2xl bg-card px-5 py-4 shadow-soft transition-colors hover:bg-muted">
+            <Shield className="h-5 w-5 text-campus-sky" />
+            <div className="text-left">
+              <span className="font-display text-sm font-bold text-foreground">{t("squadLeagueTitle" as any)}</span>
+              <p className="font-body text-[10px] text-muted-foreground">{t("squadLeagueDesc" as any)}</p>
+            </div>
+          </button>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }} className="mt-4 px-0">
