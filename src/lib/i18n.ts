@@ -1358,6 +1358,8 @@ const translations = {
     "theme-cottagecore-desc": "Earthy greens, flowers & nature",
     "theme-dark-academia": "Dark Academia",
     "theme-dark-academia-desc": "Dark tones, gold & scholarly aesthetic",
+    "theme-barbie": "Barbie",
+    "theme-barbie-desc": "Hot pink, glam & sparkles ✨",
   },
 } as const;
 
