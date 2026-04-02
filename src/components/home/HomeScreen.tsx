@@ -25,7 +25,7 @@ type HomeScreenProps = {
 
 const HomeScreen = ({
   displayName, level = 1, xp = 0,
-  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop,
+  onPlayFriends, onQuickPlay, onFriends, onInventory, onProfile, onSettings, onHowToPlay, onLeaderboard, onAchievements, onShop, onSquadLeague,
 }: HomeScreenProps) => {
   const { t } = useTranslation();
   const { squadMembers, stats: squadStats, squadName } = useBffStore();
