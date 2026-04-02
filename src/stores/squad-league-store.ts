@@ -157,14 +157,45 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
         set((s) => ({ weeklyPoints: s.weeklyPoints + points }));
       },
 
-      recordLeagueGame: (won) => {
+      recordLeagueGame: (won, squadName) => {
         get().ensureCurrentWeek();
+        const oldTier = get().getCurrentTier();
+        const oldPosition = get().getPlayerPosition(squadName);
         const points = won ? 30 : 10;
+
+        // Simulate rival progress
+        const updatedRivals = get().rivalSquads.map((r) => {
+          const rivalGain = Math.floor(Math.random() * 25) + 5;
+          const rivalWon = Math.random() > 0.45;
+          return {
+            ...r,
+            weeklyPoints: r.weeklyPoints + rivalGain,
+            gamesPlayed: r.gamesPlayed + 1,
+            wins: r.wins + (rivalWon ? 1 : 0),
+          };
+        });
+
         set((s) => ({
           weeklyPoints: s.weeklyPoints + points,
           weeklyWins: s.weeklyWins + (won ? 1 : 0),
           weeklyGames: s.weeklyGames + 1,
+          rivalSquads: updatedRivals,
         }));
+
+        const newTier = get().getCurrentTier();
+        const newPosition = get().getPlayerPosition(squadName);
+        const tierChanged = oldTier !== newTier;
+        const positionChanged = oldPosition - newPosition; // positive = moved up
+
+        set({ lastPosition: newPosition });
+
+        return {
+          tierChanged,
+          newTier: tierChanged ? newTier : null,
+          oldTier: tierChanged ? oldTier : null,
+          positionChanged,
+          newPosition,
+        };
       },
 
       getCurrentTier: () => getTierForPoints(get().weeklyPoints),
