@@ -7,6 +7,7 @@ import { playVictory, playDefeat, playTap, playReward } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
+import { useBffStore } from "@/stores/bff-store";
 import { useChallengesStore } from "@/stores/challenges-store";
 import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
@@ -52,7 +53,43 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
     store.recordGame(iWon);
     useChallengesStore.getState().recordWeeklyGame(iWon);
     const streakXp = useStreakStore.getState().recordDailyPlay();
-    useSquadLeagueStore.getState().recordLeagueGame(iWon);
+    const squadName = useBffStore.getState().squadName;
+    const leagueResult = useSquadLeagueStore.getState().recordLeagueGame(iWon, squadName);
+
+    // League tier promotion notification
+    if (leagueResult.tierChanged && leagueResult.newTier) {
+      const tierEmojis: Record<string, string> = { bronce: "🥉", plata: "🥈", oro: "🥇", diamante: "💎", leyenda: "👑" };
+      const isPromotion = leagueResult.newTier !== leagueResult.oldTier;
+      setTimeout(() => {
+        playTap();
+        toast({
+          title: `${tierEmojis[leagueResult.newTier!] || "🏆"} ${t("leaguePromotion" as any)}`,
+          description: t("leaguePromotionDesc" as any, { tier: t(("league" + leagueResult.newTier!.charAt(0).toUpperCase() + leagueResult.newTier!.slice(1)) as any) }),
+          variant: "achievement" as any,
+          duration: 6000,
+        });
+      }, 2500);
+    }
+
+    // Position change notification
+    if (leagueResult.positionChanged !== 0) {
+      setTimeout(() => {
+        if (leagueResult.positionChanged > 0) {
+          toast({
+            title: `📈 ${t("leagueRankUp" as any)}`,
+            description: t("leagueRankUpDesc" as any, { pos: String(leagueResult.newPosition) }),
+            duration: 4000,
+          });
+        } else {
+          toast({
+            title: `📉 ${t("leagueRankDown" as any)}`,
+            description: t("leagueRankDownDesc" as any, { pos: String(leagueResult.newPosition) }),
+            variant: "destructive",
+            duration: 4000,
+          });
+        }
+      }, leagueResult.tierChanged ? 4500 : 2500);
+    }
     if (streakXp > 0) {
       useProgressionStore.getState().addXp(streakXp);
       const streakDays = useStreakStore.getState().currentStreak;

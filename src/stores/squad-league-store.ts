@@ -100,6 +100,14 @@ function getTierForPoints(points: number): LeagueTier {
   return tier;
 }
 
+export type LeagueGameResult = {
+  tierChanged: boolean;
+  newTier: LeagueTier | null;
+  oldTier: LeagueTier | null;
+  positionChanged: number; // negative = moved up (good), positive = moved down
+  newPosition: number;
+};
+
 type SquadLeagueState = {
   weeklyPoints: number;
   weeklyWins: number;
@@ -107,13 +115,14 @@ type SquadLeagueState = {
   currentWeek: string;
   rivalSquads: RivalSquad[];
   previousTier: LeagueTier | null;
-  leagueRewardsClaimed: string[]; // week IDs
+  lastPosition: number;
+  leagueRewardsClaimed: string[];
   addWeeklyPoints: (points: number) => void;
-  recordLeagueGame: (won: boolean) => void;
+  recordLeagueGame: (won: boolean, squadName: string) => LeagueGameResult;
   getCurrentTier: () => LeagueTier;
   getRanking: (squadName: string, squadEmoji: string) => (RivalSquad & { isPlayer?: boolean })[];
   getPlayerPosition: (squadName: string) => number;
-  claimWeeklyReward: () => number; // returns XP bonus
+  claimWeeklyReward: () => number;
   ensureCurrentWeek: () => void;
 };
 
@@ -126,6 +135,7 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
       currentWeek: getWeekId(),
       rivalSquads: generateRivalSquads(7),
       previousTier: null,
+      lastPosition: 8,
       leagueRewardsClaimed: [],
 
       ensureCurrentWeek: () => {
@@ -147,14 +157,45 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
         set((s) => ({ weeklyPoints: s.weeklyPoints + points }));
       },
 
-      recordLeagueGame: (won) => {
+      recordLeagueGame: (won, squadName) => {
         get().ensureCurrentWeek();
+        const oldTier = get().getCurrentTier();
+        const oldPosition = get().getPlayerPosition(squadName);
         const points = won ? 30 : 10;
+
+        // Simulate rival progress
+        const updatedRivals = get().rivalSquads.map((r) => {
+          const rivalGain = Math.floor(Math.random() * 25) + 5;
+          const rivalWon = Math.random() > 0.45;
+          return {
+            ...r,
+            weeklyPoints: r.weeklyPoints + rivalGain,
+            gamesPlayed: r.gamesPlayed + 1,
+            wins: r.wins + (rivalWon ? 1 : 0),
+          };
+        });
+
         set((s) => ({
           weeklyPoints: s.weeklyPoints + points,
           weeklyWins: s.weeklyWins + (won ? 1 : 0),
           weeklyGames: s.weeklyGames + 1,
+          rivalSquads: updatedRivals,
         }));
+
+        const newTier = get().getCurrentTier();
+        const newPosition = get().getPlayerPosition(squadName);
+        const tierChanged = oldTier !== newTier;
+        const positionChanged = oldPosition - newPosition; // positive = moved up
+
+        set({ lastPosition: newPosition });
+
+        return {
+          tierChanged,
+          newTier: tierChanged ? newTier : null,
+          oldTier: tierChanged ? oldTier : null,
+          positionChanged,
+          newPosition,
+        };
       },
 
       getCurrentTier: () => getTierForPoints(get().weeklyPoints),

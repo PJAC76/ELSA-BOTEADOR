@@ -604,6 +604,12 @@ const translations = {
     leagueRewardOro: "+50 XP semanal",
     leagueRewardDiamante: "+100 XP semanal",
     leagueRewardLeyenda: "+200 XP semanal",
+    leaguePromotion: "¡Ascendiste de liga!",
+    leaguePromotionDesc: "Tu squad ahora está en {tier}",
+    leagueRankUp: "¡Subiste en el ranking!",
+    leagueRankUpDesc: "Tu squad ahora está en el puesto #{pos}",
+    leagueRankDown: "Bajaste en el ranking",
+    leagueRankDownDesc: "Tu squad cayó al puesto #{pos}",
 
     // Daily Streak
     streakDay: "día",
@@ -1307,6 +1313,12 @@ const translations = {
     leagueRewardOro: "+50 XP weekly",
     leagueRewardDiamante: "+100 XP weekly",
     leagueRewardLeyenda: "+200 XP weekly",
+    leaguePromotion: "League promotion!",
+    leaguePromotionDesc: "Your squad is now in {tier}",
+    leagueRankUp: "You moved up!",
+    leagueRankUpDesc: "Your squad is now at position #{pos}",
+    leagueRankDown: "You dropped in ranking",
+    leagueRankDownDesc: "Your squad fell to position #{pos}",
 
     // Daily Streak
     streakDay: "day",
