@@ -17,6 +17,7 @@ export const THEMES: ThemeDefinition[] = [
   { id: "y2k", emoji: "💿", nameKey: "theme-y2k", descKey: "theme-y2k-desc", price: 150, preview: "from-fuchsia-500 to-cyan-400" },
   { id: "cottagecore", emoji: "🌿", nameKey: "theme-cottagecore", descKey: "theme-cottagecore-desc", price: 150, preview: "from-green-400 to-amber-300" },
   { id: "dark-academia", emoji: "📚", nameKey: "theme-dark-academia", descKey: "theme-dark-academia-desc", price: 200, preview: "from-amber-800 to-stone-600" },
+  { id: "barbie", emoji: "💖", nameKey: "theme-barbie", descKey: "theme-barbie-desc", price: 175, preview: "from-pink-400 to-rose-300" },
 ];
 
 type ThemeStore = {
