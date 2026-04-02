@@ -225,6 +225,8 @@ const Index = () => {
       return <AchievementsScreen onBack={() => setStep("home")} />;
     case "shop":
       return <ShopScreen onBack={() => setStep("home")} />;
+    case "squad-league":
+      return <SquadLeagueScreen onBack={() => setStep("home")} />;
     default:
       return null;
   }
