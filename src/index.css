@@ -5,7 +5,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  [data-theme="campus"] {
     /* Campus Pastel Palette */
     --background: 30 50% 98%;
     --foreground: 280 30% 20%;
@@ -62,6 +63,153 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Y2K Theme — Chrome, hot pink, cyber vibes */
+  [data-theme="y2k"] {
+    --background: 280 30% 6%;
+    --foreground: 300 100% 90%;
+
+    --card: 280 25% 12%;
+    --card-foreground: 300 100% 90%;
+
+    --popover: 280 25% 12%;
+    --popover-foreground: 300 100% 90%;
+
+    --primary: 320 100% 60%;
+    --primary-foreground: 280 30% 6%;
+
+    --secondary: 185 100% 50%;
+    --secondary-foreground: 280 30% 6%;
+
+    --muted: 280 20% 18%;
+    --muted-foreground: 280 15% 55%;
+
+    --accent: 185 100% 50%;
+    --accent-foreground: 280 30% 6%;
+
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 280 20% 22%;
+    --input: 280 20% 22%;
+    --ring: 320 100% 60%;
+
+    --radius: 1rem;
+
+    --campus-pink: 320 100% 60%;
+    --campus-lilac: 280 80% 70%;
+    --campus-mint: 185 100% 50%;
+    --campus-yellow: 55 100% 60%;
+    --campus-peach: 320 80% 70%;
+    --campus-sky: 185 100% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(320 100% 60%), hsl(280 80% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(185 100% 50%), hsl(260 80% 65%));
+    --gradient-warm: linear-gradient(135deg, hsl(320 100% 60%), hsl(55 100% 60%));
+    --gradient-fun: linear-gradient(135deg, hsl(280 80% 70%), hsl(185 100% 50%));
+
+    --shadow-soft: 0 4px 20px -4px hsl(320 100% 60% / 0.25);
+    --shadow-card: 0 8px 30px -8px hsl(280 80% 70% / 0.3);
+    --shadow-glow: 0 0 30px hsl(320 100% 60% / 0.4);
+  }
+
+  /* Cottagecore Theme — Earthy greens, warm creams, floral vibes */
+  [data-theme="cottagecore"] {
+    --background: 40 40% 96%;
+    --foreground: 30 30% 20%;
+
+    --card: 40 50% 98%;
+    --card-foreground: 30 30% 20%;
+
+    --popover: 40 50% 98%;
+    --popover-foreground: 30 30% 20%;
+
+    --primary: 140 35% 45%;
+    --primary-foreground: 40 40% 96%;
+
+    --secondary: 30 50% 70%;
+    --secondary-foreground: 30 30% 20%;
+
+    --muted: 40 25% 90%;
+    --muted-foreground: 30 15% 45%;
+
+    --accent: 340 40% 65%;
+    --accent-foreground: 40 40% 96%;
+
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 25% 85%;
+    --input: 40 25% 85%;
+    --ring: 140 35% 45%;
+
+    --radius: 1.25rem;
+
+    --campus-pink: 340 40% 65%;
+    --campus-lilac: 280 30% 70%;
+    --campus-mint: 140 35% 45%;
+    --campus-yellow: 45 70% 65%;
+    --campus-peach: 25 60% 70%;
+    --campus-sky: 200 40% 70%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(140 35% 45%), hsl(80 40% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(340 40% 65%), hsl(25 60% 70%));
+    --gradient-warm: linear-gradient(135deg, hsl(30 50% 70%), hsl(45 70% 65%));
+    --gradient-fun: linear-gradient(135deg, hsl(140 35% 45%), hsl(200 40% 70%));
+
+    --shadow-soft: 0 4px 20px -4px hsl(140 35% 45% / 0.15);
+    --shadow-card: 0 8px 30px -8px hsl(30 50% 70% / 0.2);
+    --shadow-glow: 0 0 25px hsl(140 35% 45% / 0.2);
+  }
+
+  /* Dark Academia — Deep browns, gold, scholarly aesthetic */
+  [data-theme="dark-academia"] {
+    --background: 30 15% 10%;
+    --foreground: 35 30% 85%;
+
+    --card: 30 15% 15%;
+    --card-foreground: 35 30% 85%;
+
+    --popover: 30 15% 15%;
+    --popover-foreground: 35 30% 85%;
+
+    --primary: 35 65% 50%;
+    --primary-foreground: 30 15% 10%;
+
+    --secondary: 15 30% 45%;
+    --secondary-foreground: 35 30% 85%;
+
+    --muted: 30 10% 20%;
+    --muted-foreground: 30 15% 50%;
+
+    --accent: 25 50% 55%;
+    --accent-foreground: 30 15% 10%;
+
+    --destructive: 0 50% 45%;
+    --destructive-foreground: 35 30% 85%;
+
+    --border: 30 10% 25%;
+    --input: 30 10% 25%;
+    --ring: 35 65% 50%;
+
+    --radius: 0.75rem;
+
+    --campus-pink: 350 35% 55%;
+    --campus-lilac: 280 25% 50%;
+    --campus-mint: 160 25% 40%;
+    --campus-yellow: 35 65% 50%;
+    --campus-peach: 20 40% 55%;
+    --campus-sky: 210 30% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(35 65% 50%), hsl(20 40% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 25% 40%), hsl(210 30% 50%));
+    --gradient-warm: linear-gradient(135deg, hsl(35 65% 50%), hsl(15 30% 45%));
+    --gradient-fun: linear-gradient(135deg, hsl(280 25% 50%), hsl(210 30% 50%));
+
+    --shadow-soft: 0 4px 20px -4px hsl(35 65% 50% / 0.15);
+    --shadow-card: 0 8px 30px -8px hsl(20 40% 55% / 0.2);
+    --shadow-glow: 0 0 25px hsl(35 65% 50% / 0.3);
   }
 }
 

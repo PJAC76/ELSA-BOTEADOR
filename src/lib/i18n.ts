@@ -667,6 +667,17 @@ const translations = {
     noEmotesYet: "No tienes emotes aún",
     buyEmotesInShop: "¡Compra emotes en la tienda para usarlos en partida!",
     emotesSlotInfo: "Máx. 4 emotes equipados · Aparecen en tus reacciones",
+
+    // Themes
+    themesSection: "Tema visual",
+    "theme-campus": "Campus",
+    "theme-campus-desc": "El look clásico pastel del campus",
+    "theme-y2k": "Y2K",
+    "theme-y2k-desc": "Neón, chrome y vibes ciber del 2000",
+    "theme-cottagecore": "Cottagecore",
+    "theme-cottagecore-desc": "Tonos verdes, flores y naturaleza",
+    "theme-dark-academia": "Dark Academia",
+    "theme-dark-academia-desc": "Tonos oscuros, dorados y estética literaria",
   },
   en: {
     // Common
@@ -1334,6 +1345,17 @@ const translations = {
     noEmotesYet: "No emotes yet",
     buyEmotesInShop: "Buy emotes in the shop to use them in-game!",
     emotesSlotInfo: "Max 4 equipped emotes · They show in your reactions",
+
+    // Themes
+    themesSection: "Visual theme",
+    "theme-campus": "Campus",
+    "theme-campus-desc": "The classic pastel campus look",
+    "theme-y2k": "Y2K",
+    "theme-y2k-desc": "Neon, chrome & 2000s cyber vibes",
+    "theme-cottagecore": "Cottagecore",
+    "theme-cottagecore-desc": "Earthy greens, flowers & nature",
+    "theme-dark-academia": "Dark Academia",
+    "theme-dark-academia-desc": "Dark tones, gold & scholarly aesthetic",
   },
 } as const;
 

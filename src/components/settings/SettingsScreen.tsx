@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Globe, Accessibility, Shield, Volume2, Hand } from "lucide-react";
+import { ArrowLeft, Globe, Accessibility, Shield, Volume2, Hand, Palette } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { setSoundEnabled } from "@/lib/sounds";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTranslation } from "@/lib/i18n";
+import ThemeSelector from "./ThemeSelector";
 
 type SettingsScreenProps = {
   onBack: () => void;
@@ -54,6 +55,10 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
               </button>
             ))}
           </div>
+        </Section>
+
+        <Section icon={Palette} title={t("themesSection" as any)} delay={0.15}>
+          <ThemeSelector />
         </Section>
 
         <Section icon={Accessibility} title={t("accessibility")} delay={0.2}>
