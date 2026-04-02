@@ -1313,6 +1313,12 @@ const translations = {
     leagueRewardOro: "+50 XP weekly",
     leagueRewardDiamante: "+100 XP weekly",
     leagueRewardLeyenda: "+200 XP weekly",
+    leaguePromotion: "League promotion!",
+    leaguePromotionDesc: "Your squad is now in {tier}",
+    leagueRankUp: "You moved up!",
+    leagueRankUpDesc: "Your squad is now at position #{pos}",
+    leagueRankDown: "You dropped in ranking",
+    leagueRankDownDesc: "Your squad fell to position #{pos}",
 
     // Daily Streak
     streakDay: "day",
