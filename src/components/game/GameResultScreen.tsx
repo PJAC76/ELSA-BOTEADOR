@@ -7,6 +7,7 @@ import { playVictory, playDefeat, playTap, playReward } from "@/lib/sounds";
 import { useToast } from "@/hooks/use-toast";
 import { useProgressionStore, XP_REWARDS, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { getUnlockedAchievements } from "@/stores/achievements";
+import { useBffStore } from "@/stores/bff-store";
 import { useChallengesStore } from "@/stores/challenges-store";
 import { useStreakStore } from "@/stores/streak-store";
 import Confetti from "./Confetti";
