@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type ThemeId = "campus" | "y2k" | "cottagecore" | "dark-academia";
+export type ThemeId = "campus" | "y2k" | "cottagecore" | "dark-academia" | "barbie";
 
 export type ThemeDefinition = {
   id: ThemeId;
