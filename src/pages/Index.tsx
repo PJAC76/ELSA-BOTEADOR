@@ -48,7 +48,8 @@ type Step =
   | "how-to-play"
   | "leaderboard"
   | "achievements"
-  | "shop";
+  | "shop"
+  | "squad-league";
 
 const Index = () => {
   const { totalXp } = useProgressionStore();
