@@ -135,6 +135,7 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
       currentWeek: getWeekId(),
       rivalSquads: generateRivalSquads(7),
       previousTier: null,
+      lastPosition: 8,
       leagueRewardsClaimed: [],
 
       ensureCurrentWeek: () => {
