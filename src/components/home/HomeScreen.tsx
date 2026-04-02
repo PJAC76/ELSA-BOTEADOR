@@ -20,6 +20,7 @@ type HomeScreenProps = {
   onLeaderboard?: () => void;
   onAchievements?: () => void;
   onShop?: () => void;
+  onSquadLeague?: () => void;
 };
 
 const HomeScreen = ({
