@@ -52,6 +52,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
     store.recordGame(iWon);
     useChallengesStore.getState().recordWeeklyGame(iWon);
     const streakXp = useStreakStore.getState().recordDailyPlay();
+    useSquadLeagueStore.getState().recordLeagueGame(iWon);
     if (streakXp > 0) {
       useProgressionStore.getState().addXp(streakXp);
       const streakDays = useStreakStore.getState().currentStreak;
