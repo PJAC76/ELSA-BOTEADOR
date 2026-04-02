@@ -57,6 +57,10 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           </div>
         </Section>
 
+        <Section icon={Palette} title={t("themesSection" as any)} delay={0.15}>
+          <ThemeSelector />
+        </Section>
+
         <Section icon={Accessibility} title={t("accessibility")} delay={0.2}>
           <SettingRow label={t("highContrast")} description={t("highContrastDesc")} checked={settings.highContrast} onChange={settings.setHighContrast} />
           <SettingRow label={t("largeText")} description={t("largeTextDesc")} checked={settings.largeText} onChange={settings.setLargeText} />
