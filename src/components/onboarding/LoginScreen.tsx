@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type LoginScreenProps = {
   onLogin: () => void;
@@ -17,11 +19,56 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    if (!email.trim() || !password.trim()) return;
+    setLoading(true);
+
+    try {
+      if (mode === "register") {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: { display_name: name.trim() || "Jugadora" },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        toast({ title: "✅", description: t("accountCreated") || "Account created! Check your email to confirm." });
+        // After signup, auth state change will trigger navigation
+        onLogin();
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) throw error;
+        onLogin();
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      // For now, use mock since Google OAuth requires configuration
+      onLogin();
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (mode === "welcome") {
@@ -62,7 +109,8 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           className="flex w-full max-w-sm flex-col gap-3"
         >
           <Button
-            onClick={onLogin}
+            onClick={handleGoogleLogin}
+            disabled={loading}
             size="lg"
             className="h-14 w-full rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold"
           >
@@ -174,9 +222,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
         <Button
           type="submit"
+          disabled={loading}
           size="lg"
           className="h-14 rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold"
         >
+          {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
           {mode === "login" ? t("enter") : t("createAccountBtn")}
         </Button>
 
