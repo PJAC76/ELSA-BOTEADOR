@@ -116,6 +116,7 @@ type SquadLeagueState = {
   rivalSquads: RivalSquad[];
   previousTier: LeagueTier | null;
   lastPosition: number;
+  lastViewedPosition: number;
   leagueRewardsClaimed: string[];
   addWeeklyPoints: (points: number) => void;
   recordLeagueGame: (won: boolean, squadName: string) => LeagueGameResult;
