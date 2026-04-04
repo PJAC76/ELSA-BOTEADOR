@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Shield, ChevronRight, Crown, Flame, Users } from "lucide-react";
+import { ArrowLeft, Trophy, Shield, ChevronRight, Crown, Flame, Users, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useBffStore } from "@/stores/bff-store";
 import {
