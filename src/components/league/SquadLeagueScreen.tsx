@@ -154,6 +154,48 @@ const SquadLeagueScreen = ({ onBack }: SquadLeagueScreenProps) => {
         </div>
       </motion.div>
 
+      {/* Position change banner */}
+      <AnimatePresence>
+        {positionDelta !== null && positionDelta !== 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div
+              className={`flex items-center justify-center gap-2 py-3 px-4 ${
+                positionDelta > 0
+                  ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                  : "bg-destructive/10 text-destructive"
+              }`}
+            >
+              <motion.div
+                initial={{ y: positionDelta > 0 ? 20 : -20, scale: 0.5 }}
+                animate={{ y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              >
+                {positionDelta > 0 ? (
+                  <TrendingUp className="h-5 w-5" />
+                ) : (
+                  <TrendingDown className="h-5 w-5" />
+                )}
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="font-display text-sm font-bold"
+              >
+                {positionDelta > 0
+                  ? `📈 ${t("squadLeagueClimbed" as any)} ${positionDelta} ${positionDelta === 1 ? t("squadLeaguePosition" as any) : t("squadLeaguePositions" as any)}!`
+                  : `📉 ${t("squadLeagueDropped" as any)} ${Math.abs(positionDelta)} ${Math.abs(positionDelta) === 1 ? t("squadLeaguePosition" as any) : t("squadLeaguePositions" as any)}`}
+              </motion.span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tier info dropdown */}
       <AnimatePresence>
         {showTiers && (
