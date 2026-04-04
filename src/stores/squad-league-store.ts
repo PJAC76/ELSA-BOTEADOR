@@ -224,6 +224,14 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
         return ranking.findIndex((s) => s.id === "player") + 1;
       },
 
+      markPositionViewed: (squadName) => {
+        const current = get().getPlayerPosition(squadName);
+        const prev = get().lastViewedPosition;
+        const delta = prev - current; // positive = climbed up
+        set({ lastViewedPosition: current });
+        return delta;
+      },
+
       claimWeeklyReward: () => {
         const week = get().currentWeek;
         if (get().leagueRewardsClaimed.includes(week)) return 0;
