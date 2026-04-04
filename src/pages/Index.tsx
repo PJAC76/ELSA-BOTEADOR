@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import LoginScreen from "@/components/onboarding/LoginScreen";
 import AgeGateScreen from "@/components/onboarding/AgeGateScreen";
@@ -24,6 +24,8 @@ import ShopScreen from "@/components/shop/ShopScreen";
 import SquadLeagueScreen from "@/components/league/SquadLeagueScreen";
 import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game";
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
+import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
 
 const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0, makeup: 0, piercing: 0, nails: 0, eyeStyle: 0, shoes: 0 };
 
@@ -53,11 +55,12 @@ type Step =
 
 const Index = () => {
   const { totalXp } = useProgressionStore();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, updateProfile } = useProfile(user?.id);
+
   const [step, setStep] = useState<Step>("splash");
-  const [displayName, setDisplayName] = useState("Agente");
   const [roomCode, setRoomCode] = useState("");
   const [roomMode, setRoomMode] = useState<RoomMode>("friends");
-  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(DEFAULT_AVATAR);
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
@@ -66,15 +69,61 @@ const Index = () => {
   const [secretWords, setSecretWords] = useState<{ round: number; word: string; category: string }[]>([]);
   const [gameStats, setGameStats] = useState<GameStats>({ tasksCompleted: 0, zonesVisited: 0, cluesGiven: 0 });
 
-  const handleSplashComplete = useCallback(() => setStep("login"), []);
-  const handleLogin = useCallback(() => setStep("age-gate"), []);
+  // Derive display data from profile or fallback
+  const displayName = profile?.display_name || "Agente";
+  const avatarConfig = profile?.avatar_config || DEFAULT_AVATAR;
+
+  // After splash, route based on auth state
+  const handleSplashComplete = useCallback(() => {
+    if (authLoading) {
+      // Wait a bit and retry
+      setTimeout(() => setStep("login"), 500);
+      return;
+    }
+    if (user) {
+      // User is logged in, check if profile exists
+      setStep("home");
+    } else {
+      setStep("login");
+    }
+  }, [user, authLoading]);
+
+  // When auth state changes after login
+  useEffect(() => {
+    if (step === "login" && user && !authLoading) {
+      // User just logged in — check if they have a profile with a name
+      if (profile && profile.display_name && profile.display_name !== "") {
+        setStep("home");
+      } else if (!profileLoading) {
+        setStep("age-gate");
+      }
+    }
+  }, [user, authLoading, profile, profileLoading, step]);
+
+  const handleLogin = useCallback(() => {
+    // Auth state change will trigger the useEffect above
+  }, []);
+
   const handleAgeVerified = useCallback(() => setStep("create-profile"), []);
+
   const handleProfileComplete = useCallback(
-    (data: { displayName: string; avatarConfig: AvatarConfig; language: Language }) => {
-      setDisplayName(data.displayName);
+    async (data: { displayName: string; avatarConfig: AvatarConfig; language: Language }) => {
+      // Save to database
+      await updateProfile({
+        display_name: data.displayName,
+        avatar_config: data.avatarConfig,
+        language: data.language,
+      });
       setStep("home");
     },
-    []
+    [updateProfile]
+  );
+
+  const handleAvatarSave = useCallback(
+    async (config: AvatarConfig) => {
+      await updateProfile({ avatar_config: config });
+    },
+    [updateProfile]
   );
 
   const goToLobby = useCallback(
@@ -105,8 +154,8 @@ const Index = () => {
       return (
         <HomeScreen
           displayName={displayName}
-          level={getLevelForXp(totalXp)}
-          xp={getXpForCurrentLevel(totalXp).progress}
+          level={getLevelForXp(profile?.xp ?? totalXp)}
+          xp={getXpForCurrentLevel(profile?.xp ?? totalXp).progress}
           onPlayFriends={() => setStep("play-friends")}
           onQuickPlay={() => setStep("quick-play")}
           onFriends={() => setStep("friends")}
@@ -156,13 +205,13 @@ const Index = () => {
         <ProfileScreen
           displayName={displayName}
           avatarConfig={avatarConfig}
-          level={getLevelForXp(totalXp)}
-          xp={getXpForCurrentLevel(totalXp).progress}
-          totalXp={totalXp}
+          level={getLevelForXp(profile?.xp ?? totalXp)}
+          xp={getXpForCurrentLevel(profile?.xp ?? totalXp).progress}
+          totalXp={profile?.xp ?? totalXp}
           gamesPlayed={useProgressionStore.getState().gamesPlayed}
           gamesWon={useProgressionStore.getState().gamesWon}
           onBack={() => setStep("home")}
-          onAvatarSave={setAvatarConfig}
+          onAvatarSave={handleAvatarSave}
           onAchievements={() => setStep("achievements")}
         />
       );
@@ -173,7 +222,7 @@ const Index = () => {
         <InventoryScreen
           avatarConfig={avatarConfig}
           onBack={() => setStep("home")}
-          onAvatarSave={setAvatarConfig}
+          onAvatarSave={handleAvatarSave}
         />
       );
     case "lobby":
