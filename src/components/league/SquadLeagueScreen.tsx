@@ -39,7 +39,15 @@ const SquadLeagueScreen = ({ onBack }: SquadLeagueScreenProps) => {
   const { addXp } = useProgressionStore();
   const league = useSquadLeagueStore();
   const [showTiers, setShowTiers] = useState(false);
+  const [positionDelta, setPositionDelta] = useState<number | null>(null);
 
+  useEffect(() => {
+    const squadLabel = squadMembers.length > 0 ? squadName : t("squadLeagueNoSquad" as any);
+    const delta = league.markPositionViewed(squadLabel);
+    setPositionDelta(delta);
+    const timer = setTimeout(() => setPositionDelta(null), 3500);
+    return () => clearTimeout(timer);
+  }, []);
   const tier = league.getCurrentTier();
   const tierInfo = LEAGUE_TIERS.find((ti) => ti.id === tier)!;
   const nextTier = LEAGUE_TIERS[LEAGUE_TIERS.indexOf(tierInfo) + 1];
