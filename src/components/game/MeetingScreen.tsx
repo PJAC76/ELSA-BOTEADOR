@@ -951,7 +951,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendPreset} disabled={isGhost} players={players} clues={roundClues} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} disabled={isGhost} players={players} clues={roundClues} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
