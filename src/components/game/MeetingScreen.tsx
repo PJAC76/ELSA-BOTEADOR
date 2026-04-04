@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key } from "lucide-react";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
@@ -306,6 +306,7 @@ const ChatPanel = ({
   messages,
   onSendPreset,
   onSendEmoji,
+  onSendFree,
   disabled,
   players,
   clues,
@@ -313,18 +314,28 @@ const ChatPanel = ({
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
   onSendEmoji: (emoji: string) => void;
+  onSendFree: (msg: string) => void;
   disabled: boolean;
   players: MeetingPlayer[];
   clues: ClueEntry[];
 }) => {
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
+  const [showPresets, setShowPresets] = useState(false);
+  const [freeInput, setFreeInput] = useState("");
 
   const fillTemplate = (template: string) => {
     const randomPlayer = players[Math.floor(Math.random() * players.length)];
     const zones = ["Biblioteca", "Cafetería", "Auditorio", "Laboratorio", "Gimnasio", "Jardín"];
     const randomZone = zones[Math.floor(Math.random() * zones.length)];
     return template.replace("{player}", randomPlayer.name).replace("{zone}", randomZone);
+  };
+
+  const handleSendFree = () => {
+    if (!freeInput.trim()) return;
+    onSendFree(freeInput.trim());
+    setFreeInput("");
+    playTap();
   };
 
   return (
@@ -374,19 +385,40 @@ const ChatPanel = ({
                 </div>
               </motion.div>
             )}
+            {showPresets && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="flex flex-wrap gap-2 rounded-2xl bg-card p-3">
+                  {CHAT_PRESETS.map((preset, i) => (
+                    <button key={i} onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); setShowPresets(false); }} className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform">
+                      {preset.replace("{player}", "...").replace("{zone}", "...")}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {CHAT_PRESETS.map((preset, i) => (
-              <button key={i} onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); }} className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform">
-                {preset.replace("{player}", "...").replace("{zone}", "...")}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            <button onClick={() => setShowEmojis(!showEmojis)} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              <MessageCircle className="h-4 w-4" />
+            </button>
+            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <SmilePlus className="h-4 w-4" />
+            </button>
+            <input
+              value={freeInput}
+              onChange={(e) => setFreeInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendFree()}
+              placeholder={t("writeMessage")}
+              maxLength={100}
+              className="h-9 flex-1 rounded-xl bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button
+              onClick={handleSendFree}
+              disabled={!freeInput.trim()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -730,6 +762,11 @@ const MeetingScreen = ({
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content, createdAt: Date.now() }]);
   };
 
+  const handleSendFree = (content: string) => {
+    if (isGhost) return;
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
+  };
+
   const handleSendEmoji = (emoji: string) => {
     if (isGhost) return;
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
@@ -919,7 +956,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} disabled={isGhost} players={players} clues={roundClues} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} disabled={isGhost} players={players} clues={roundClues} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
