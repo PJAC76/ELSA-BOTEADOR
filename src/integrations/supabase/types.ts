@@ -437,7 +437,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_match_player: {
+        Args: { _match_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_round_player: {
+        Args: { _round_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       friendship_status: "pending" | "accepted" | "blocked"
