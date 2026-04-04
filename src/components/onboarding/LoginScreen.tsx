@@ -39,7 +39,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           },
         });
         if (error) throw error;
-        toast({ title: "✅", description: t("accountCreated") || "Account created! Check your email to confirm." });
+        toast({ title: "✅", description: "Account created! Check your email to confirm." });
         // After signup, auth state change will trigger navigation
         onLogin();
       } else {
