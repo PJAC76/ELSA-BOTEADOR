@@ -116,12 +116,14 @@ type SquadLeagueState = {
   rivalSquads: RivalSquad[];
   previousTier: LeagueTier | null;
   lastPosition: number;
+  lastViewedPosition: number;
   leagueRewardsClaimed: string[];
   addWeeklyPoints: (points: number) => void;
   recordLeagueGame: (won: boolean, squadName: string) => LeagueGameResult;
   getCurrentTier: () => LeagueTier;
   getRanking: (squadName: string, squadEmoji: string) => (RivalSquad & { isPlayer?: boolean })[];
   getPlayerPosition: (squadName: string) => number;
+  markPositionViewed: (squadName: string) => number; // returns delta (positive=climbed, negative=dropped)
   claimWeeklyReward: () => number;
   ensureCurrentWeek: () => void;
 };
@@ -136,6 +138,7 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
       rivalSquads: generateRivalSquads(7),
       previousTier: null,
       lastPosition: 8,
+      lastViewedPosition: 8,
       leagueRewardsClaimed: [],
 
       ensureCurrentWeek: () => {
@@ -219,6 +222,14 @@ export const useSquadLeagueStore = create<SquadLeagueState>()(
       getPlayerPosition: (squadName) => {
         const ranking = get().getRanking(squadName, "");
         return ranking.findIndex((s) => s.id === "player") + 1;
+      },
+
+      markPositionViewed: (squadName) => {
+        const current = get().getPlayerPosition(squadName);
+        const prev = get().lastViewedPosition;
+        const delta = prev - current; // positive = climbed up
+        set({ lastViewedPosition: current });
+        return delta;
       },
 
       claimWeeklyReward: () => {

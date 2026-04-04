@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Shield, ChevronRight, Crown, Flame, Users } from "lucide-react";
+import { ArrowLeft, Trophy, Shield, ChevronRight, Crown, Flame, Users, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useBffStore } from "@/stores/bff-store";
 import {
@@ -39,7 +39,15 @@ const SquadLeagueScreen = ({ onBack }: SquadLeagueScreenProps) => {
   const { addXp } = useProgressionStore();
   const league = useSquadLeagueStore();
   const [showTiers, setShowTiers] = useState(false);
+  const [positionDelta, setPositionDelta] = useState<number | null>(null);
 
+  useEffect(() => {
+    const squadLabel = squadMembers.length > 0 ? squadName : t("squadLeagueNoSquad" as any);
+    const delta = league.markPositionViewed(squadLabel);
+    setPositionDelta(delta);
+    const timer = setTimeout(() => setPositionDelta(null), 3500);
+    return () => clearTimeout(timer);
+  }, []);
   const tier = league.getCurrentTier();
   const tierInfo = LEAGUE_TIERS.find((ti) => ti.id === tier)!;
   const nextTier = LEAGUE_TIERS[LEAGUE_TIERS.indexOf(tierInfo) + 1];
@@ -145,6 +153,48 @@ const SquadLeagueScreen = ({ onBack }: SquadLeagueScreenProps) => {
           ))}
         </div>
       </motion.div>
+
+      {/* Position change banner */}
+      <AnimatePresence>
+        {positionDelta !== null && positionDelta !== 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div
+              className={`flex items-center justify-center gap-2 py-3 px-4 ${
+                positionDelta > 0
+                  ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                  : "bg-destructive/10 text-destructive"
+              }`}
+            >
+              <motion.div
+                initial={{ y: positionDelta > 0 ? 20 : -20, scale: 0.5 }}
+                animate={{ y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              >
+                {positionDelta > 0 ? (
+                  <TrendingUp className="h-5 w-5" />
+                ) : (
+                  <TrendingDown className="h-5 w-5" />
+                )}
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="font-display text-sm font-bold"
+              >
+                {positionDelta > 0
+                  ? `📈 ${t("squadLeagueClimbed" as any)} ${positionDelta} ${positionDelta === 1 ? t("squadLeaguePosition" as any) : t("squadLeaguePositions" as any)}!`
+                  : `📉 ${t("squadLeagueDropped" as any)} ${Math.abs(positionDelta)} ${Math.abs(positionDelta) === 1 ? t("squadLeaguePosition" as any) : t("squadLeaguePositions" as any)}`}
+              </motion.span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tier info dropdown */}
       <AnimatePresence>
