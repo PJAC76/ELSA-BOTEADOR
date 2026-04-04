@@ -762,6 +762,11 @@ const MeetingScreen = ({
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content, createdAt: Date.now() }]);
   };
 
+  const handleSendFree = (content: string) => {
+    if (isGhost) return;
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
+  };
+
   const handleSendEmoji = (emoji: string) => {
     if (isGhost) return;
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
