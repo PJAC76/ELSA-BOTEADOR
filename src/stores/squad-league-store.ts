@@ -123,6 +123,7 @@ type SquadLeagueState = {
   getCurrentTier: () => LeagueTier;
   getRanking: (squadName: string, squadEmoji: string) => (RivalSquad & { isPlayer?: boolean })[];
   getPlayerPosition: (squadName: string) => number;
+  markPositionViewed: (squadName: string) => number; // returns delta (positive=climbed, negative=dropped)
   claimWeeklyReward: () => number;
   ensureCurrentWeek: () => void;
 };
