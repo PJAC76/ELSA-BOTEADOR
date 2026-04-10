@@ -17,6 +17,8 @@ import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageC
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import ShareMomentCard from "./ShareMomentCard";
 import { useTranslation } from "@/lib/i18n";
+import { useGameResults } from "@/hooks/use-game-results";
+import { useAuth } from "@/hooks/use-auth";
 
 const MOCK_PLAYERS = [
   { id: "me", name: "You", emoji: "🕵️", role: "agent" as PlayerRole },
@@ -33,6 +35,8 @@ type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: P
 const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], gameStats, onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { saveGameResult } = useGameResults(user?.id);
   const hasRecorded = useRef(false);
   const [showReveal, setShowReveal] = useState(false);
   const [bonusClaimed, setBonusClaimed] = useState(false);
@@ -48,6 +52,16 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   useEffect(() => {
     if (hasRecorded.current) return;
     hasRecorded.current = true;
+
+    // Save game result to database
+    saveGameResult({
+      role: myRole,
+      won: iWon,
+      xpEarned: xpEarned,
+      tasksCompleted: gameStats?.tasksCompleted ?? 0,
+      guessedWord: wordGuessers.length > 0,
+    });
+
     const store = useProgressionStore.getState();
     const before = getUnlockedAchievements({ gamesPlayed: store.gamesPlayed, gamesWon: store.gamesWon, totalXp: store.totalXp });
     store.recordGame(iWon);
@@ -117,7 +131,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
         });
       }, 2500 + idx * 1200);
     });
-  }, [iWon, toast, t]);
+  }, [iWon, toast, t, saveGameResult, myRole, xpEarned, gameStats, wordGuessers]);
 
   useEffect(() => { let frame = 0; const interval = setInterval(() => { frame++; setXpAnimated(Math.round((frame / 30) * xpEarned)); if (frame >= 30) clearInterval(interval); }, 30); return () => clearInterval(interval); }, [xpEarned]);
 

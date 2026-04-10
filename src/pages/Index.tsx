@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import LoginScreen from "@/components/onboarding/LoginScreen";
 import AgeGateScreen from "@/components/onboarding/AgeGateScreen";
@@ -26,6 +26,7 @@ import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game"
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
+import { useGameResults } from "@/hooks/use-game-results";
 
 const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0, makeup: 0, piercing: 0, nails: 0, eyeStyle: 0, shoes: 0 };
 
@@ -56,7 +57,9 @@ type Step =
 const Index = () => {
   const { totalXp } = useProgressionStore();
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading, updateProfile } = useProfile(user?.id);
+  const { profile, loading: profileLoading, updateProfile, refetch: refetchProfile } = useProfile(user?.id);
+  const { fetchStats } = useGameResults(user?.id);
+  const [dbStats, setDbStats] = useState<{ gamesPlayed: number; gamesWon: number } | null>(null);
 
   const [step, setStep] = useState<Step>("splash");
   const [roomCode, setRoomCode] = useState("");
@@ -72,6 +75,16 @@ const Index = () => {
   // Derive display data from profile or fallback
   const displayName = profile?.display_name || "Agente";
   const avatarConfig = profile?.avatar_config || DEFAULT_AVATAR;
+
+  // Fetch DB stats when returning to home or profile
+  useEffect(() => {
+    if (user?.id && (step === "home" || step === "profile")) {
+      fetchStats().then((stats) => {
+        if (stats) setDbStats({ gamesPlayed: stats.gamesPlayed, gamesWon: stats.gamesWon });
+      });
+      refetchProfile();
+    }
+  }, [user?.id, step, fetchStats, refetchProfile]);
 
   // After splash, route based on auth state
   const handleSplashComplete = useCallback(() => {
@@ -208,8 +221,8 @@ const Index = () => {
           level={getLevelForXp(profile?.xp ?? totalXp)}
           xp={getXpForCurrentLevel(profile?.xp ?? totalXp).progress}
           totalXp={profile?.xp ?? totalXp}
-          gamesPlayed={useProgressionStore.getState().gamesPlayed}
-          gamesWon={useProgressionStore.getState().gamesWon}
+          gamesPlayed={dbStats?.gamesPlayed ?? useProgressionStore.getState().gamesPlayed}
+          gamesWon={dbStats?.gamesWon ?? useProgressionStore.getState().gamesWon}
           onBack={() => setStep("home")}
           onAvatarSave={handleAvatarSave}
           onAchievements={() => setStep("achievements")}
