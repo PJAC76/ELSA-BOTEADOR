@@ -57,7 +57,9 @@ type Step =
 const Index = () => {
   const { totalXp } = useProgressionStore();
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading, updateProfile } = useProfile(user?.id);
+  const { profile, loading: profileLoading, updateProfile, refetch: refetchProfile } = useProfile(user?.id);
+  const { fetchStats } = useGameResults(user?.id);
+  const [dbStats, setDbStats] = useState<{ gamesPlayed: number; gamesWon: number } | null>(null);
 
   const [step, setStep] = useState<Step>("splash");
   const [roomCode, setRoomCode] = useState("");
