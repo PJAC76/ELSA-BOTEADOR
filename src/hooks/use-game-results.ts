@@ -64,7 +64,7 @@ export function useGameResults(userId: string | undefined) {
 
     return {
       gamesPlayed: data.length,
-      gamesWon: data.filter((r) => r.won).count?.() ?? data.filter((r) => r.won).length,
+      gamesWon: data.filter((r) => r.won).length,
       totalXpEarned: data.reduce((sum, r) => sum + r.xp_earned, 0),
       totalTasks: data.reduce((sum, r) => sum + r.tasks_completed, 0),
       wordsGuessed: data.filter((r) => r.guessed_word).length,
