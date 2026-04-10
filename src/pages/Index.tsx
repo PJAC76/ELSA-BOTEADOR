@@ -26,6 +26,7 @@ import type { AvatarConfig, Language, RoomMode, PlayerRole } from "@/types/game"
 import { useProgressionStore, getLevelForXp, getXpForCurrentLevel } from "@/stores/progression-store";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
+import { useGameResults } from "@/hooks/use-game-results";
 
 const DEFAULT_AVATAR: AvatarConfig = { skinTone: 0, hairStyle: 0, hairColor: 0, outfit: 0, accessory: 0, makeup: 0, piercing: 0, nails: 0, eyeStyle: 0, shoes: 0 };
 
