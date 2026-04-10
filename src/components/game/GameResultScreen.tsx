@@ -131,7 +131,7 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
         });
       }, 2500 + idx * 1200);
     });
-  }, [iWon, toast, t]);
+  }, [iWon, toast, t, saveGameResult, myRole, xpEarned, gameStats, wordGuessers]);
 
   useEffect(() => { let frame = 0; const interval = setInterval(() => { frame++; setXpAnimated(Math.round((frame / 30) * xpEarned)); if (frame >= 30) clearInterval(interval); }, 30); return () => clearInterval(interval); }, [xpEarned]);
 
