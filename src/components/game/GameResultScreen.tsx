@@ -52,6 +52,16 @@ const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [],
   useEffect(() => {
     if (hasRecorded.current) return;
     hasRecorded.current = true;
+
+    // Save game result to database
+    saveGameResult({
+      role: myRole,
+      won: iWon,
+      xpEarned: xpEarned,
+      tasksCompleted: gameStats?.tasksCompleted ?? 0,
+      guessedWord: wordGuessers.length > 0,
+    });
+
     const store = useProgressionStore.getState();
     const before = getUnlockedAchievements({ gamesPlayed: store.gamesPlayed, gamesWon: store.gamesWon, totalXp: store.totalXp });
     store.recordGame(iWon);
