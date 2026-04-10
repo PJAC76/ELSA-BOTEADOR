@@ -17,6 +17,8 @@ import { Gift, Play, Star, Eye, Flag, Key, BookOpen, BarChart3, MapPin, MessageC
 import ReportPlayerModal from "@/components/reports/ReportPlayerModal";
 import ShareMomentCard from "./ShareMomentCard";
 import { useTranslation } from "@/lib/i18n";
+import { useGameResults } from "@/hooks/use-game-results";
+import { useAuth } from "@/hooks/use-auth";
 
 const MOCK_PLAYERS = [
   { id: "me", name: "You", emoji: "🕵️", role: "agent" as PlayerRole },
