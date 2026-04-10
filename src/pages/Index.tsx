@@ -76,6 +76,16 @@ const Index = () => {
   const displayName = profile?.display_name || "Agente";
   const avatarConfig = profile?.avatar_config || DEFAULT_AVATAR;
 
+  // Fetch DB stats when returning to home or profile
+  useEffect(() => {
+    if (user?.id && (step === "home" || step === "profile")) {
+      fetchStats().then((stats) => {
+        if (stats) setDbStats({ gamesPlayed: stats.gamesPlayed, gamesWon: stats.gamesWon });
+      });
+      refetchProfile();
+    }
+  }, [user?.id, step, fetchStats, refetchProfile]);
+
   // After splash, route based on auth state
   const handleSplashComplete = useCallback(() => {
     if (authLoading) {
