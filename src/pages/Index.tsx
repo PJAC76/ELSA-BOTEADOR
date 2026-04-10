@@ -221,8 +221,8 @@ const Index = () => {
           level={getLevelForXp(profile?.xp ?? totalXp)}
           xp={getXpForCurrentLevel(profile?.xp ?? totalXp).progress}
           totalXp={profile?.xp ?? totalXp}
-          gamesPlayed={useProgressionStore.getState().gamesPlayed}
-          gamesWon={useProgressionStore.getState().gamesWon}
+          gamesPlayed={dbStats?.gamesPlayed ?? useProgressionStore.getState().gamesPlayed}
+          gamesWon={dbStats?.gamesWon ?? useProgressionStore.getState().gamesWon}
           onBack={() => setStep("home")}
           onAvatarSave={handleAvatarSave}
           onAchievements={() => setStep("achievements")}
