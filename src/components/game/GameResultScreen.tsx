@@ -35,6 +35,8 @@ type GameResultScreenProps = { result: "agents-win" | "saboteur-wins"; myRole: P
 const GameResultScreen = ({ result, myRole, wordGuessers = [], secretWords = [], gameStats, onBackToHome }: GameResultScreenProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { saveGameResult } = useGameResults(user?.id);
   const hasRecorded = useRef(false);
   const [showReveal, setShowReveal] = useState(false);
   const [bonusClaimed, setBonusClaimed] = useState(false);
