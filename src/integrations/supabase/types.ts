@@ -76,6 +76,50 @@ export type Database = {
         }
         Relationships: []
       }
+      game_results: {
+        Row: {
+          created_at: string
+          guessed_word: boolean
+          id: string
+          match_id: string | null
+          role: string
+          tasks_completed: number
+          user_id: string
+          won: boolean
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string
+          guessed_word?: boolean
+          id?: string
+          match_id?: string | null
+          role?: string
+          tasks_completed?: number
+          user_id: string
+          won?: boolean
+          xp_earned?: number
+        }
+        Update: {
+          created_at?: string
+          guessed_word?: boolean
+          id?: string
+          match_id?: string | null
+          role?: string
+          tasks_completed?: number
+          user_id?: string
+          won?: boolean
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_results_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_players: {
         Row: {
           current_zone: number
