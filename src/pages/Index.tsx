@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import LoginScreen from "@/components/onboarding/LoginScreen";
 import AgeGateScreen from "@/components/onboarding/AgeGateScreen";
