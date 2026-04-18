@@ -25,7 +25,16 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AvatarConfig>(avatarConfig);
+  const [roleFilter, setRoleFilter] = useState<"all" | "agent" | "saboteur">("all");
+  const [resultFilter, setResultFilter] = useState<"all" | "wins" | "losses">("all");
   const { t } = useTranslation();
+
+  const filteredHistory = history.filter((item) => {
+    if (roleFilter !== "all" && item.role !== roleFilter) return false;
+    if (resultFilter === "wins" && !item.won) return false;
+    if (resultFilter === "losses" && item.won) return false;
+    return true;
+  });
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -101,23 +110,57 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 mb-4 rounded-3xl bg-card p-5 shadow-soft">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /><h3 className="font-display text-sm font-bold text-foreground">{t("matchHistory" as any) || "Match history"}</h3></div>
-            <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{history.length}</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{filteredHistory.length}/{history.length}</span>
           </div>
-          {history.length === 0 ? (
+
+          {history.length > 0 && (
+            <div className="mb-4 space-y-2">
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  { id: "all", label: t("filterAll" as any) || "Todas", icon: null },
+                  { id: "agent", label: t("agent"), icon: Shield },
+                  { id: "saboteur", label: t("saboteur"), icon: UserX },
+                ] as const).map(({ id, label, icon: Icon }) => {
+                  const active = roleFilter === id;
+                  return (
+                    <button key={id} onClick={() => setRoleFilter(id as any)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 font-display text-[10px] font-bold transition-colors ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"}`}>
+                      {Icon && <Icon className="h-3 w-3" />}{label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  { id: "all", label: t("filterAll" as any) || "Todas" },
+                  { id: "wins", label: t("victories") },
+                  { id: "losses", label: t("losses") },
+                ] as const).map(({ id, label }) => {
+                  const active = resultFilter === id;
+                  return (
+                    <button key={id} onClick={() => setResultFilter(id as any)} className={`rounded-full px-3 py-1.5 font-display text-[10px] font-bold transition-colors ${active ? (id === "wins" ? "bg-campus-green text-white" : id === "losses" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground") : "bg-muted text-muted-foreground hover:bg-primary/10"}`}>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {filteredHistory.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Sparkles className="h-8 w-8 text-muted-foreground/40 mb-2" />
-              <p className="font-body text-xs text-muted-foreground">{t("noMatchesYet" as any) || "No matches played yet"}</p>
+              <p className="font-body text-xs text-muted-foreground">{history.length === 0 ? (t("noMatchesYet" as any) || "No matches played yet") : (t("noMatchesFilter" as any) || "No matches match these filters")}</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {history.map((item, i) => {
+              {filteredHistory.map((item, i) => {
                 const date = new Date(item.created_at);
                 const dateStr = date.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
                 const timeStr = date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
                 const isSaboteur = item.role === "saboteur";
                 const RoleIcon = isSaboteur ? UserX : Shield;
                 return (
-                  <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 + i * 0.03 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${item.won ? "bg-campus-green/10" : "bg-muted/40"}`}>
+                  <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 + i * 0.03 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${item.won ? "bg-campus-green/10" : "bg-muted/40"}`}>
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isSaboteur ? "bg-destructive/15" : "bg-primary/15"}`}>
                       <RoleIcon className={`h-5 w-5 ${isSaboteur ? "text-destructive" : "text-primary"}`} />
                     </div>
