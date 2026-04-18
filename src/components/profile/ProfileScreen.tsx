@@ -25,7 +25,16 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AvatarConfig>(avatarConfig);
+  const [roleFilter, setRoleFilter] = useState<"all" | "agent" | "saboteur">("all");
+  const [resultFilter, setResultFilter] = useState<"all" | "wins" | "losses">("all");
   const { t } = useTranslation();
+
+  const filteredHistory = history.filter((item) => {
+    if (roleFilter !== "all" && item.role !== roleFilter) return false;
+    if (resultFilter === "wins" && !item.won) return false;
+    if (resultFilter === "losses" && item.won) return false;
+    return true;
+  });
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
