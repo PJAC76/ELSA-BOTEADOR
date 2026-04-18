@@ -227,6 +227,7 @@ const Index = () => {
           totalXp={profile?.xp ?? totalXp}
           gamesPlayed={dbStats?.gamesPlayed ?? useProgressionStore.getState().gamesPlayed}
           gamesWon={dbStats?.gamesWon ?? useProgressionStore.getState().gamesWon}
+          history={history}
           onBack={() => setStep("home")}
           onAvatarSave={handleAvatarSave}
           onAchievements={() => setStep("achievements")}
