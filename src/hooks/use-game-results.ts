@@ -13,10 +13,13 @@ export function useGameResults(userId: string | undefined) {
       tasksCompleted: number;
       guessedWord: boolean;
     }) => {
-      if (!userId) return;
+      if (!userId) {
+        console.warn("[useGameResults] saveGameResult skipped: no userId");
+        return;
+      }
 
       // 1. Insert game result
-      await supabase.from("game_results").insert({
+      const { error: insertError } = await supabase.from("game_results").insert({
         user_id: userId,
         match_id: params.matchId ?? null,
         role: params.role,
@@ -25,6 +28,11 @@ export function useGameResults(userId: string | undefined) {
         tasks_completed: params.tasksCompleted,
         guessed_word: params.guessedWord,
       });
+      if (insertError) {
+        console.error("[useGameResults] insert error:", insertError);
+        return;
+      }
+      console.log("[useGameResults] game result saved", params);
 
       // 2. Sync XP to profile
       const { data: profile } = await supabase
