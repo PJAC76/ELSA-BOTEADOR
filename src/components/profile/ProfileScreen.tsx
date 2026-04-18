@@ -100,13 +100,13 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 mb-4 rounded-3xl bg-card p-5 shadow-soft">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /><h3 className="font-display text-sm font-bold text-foreground">{t("matchHistory")}</h3></div>
+            <div className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /><h3 className="font-display text-sm font-bold text-foreground">{t("matchHistory" as any) || "Match history"}</h3></div>
             <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{history.length}</span>
           </div>
           {history.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Sparkles className="h-8 w-8 text-muted-foreground/40 mb-2" />
-              <p className="font-body text-xs text-muted-foreground">{t("noMatchesYet")}</p>
+              <p className="font-body text-xs text-muted-foreground">{t("noMatchesYet" as any) || "No matches played yet"}</p>
             </div>
           ) : (
             <div className="space-y-2">
