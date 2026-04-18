@@ -58,8 +58,9 @@ const Index = () => {
   const { totalXp } = useProgressionStore();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile, refetch: refetchProfile } = useProfile(user?.id);
-  const { fetchStats } = useGameResults(user?.id);
+  const { fetchStats, fetchHistory } = useGameResults(user?.id);
   const [dbStats, setDbStats] = useState<{ gamesPlayed: number; gamesWon: number } | null>(null);
+  const [history, setHistory] = useState<Awaited<ReturnType<typeof fetchHistory>>>([]);
 
   const [step, setStep] = useState<Step>("splash");
   const [roomCode, setRoomCode] = useState("");
