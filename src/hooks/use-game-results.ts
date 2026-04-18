@@ -82,5 +82,5 @@ export function useGameResults(userId: string | undefined) {
     };
   }, [userId]);
 
-  return { saveGameResult, fetchStats };
+  return { saveGameResult, fetchStats, fetchHistory };
 }
