@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2, Award } from "lucide-react";
+import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2, Award, History, Shield, UserX, Sparkles } from "lucide-react";
 import AvatarCustomizer, { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
 import type { AvatarConfig } from "@/types/game";
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useTranslation } from "@/lib/i18n";
 
-type ProfileScreenProps = { displayName: string; avatarConfig: AvatarConfig; level?: number; xp?: number; totalXp?: number; gamesPlayed?: number; gamesWon?: number; onBack: () => void; onAvatarSave: (config: AvatarConfig) => void; onAchievements?: () => void };
+export type GameHistoryItem = {
+  id: string;
+  role: string;
+  won: boolean;
+  xp_earned: number;
+  tasks_completed: number;
+  guessed_word: boolean;
+  created_at: string;
+};
 
-const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, onBack, onAvatarSave, onAchievements }: ProfileScreenProps) => {
+type ProfileScreenProps = { displayName: string; avatarConfig: AvatarConfig; level?: number; xp?: number; totalXp?: number; gamesPlayed?: number; gamesWon?: number; history?: GameHistoryItem[]; onBack: () => void; onAvatarSave: (config: AvatarConfig) => void; onAchievements?: () => void };
+
+const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, history = [], onBack, onAvatarSave, onAchievements }: ProfileScreenProps) => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const achievements = getUnlockedAchievements({ gamesPlayed, gamesWon, totalXp });
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
