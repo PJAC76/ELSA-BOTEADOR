@@ -52,6 +52,17 @@ export function useGameResults(userId: string | undefined) {
     [userId]
   );
 
+  const fetchHistory = useCallback(async (limit = 20) => {
+    if (!userId) return [];
+    const { data } = await supabase
+      .from("game_results")
+      .select("id, role, won, xp_earned, tasks_completed, guessed_word, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return data ?? [];
+  }, [userId]);
+
   const fetchStats = useCallback(async () => {
     if (!userId) return null;
 
