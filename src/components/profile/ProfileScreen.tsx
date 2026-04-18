@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2, Award } from "lucide-react";
+import { ArrowLeft, Edit3, Check, X, TrendingUp, Target, Trophy, Gamepad2, Award, History, Shield, UserX, Sparkles } from "lucide-react";
 import AvatarCustomizer, { getAvatarEmoji } from "@/components/shared/AvatarCustomizer";
 import type { AvatarConfig } from "@/types/game";
 import { getUnlockedAchievements } from "@/stores/achievements";
 import { useTranslation } from "@/lib/i18n";
 
-type ProfileScreenProps = { displayName: string; avatarConfig: AvatarConfig; level?: number; xp?: number; totalXp?: number; gamesPlayed?: number; gamesWon?: number; onBack: () => void; onAvatarSave: (config: AvatarConfig) => void; onAchievements?: () => void };
+export type GameHistoryItem = {
+  id: string;
+  role: string;
+  won: boolean;
+  xp_earned: number;
+  tasks_completed: number;
+  guessed_word: boolean;
+  created_at: string;
+};
 
-const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, onBack, onAvatarSave, onAchievements }: ProfileScreenProps) => {
+type ProfileScreenProps = { displayName: string; avatarConfig: AvatarConfig; level?: number; xp?: number; totalXp?: number; gamesPlayed?: number; gamesWon?: number; history?: GameHistoryItem[]; onBack: () => void; onAvatarSave: (config: AvatarConfig) => void; onAchievements?: () => void };
+
+const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp = 0, gamesPlayed = 0, gamesWon = 0, history = [], onBack, onAvatarSave, onAchievements }: ProfileScreenProps) => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const achievements = getUnlockedAchievements({ gamesPlayed, gamesWon, totalXp });
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
@@ -86,6 +96,47 @@ const ProfileScreen = ({ displayName, avatarConfig, level = 1, xp = 0, totalXp =
               );
             })}
           </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 mb-4 rounded-3xl bg-card p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /><h3 className="font-display text-sm font-bold text-foreground">{t("matchHistory" as any) || "Match history"}</h3></div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-display text-xs font-bold text-primary">{history.length}</span>
+          </div>
+          {history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Sparkles className="h-8 w-8 text-muted-foreground/40 mb-2" />
+              <p className="font-body text-xs text-muted-foreground">{t("noMatchesYet" as any) || "No matches played yet"}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {history.map((item, i) => {
+                const date = new Date(item.created_at);
+                const dateStr = date.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
+                const timeStr = date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+                const isSaboteur = item.role === "saboteur";
+                const RoleIcon = isSaboteur ? UserX : Shield;
+                return (
+                  <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 + i * 0.03 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${item.won ? "bg-campus-green/10" : "bg-muted/40"}`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isSaboteur ? "bg-destructive/15" : "bg-primary/15"}`}>
+                      <RoleIcon className={`h-5 w-5 ${isSaboteur ? "text-destructive" : "text-primary"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-display text-xs font-bold ${item.won ? "text-campus-green" : "text-muted-foreground"}`}>{item.won ? t("victory") : t("defeat")}</span>
+                        <span className="font-body text-[10px] text-muted-foreground">· {isSaboteur ? t("saboteur") : t("agent")}</span>
+                      </div>
+                      <p className="font-body text-[10px] text-muted-foreground">{dateStr} · {timeStr}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-display text-sm font-black text-campus-yellow">+{item.xp_earned}</p>
+                      <p className="font-body text-[10px] text-muted-foreground">XP</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
