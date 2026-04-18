@@ -83,9 +83,12 @@ const Index = () => {
       fetchStats().then((stats) => {
         if (stats) setDbStats({ gamesPlayed: stats.gamesPlayed, gamesWon: stats.gamesWon });
       });
+      if (step === "profile") {
+        fetchHistory(20).then(setHistory);
+      }
       refetchProfile();
     }
-  }, [user?.id, step, fetchStats, refetchProfile]);
+  }, [user?.id, step, fetchStats, fetchHistory, refetchProfile]);
 
   // After splash, route based on auth state
   const handleSplashComplete = useCallback(() => {
