@@ -288,8 +288,6 @@ const translations = {
     filterAll: "Todas",
     noMatchesYet: "Aún no has jugado ninguna partida",
     noMatchesFilter: "No hay partidas con estos filtros",
-    victory: "¡Victoria!",
-    defeat: "Derrota",
 
     // Settings
     settingsTitle: "Ajustes",
