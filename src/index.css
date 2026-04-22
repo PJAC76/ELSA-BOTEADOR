@@ -207,6 +207,8 @@
     --campus-yellow: 35 65% 50%;
     --campus-peach: 20 40% 55%;
     --campus-sky: 210 30% 50%;
+    --campus-green: 130 30% 40%;
+    --campus-orange: 25 60% 50%;
 
     --gradient-primary: linear-gradient(135deg, hsl(35 65% 50%), hsl(20 40% 55%));
     --gradient-accent: linear-gradient(135deg, hsl(160 25% 40%), hsl(210 30% 50%));
