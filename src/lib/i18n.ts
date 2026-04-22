@@ -1001,6 +1001,10 @@ const translations = {
     achievementsComplete: "complete",
     achievementsHint: "Keep playing to unlock more badges 🏅",
     viewAchievements: "View achievements",
+    matchHistory: "Match history",
+    filterAll: "All",
+    noMatchesYet: "No matches played yet",
+    noMatchesFilter: "No matches with these filters",
 
     // Settings
     settingsTitle: "Settings",
