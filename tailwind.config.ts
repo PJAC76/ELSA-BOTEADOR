@@ -58,6 +58,8 @@ export default {
           yellow: "hsl(var(--campus-yellow))",
           peach: "hsl(var(--campus-peach))",
           sky: "hsl(var(--campus-sky))",
+          green: "hsl(var(--campus-green))",
+          orange: "hsl(var(--campus-orange))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
