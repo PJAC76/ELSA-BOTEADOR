@@ -284,6 +284,12 @@ const translations = {
     achievementsComplete: "completado",
     achievementsHint: "Sigue jugando para desbloquear más insignias 🏅",
     viewAchievements: "Ver logros",
+    matchHistory: "Historial de partidas",
+    filterAll: "Todas",
+    noMatchesYet: "Aún no has jugado ninguna partida",
+    noMatchesFilter: "No hay partidas con estos filtros",
+    victory: "¡Victoria!",
+    defeat: "Derrota",
 
     // Settings
     settingsTitle: "Ajustes",
