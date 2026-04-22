@@ -284,6 +284,10 @@ const translations = {
     achievementsComplete: "completado",
     achievementsHint: "Sigue jugando para desbloquear más insignias 🏅",
     viewAchievements: "Ver logros",
+    matchHistory: "Historial de partidas",
+    filterAll: "Todas",
+    noMatchesYet: "Aún no has jugado ninguna partida",
+    noMatchesFilter: "No hay partidas con estos filtros",
 
     // Settings
     settingsTitle: "Ajustes",
@@ -997,6 +1001,10 @@ const translations = {
     achievementsComplete: "complete",
     achievementsHint: "Keep playing to unlock more badges 🏅",
     viewAchievements: "View achievements",
+    matchHistory: "Match history",
+    filterAll: "All",
+    noMatchesYet: "No matches played yet",
+    noMatchesFilter: "No matches with these filters",
 
     // Settings
     settingsTitle: "Settings",
