@@ -1,17 +1,20 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogIn } from "lucide-react";
+import { ArrowLeft, LogIn, Loader2 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { joinRoom } from "@/hooks/use-room";
+import { toast } from "sonner";
 
 type JoinRoomScreenProps = {
   onBack: () => void;
-  onJoin: (roomCode: string) => void;
+  onJoin: (roomCode: string, roomId: string) => void;
 };
 
 const JoinRoomScreen = ({ onBack, onJoin }: JoinRoomScreenProps) => {
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState("");
+  const [joining, setJoining] = useState(false);
   const { t } = useTranslation();
 
   const handleInput = (index: number, value: string) => {
@@ -47,6 +50,22 @@ const JoinRoomScreen = ({ onBack, onJoin }: JoinRoomScreenProps) => {
   const fullCode = code.join("");
   const isComplete = fullCode.length === 6;
 
+  const handleJoin = async () => {
+    if (!isComplete || joining) return;
+    setJoining(true);
+    setError("");
+    try {
+      const room = await joinRoom(fullCode);
+      onJoin(room.code, room.id);
+    } catch (e: any) {
+      const msg = e?.message ?? "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setJoining(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="gradient-warm px-6 pb-6 pt-12 safe-top">
@@ -77,8 +96,8 @@ const JoinRoomScreen = ({ onBack, onJoin }: JoinRoomScreenProps) => {
 
         {error && <p className="mb-4 font-body text-sm text-destructive">{error}</p>}
 
-        <Button onClick={() => isComplete && onJoin(fullCode)} disabled={!isComplete} className="h-14 w-full max-w-sm rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">
-          <LogIn className="mr-2 h-5 w-5" />
+        <Button onClick={handleJoin} disabled={!isComplete || joining} className="h-14 w-full max-w-sm rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">
+          {joining ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
           {t("joinRoomBtn")}
         </Button>
       </div>

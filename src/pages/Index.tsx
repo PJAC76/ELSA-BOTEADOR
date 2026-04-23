@@ -64,6 +64,7 @@ const Index = () => {
 
   const [step, setStep] = useState<Step>("splash");
   const [roomCode, setRoomCode] = useState("");
+  const [roomId, setRoomId] = useState<string | null>(null);
   const [roomMode, setRoomMode] = useState<RoomMode>("friends");
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
@@ -144,8 +145,9 @@ const Index = () => {
   );
 
   const goToLobby = useCallback(
-    (code: string, mode: RoomMode, host: boolean) => {
+    (code: string, mode: RoomMode, host: boolean, id: string | null = null) => {
       setRoomCode(code);
+      setRoomId(id);
       setRoomMode(mode);
       setIsHost(host);
       setStep("lobby");
@@ -198,21 +200,21 @@ const Index = () => {
       return (
         <CreateRoomScreen
           onBack={() => setStep("play-friends")}
-          onRoomReady={(code) => goToLobby(code, "friends", true)}
+          onRoomReady={(code, id) => goToLobby(code, "friends", true, id)}
         />
       );
     case "join-room":
       return (
         <JoinRoomScreen
           onBack={() => setStep("play-friends")}
-          onJoin={(code) => goToLobby(code || "JOINED", "friends", false)}
+          onJoin={(code, id) => goToLobby(code || "JOINED", "friends", false, id)}
         />
       );
     case "quick-play":
       return (
         <QuickPlayScreen
           onBack={() => setStep("home")}
-          onMatchFound={(code) => goToLobby(code, "quick", true)}
+          onMatchFound={(code) => goToLobby(code, "quick", true, null)}
         />
       );
     case "friends":
@@ -247,6 +249,7 @@ const Index = () => {
       return (
         <LobbyScreen
           roomCode={roomCode}
+          roomId={roomId}
           mode={roomMode}
           language={roomLanguage}
           isHost={isHost}
