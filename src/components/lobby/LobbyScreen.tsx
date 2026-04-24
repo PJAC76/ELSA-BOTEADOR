@@ -169,23 +169,14 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
             </div>
           </div>
 
-          <div className="px-4 pb-2">
-            <div className="mb-1 font-display text-xs font-bold text-muted-foreground">{t("chooseRole") || "Elige tu rol (solo pruebas)"}</div>
-            <div className="flex gap-2">
-              <button onClick={() => setChosenRole("agent")} className={`flex-1 rounded-2xl py-2.5 font-display text-sm font-bold transition-all ${chosenRole === "agent" ? "gradient-primary text-primary-foreground shadow-soft" : "bg-muted text-muted-foreground"}`}>
-                🕵️ {t("agent") || "Agente"}
-              </button>
-              <button onClick={() => setChosenRole("saboteur")} className={`flex-1 rounded-2xl py-2.5 font-display text-sm font-bold transition-all ${chosenRole === "saboteur" ? "bg-destructive text-destructive-foreground shadow-soft" : "bg-muted text-muted-foreground"}`}>
-                🔥 {t("saboteur") || "Saboteador"}
-              </button>
-            </div>
-          </div>
-          <div className="flex gap-3 px-4 pb-4 safe-bottom">
+          <div className="flex gap-3 px-4 pb-4 pt-2 safe-bottom">
             <Button onClick={toggleReady} className={`h-14 flex-1 rounded-2xl font-display text-base font-bold ${myReady ? "bg-campus-mint text-primary-foreground" : "bg-muted text-foreground"}`}>
               {myReady ? t("readyCheck") : t("imReady")}
             </Button>
             {isHost && (
-              <Button onClick={() => onStart(chosenRole)} disabled={!canStart} className="h-14 flex-1 rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">{t("start")}</Button>
+              <Button onClick={handleStart} disabled={!canStart} className="h-14 flex-1 rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">
+                {starting ? <Loader2 className="h-5 w-5 animate-spin" /> : t("start")}
+              </Button>
             )}
           </div>
         </>
