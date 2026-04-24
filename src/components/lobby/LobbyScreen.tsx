@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Send, SmilePlus, Loader2 } from "lucide-react";
 import type { RoomMode, ChatMessage, Language } from "@/types/game";
@@ -7,6 +7,8 @@ import { CHAT_EMOJIS } from "@/types/game";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoom, leaveRoom } from "@/hooks/use-room";
+import { startMatch, findActiveMatchForRoom } from "@/hooks/use-match";
+import { toast } from "sonner";
 
 type LobbyScreenProps = {
   roomCode: string;
@@ -15,20 +17,30 @@ type LobbyScreenProps = {
   language: Language;
   isHost: boolean;
   onBack: () => void;
-  onStart: (chosenRole: "agent" | "saboteur") => void;
+  onStart: (matchId: string) => void;
 };
 
 const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyScreenProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { room, players, loading, setReady } = useRoom(roomId, user?.id);
+  const [starting, setStarting] = useState(false);
 
   const myPlayer = players.find((p) => p.user_id === user?.id);
   const myReady = myPlayer?.is_ready ?? false;
   const allReady = players.length > 0 && players.every((p) => p.is_ready);
   const readyCount = players.filter((p) => p.is_ready).length;
-  // For solo-test, allow start with 1+. For real multiplayer the bot fill happens server-side later.
-  const canStart = isHost && allReady && players.length >= 1;
+  // Need at least 2 humans (server fills with bots up to 6); host can also start solo for testing.
+  const canStart = isHost && allReady && players.length >= 1 && !starting;
+
+  // When room flips to "playing" (host triggered match-start), all clients navigate to role-reveal.
+  useEffect(() => {
+    if (room?.status === "playing" && roomId) {
+      findActiveMatchForRoom(roomId).then((mid) => {
+        if (mid) onStart(mid);
+      });
+    }
+  }, [room?.status, roomId, onStart]);
 
   const CHAT_PRESETS_TRANSLATED = useMemo(() => [
     t("chat-saw-player"), t("chat-i-was-in"), t("chat-i-think"), t("chat-acted-weird"),
