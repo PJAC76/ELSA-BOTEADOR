@@ -261,8 +261,9 @@ const Index = () => {
     case "role-reveal":
       return (
         <RoleRevealScreen
-          role={myRole}
-          onComplete={() => setStep("game")}
+          matchId={matchId}
+          fallbackRole={myRole}
+          onComplete={(role) => { setMyRole(role); setStep("game"); }}
         />
       );
     case "game":
