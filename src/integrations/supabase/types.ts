@@ -382,6 +382,51 @@ export type Database = {
           },
         ]
       }
+      sabotages: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          match_id: string
+          round_id: string
+          saboteur_id: string | null
+          zone: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          match_id: string
+          round_id: string
+          saboteur_id?: string | null
+          zone: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          match_id?: string
+          round_id?: string
+          saboteur_id?: string | null
+          zone?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sabotages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sabotages_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sanctions: {
         Row: {
           created_at: string

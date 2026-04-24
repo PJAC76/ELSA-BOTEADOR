@@ -16,20 +16,29 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
+import { useMatch, moveToZone, completeTask, sabotageZone } from "@/hooks/use-match";
+import { toast } from "sonner";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
 const TOTAL_ROUNDS = 3;
 const SABOTAGE_DURATION = 15;
 
+const ZONE_ORDER: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
+const zoneToIndex = (z: Zone) => ZONE_ORDER.indexOf(z) + 1;
+const indexToZone = (i: number): Zone => ZONE_ORDER[Math.max(0, Math.min(5, i - 1))];
+
 type GamePhase = "action" | "meeting" | "round-summary";
 type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
 export type GameStats = { tasksCompleted: number; zonesVisited: number; cluesGiven: number };
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
+type GameScreenProps = { role: PlayerRole; matchId?: string | null; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
 
-const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
+const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
+  const { match, players: matchPlayers, round: matchRound, tasks: matchTasks, sabotages: matchSabotages } = useMatch(matchId ?? null);
+  const isOnline = !!matchId;
+
   const [round, setRound] = useState(() => { resetCategoryRotation(); return 1; });
   const [phase, setPhase] = useState<GamePhase>("action");
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
@@ -54,6 +63,18 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const [zonesVisited, setZonesVisited] = useState<Set<Zone>>(new Set(["library"]));
   const [cluesGiven, setCluesGiven] = useState(0);
 
+  // Online: derive sabotaged + completed zones + tasksCompleted from realtime data
+  useEffect(() => {
+    if (!isOnline) return;
+    const now = Date.now();
+    const activeSab = matchSabotages.filter(s => new Date(s.expires_at).getTime() > now);
+    setSabotagedZones(activeSab.map(s => indexToZone(s.zone)));
+    const doneZones = matchTasks.filter(t => t.is_completed).map(t => indexToZone(t.zone));
+    setCompletedZones(Array.from(new Set(doneZones)));
+    setTasksCompleted(matchTasks.filter(t => t.is_completed).length);
+    if (matchRound) setRound(matchRound.round_number);
+  }, [isOnline, matchSabotages, matchTasks, matchRound]);
+
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
   const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
@@ -61,28 +82,87 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const secretClues = language === "en" ? roundWord.cluesEn : roundWord.clues;
 
   const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
-  const mockPlayerZones: Record<string, Zone> = { me: currentZone, p2: MOCK_ZONES[Math.floor(round * 1.3) % 6], p3: MOCK_ZONES[Math.floor(round * 2.7) % 6], p4: MOCK_ZONES[Math.floor(round * 0.5) % 6], p5: MOCK_ZONES[Math.floor(round * 3.1) % 6] };
+  const mockPlayerZones: Record<string, Zone> = isOnline
+    ? Object.fromEntries(matchPlayers.map(p => [p.id, indexToZone(p.current_zone)]))
+    : { me: currentZone, p2: MOCK_ZONES[Math.floor(round * 1.3) % 6], p3: MOCK_ZONES[Math.floor(round * 2.7) % 6], p4: MOCK_ZONES[Math.floor(round * 0.5) % 6], p5: MOCK_ZONES[Math.floor(round * 3.1) % 6] };
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
+  // Server-side timer: derive from rounds.ends_at
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
+    if (isOnline && matchRound?.ends_at) {
+      const endsAt = new Date(matchRound.ends_at).getTime();
+      const tick = () => {
+        const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        setTimeLeft((prev) => { if (prev > 6 && remaining <= 6 && remaining > 0) playTimerUrgent(); return remaining; });
+        if (remaining <= 0) setPhase("meeting");
+      };
+      tick();
+      const interval = setInterval(tick, 500);
+      return () => clearInterval(interval);
+    }
     const interval = setInterval(() => { setTimeLeft((tl) => { if (tl <= 1) { setPhase("meeting"); return 0; } if (tl <= 6) playTimerUrgent(); return tl - 1; }); }, 1000);
     return () => clearInterval(interval);
-  }, [phase, activeTask]);
+  }, [phase, activeTask, isOnline, matchRound?.ends_at]);
 
+  // Local sabotage countdown only when offline
   useEffect(() => {
+    if (isOnline) return;
     if (sabotagedZones.length === 0) return;
     const timer = setTimeout(() => setSabotagedZones((prev) => prev.slice(1)), SABOTAGE_DURATION * 1000);
     return () => clearTimeout(timer);
-  }, [sabotagedZones]);
+  }, [sabotagedZones, isOnline]);
 
-  const handleSelectZone = useCallback((zone: Zone) => { setCurrentZone(zone); setZonesVisited((prev) => new Set(prev).add(zone)); if (role === "saboteur") return; if (sabotagedZones.includes(zone)) return; if (completedZones.includes(zone)) return; setActiveTask(zone); }, [role, sabotagedZones, completedZones]);
+  const handleSelectZone = useCallback(async (zone: Zone) => {
+    setCurrentZone(zone);
+    setZonesVisited((prev) => new Set(prev).add(zone));
+    if (isOnline && matchId) {
+      try { await moveToZone(matchId, zoneToIndex(zone)); } catch (e) { console.error(e); }
+    }
+    if (role === "saboteur") return;
+    if (sabotagedZones.includes(zone)) return;
+    if (completedZones.includes(zone)) return;
+    setActiveTask(zone);
+  }, [role, sabotagedZones, completedZones, isOnline, matchId]);
+
   const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
-  const handleTaskComplete = useCallback((success: boolean) => { if (success && activeTask) { setTasksCompleted((c) => c + 1); setTotalTasksCompleted((c) => c + 1); setCompletedZones((prev) => [...prev, activeTask]); } setActiveTask(null); }, [activeTask]);
-  const handleSabotage = useCallback((zone: Zone) => { setSabotagedZones((prev) => [...prev, zone]); }, []);
 
-  useEffect(() => { if (tasksCompleted >= tasksTotal && phase === "action") { playRoundComplete(); setPhase("meeting"); } }, [tasksCompleted, tasksTotal, phase]);
+  const handleTaskComplete = useCallback(async (success: boolean) => {
+    if (success && activeTask) {
+      if (isOnline && matchId) {
+        // Find first incomplete task in this zone
+        const zoneIdx = zoneToIndex(activeTask);
+        const target = matchTasks.find(t => t.zone === zoneIdx && !t.is_completed);
+        if (target) {
+          try { await completeTask(matchId, target.id); }
+          catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Error";
+            toast.error(msg);
+          }
+        }
+      } else {
+        setTasksCompleted((c) => c + 1);
+        setTotalTasksCompleted((c) => c + 1);
+        setCompletedZones((prev) => [...prev, activeTask]);
+      }
+    }
+    setActiveTask(null);
+  }, [activeTask, isOnline, matchId, matchTasks]);
+
+  const handleSabotage = useCallback(async (zone: Zone) => {
+    if (isOnline && matchId) {
+      try { await sabotageZone(matchId, zoneToIndex(zone)); }
+      catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Error";
+        toast.error(msg);
+      }
+    } else {
+      setSabotagedZones((prev) => [...prev, zone]);
+    }
+  }, [isOnline, matchId]);
+
+  useEffect(() => { if (!isOnline && tasksCompleted >= tasksTotal && phase === "action") { playRoundComplete(); setPhase("meeting"); } }, [tasksCompleted, tasksTotal, phase, isOnline]);
 
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
@@ -147,7 +227,7 @@ const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
             secretCategory={secretCategory}
           />
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} />
+            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} />
           </motion.div>
           {role === "saboteur" && phase === "action" && <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}><SabotagePanel onSabotage={handleSabotage} sabotagedZones={sabotagedZones} /></motion.div>}
           {phase === "action" && (
