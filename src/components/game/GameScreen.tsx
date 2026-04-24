@@ -227,7 +227,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretCategory={secretCategory}
           />
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} />
+            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} />
           </motion.div>
           {role === "saboteur" && phase === "action" && <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}><SabotagePanel onSabotage={handleSabotage} sabotagedZones={sabotagedZones} /></motion.div>}
           {phase === "action" && (
