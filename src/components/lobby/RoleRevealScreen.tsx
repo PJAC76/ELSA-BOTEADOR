@@ -2,28 +2,54 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import type { PlayerRole } from "@/types/game";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/hooks/use-auth";
+import { useMatch } from "@/hooks/use-match";
+import { Loader2 } from "lucide-react";
 
-type RoleRevealScreenProps = { role: PlayerRole; onComplete: () => void };
+type RoleRevealScreenProps = {
+  matchId: string | null;
+  /** Optional fallback role for legacy/single-player flow when no matchId is provided. */
+  fallbackRole?: PlayerRole;
+  onComplete: (role: PlayerRole) => void;
+};
 
-const RoleRevealScreen = ({ role, onComplete }: RoleRevealScreenProps) => {
-  const [phase, setPhase] = useState<"suspense" | "reveal" | "done">("suspense");
+const RoleRevealScreen = ({ matchId, fallbackRole = "agent", onComplete }: RoleRevealScreenProps) => {
+  const [phase, setPhase] = useState<"loading" | "suspense" | "reveal" | "done">(matchId ? "loading" : "suspense");
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { players, loading } = useMatch(matchId);
+
+  const myMatchPlayer = players.find((p) => p.user_id === user?.id);
+  const role: PlayerRole = (myMatchPlayer?.role as PlayerRole) ?? fallbackRole;
 
   const data = {
     agent: { title: t("agent"), emoji: "🕵️", subtitle: t("agentMission"), gradient: "gradient-fun" },
     saboteur: { title: t("saboteur"), emoji: "💣", subtitle: t("saboteurMission"), gradient: "gradient-warm" },
   }[role];
 
+  // Wait until match data has arrived (or no matchId at all) before starting suspense.
   useEffect(() => {
+    if (!matchId) return;
+    if (!loading && myMatchPlayer) setPhase("suspense");
+  }, [matchId, loading, myMatchPlayer]);
+
+  useEffect(() => {
+    if (phase !== "suspense") return;
     const t1 = setTimeout(() => setPhase("reveal"), 2000);
     const t2 = setTimeout(() => setPhase("done"), 3500);
-    const t3 = setTimeout(onComplete, 5500);
+    const t3 = setTimeout(() => onComplete(role), 5500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [onComplete]);
+  }, [phase, onComplete, role]);
 
   return (
     <div className={`flex min-h-screen flex-col items-center justify-center ${data.gradient}`}>
       <AnimatePresence mode="wait">
+        {phase === "loading" && (
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
+            <Loader2 className="h-10 w-10 animate-spin text-primary-foreground" />
+            <p className="font-body text-sm text-primary-foreground/80">{t("discoveringRole")}</p>
+          </motion.div>
+        )}
         {phase === "suspense" && (
           <motion.div key="suspense" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="flex flex-col items-center gap-4">
             <motion.div animate={{ rotate: [0, 10, -10, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-7xl">🔮</motion.div>

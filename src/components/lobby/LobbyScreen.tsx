@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Send, SmilePlus, Loader2 } from "lucide-react";
 import type { RoomMode, ChatMessage, Language } from "@/types/game";
@@ -7,6 +7,8 @@ import { CHAT_EMOJIS } from "@/types/game";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoom, leaveRoom } from "@/hooks/use-room";
+import { startMatch, findActiveMatchForRoom } from "@/hooks/use-match";
+import { toast } from "sonner";
 
 type LobbyScreenProps = {
   roomCode: string;
@@ -15,20 +17,30 @@ type LobbyScreenProps = {
   language: Language;
   isHost: boolean;
   onBack: () => void;
-  onStart: (chosenRole: "agent" | "saboteur") => void;
+  onStart: (matchId: string) => void;
 };
 
 const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyScreenProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { room, players, loading, setReady } = useRoom(roomId, user?.id);
+  const [starting, setStarting] = useState(false);
 
   const myPlayer = players.find((p) => p.user_id === user?.id);
   const myReady = myPlayer?.is_ready ?? false;
   const allReady = players.length > 0 && players.every((p) => p.is_ready);
   const readyCount = players.filter((p) => p.is_ready).length;
-  // For solo-test, allow start with 1+. For real multiplayer the bot fill happens server-side later.
-  const canStart = isHost && allReady && players.length >= 1;
+  // Need at least 2 humans (server fills with bots up to 6); host can also start solo for testing.
+  const canStart = isHost && allReady && players.length >= 1 && !starting;
+
+  // When room flips to "playing" (host triggered match-start), all clients navigate to role-reveal.
+  useEffect(() => {
+    if (room?.status === "playing" && roomId) {
+      findActiveMatchForRoom(roomId).then((mid) => {
+        if (mid) onStart(mid);
+      });
+    }
+  }, [room?.status, roomId, onStart]);
 
   const CHAT_PRESETS_TRANSLATED = useMemo(() => [
     t("chat-saw-player"), t("chat-i-was-in"), t("chat-i-think"), t("chat-acted-weird"),
@@ -40,7 +52,6 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const [chatInput, setChatInput] = useState("");
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
-  const [chosenRole, setChosenRole] = useState<"agent" | "saboteur">("agent");
 
   const sendMessage = (content: string, type: ChatMessage["messageType"] = "free") => {
     if (!content.trim()) return;
@@ -56,6 +67,18 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   };
 
   const toggleReady = () => setReady(!myReady);
+
+  const handleStart = async () => {
+    if (!roomId) return;
+    setStarting(true);
+    try {
+      const { matchId } = await startMatch(roomId);
+      onStart(matchId);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo iniciar la partida");
+      setStarting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -146,23 +169,14 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
             </div>
           </div>
 
-          <div className="px-4 pb-2">
-            <div className="mb-1 font-display text-xs font-bold text-muted-foreground">{t("chooseRole") || "Elige tu rol (solo pruebas)"}</div>
-            <div className="flex gap-2">
-              <button onClick={() => setChosenRole("agent")} className={`flex-1 rounded-2xl py-2.5 font-display text-sm font-bold transition-all ${chosenRole === "agent" ? "gradient-primary text-primary-foreground shadow-soft" : "bg-muted text-muted-foreground"}`}>
-                🕵️ {t("agent") || "Agente"}
-              </button>
-              <button onClick={() => setChosenRole("saboteur")} className={`flex-1 rounded-2xl py-2.5 font-display text-sm font-bold transition-all ${chosenRole === "saboteur" ? "bg-destructive text-destructive-foreground shadow-soft" : "bg-muted text-muted-foreground"}`}>
-                🔥 {t("saboteur") || "Saboteador"}
-              </button>
-            </div>
-          </div>
-          <div className="flex gap-3 px-4 pb-4 safe-bottom">
+          <div className="flex gap-3 px-4 pb-4 pt-2 safe-bottom">
             <Button onClick={toggleReady} className={`h-14 flex-1 rounded-2xl font-display text-base font-bold ${myReady ? "bg-campus-mint text-primary-foreground" : "bg-muted text-foreground"}`}>
               {myReady ? t("readyCheck") : t("imReady")}
             </Button>
             {isHost && (
-              <Button onClick={() => onStart(chosenRole)} disabled={!canStart} className="h-14 flex-1 rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">{t("start")}</Button>
+              <Button onClick={handleStart} disabled={!canStart} className="h-14 flex-1 rounded-2xl gradient-warm text-primary-foreground shadow-soft font-display text-base font-bold disabled:opacity-40">
+                {starting ? <Loader2 className="h-5 w-5 animate-spin" /> : t("start")}
+              </Button>
             )}
           </div>
         </>

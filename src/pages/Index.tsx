@@ -68,6 +68,7 @@ const Index = () => {
   const [roomMode, setRoomMode] = useState<RoomMode>("friends");
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
+  const [matchId, setMatchId] = useState<string | null>(null);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
   const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
   const [wordGuessers, setWordGuessers] = useState<{ playerName: string; playerEmoji: string }[]>([]);
@@ -155,8 +156,8 @@ const Index = () => {
     []
   );
 
-  const handleStartGame = useCallback((chosenRole: PlayerRole) => {
-    setMyRole(chosenRole);
+  const handleStartGame = useCallback((mid: string) => {
+    setMatchId(mid);
     setStep("role-reveal");
   }, []);
 
@@ -260,8 +261,9 @@ const Index = () => {
     case "role-reveal":
       return (
         <RoleRevealScreen
-          role={myRole}
-          onComplete={() => setStep("game")}
+          matchId={matchId}
+          fallbackRole={myRole}
+          onComplete={(role) => { setMyRole(role); setStep("game"); }}
         />
       );
     case "game":
