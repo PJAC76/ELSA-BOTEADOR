@@ -122,28 +122,34 @@ export type Database = {
       }
       match_players: {
         Row: {
+          bot_name: string | null
           current_zone: number
           id: string
           is_alive: boolean
+          is_bot: boolean
           match_id: string
           role: Database["public"]["Enums"]["player_role"]
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          bot_name?: string | null
           current_zone?: number
           id?: string
           is_alive?: boolean
+          is_bot?: boolean
           match_id: string
           role?: Database["public"]["Enums"]["player_role"]
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          bot_name?: string | null
           current_zone?: number
           id?: string
           is_alive?: boolean
+          is_bot?: boolean
           match_id?: string
           role?: Database["public"]["Enums"]["player_role"]
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
