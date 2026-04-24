@@ -31,6 +31,26 @@ export type RoundRow = {
   created_at: string;
 };
 
+export type TaskRow = {
+  id: string;
+  round_id: string;
+  zone: number;
+  task_type: string;
+  is_completed: boolean;
+  completed_by: string | null;
+  assigned_to: string | null;
+};
+
+export type SabotageRow = {
+  id: string;
+  match_id: string;
+  round_id: string;
+  zone: number;
+  saboteur_id: string | null;
+  expires_at: string;
+  created_at: string;
+};
+
 /**
  * Subscribes to a match (and its current round + players) via Supabase Realtime.
  */
