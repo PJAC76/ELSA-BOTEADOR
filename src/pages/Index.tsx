@@ -68,6 +68,7 @@ const Index = () => {
   const [roomMode, setRoomMode] = useState<RoomMode>("friends");
   const [roomLanguage, setRoomLanguage] = useState<Language>("es");
   const [isHost, setIsHost] = useState(false);
+  const [matchId, setMatchId] = useState<string | null>(null);
   const [myRole, setMyRole] = useState<PlayerRole>("agent");
   const [gameResult, setGameResult] = useState<"agents-win" | "saboteur-wins">("agents-win");
   const [wordGuessers, setWordGuessers] = useState<{ playerName: string; playerEmoji: string }[]>([]);
