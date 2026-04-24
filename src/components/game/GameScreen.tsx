@@ -16,17 +16,23 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
+import { useMatch, moveToZone, completeTask, sabotageZone } from "@/hooks/use-match";
+import { toast } from "sonner";
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
 const TOTAL_ROUNDS = 3;
 const SABOTAGE_DURATION = 15;
 
+const ZONE_ORDER: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
+const zoneToIndex = (z: Zone) => ZONE_ORDER.indexOf(z) + 1;
+const indexToZone = (i: number): Zone => ZONE_ORDER[Math.max(0, Math.min(5, i - 1))];
+
 type GamePhase = "action" | "meeting" | "round-summary";
 type WordGuessInfo = { playerName: string; playerEmoji: string };
 type SecretWordInfo = { round: number; word: string; category: string };
 export type GameStats = { tasksCompleted: number; zonesVisited: number; cluesGiven: number };
-type GameScreenProps = { role: PlayerRole; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
+type GameScreenProps = { role: PlayerRole; matchId?: string | null; onGameEnd: (result: "agents-win" | "saboteur-wins", wordGuessers: WordGuessInfo[], secretWords: SecretWordInfo[], gameStats: GameStats) => void };
 
 const GameScreen = ({ role, onGameEnd }: GameScreenProps) => {
   const { t, language } = useTranslation();
