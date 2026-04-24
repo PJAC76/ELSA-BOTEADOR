@@ -114,6 +114,56 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     return () => clearTimeout(timer);
   }, [sabotagedZones, isOnline]);
 
+  const handleSelectZone = useCallback(async (zone: Zone) => {
+    setCurrentZone(zone);
+    setZonesVisited((prev) => new Set(prev).add(zone));
+    if (isOnline && matchId) {
+      try { await moveToZone(matchId, zoneToIndex(zone)); } catch (e) { console.error(e); }
+    }
+    if (role === "saboteur") return;
+    if (sabotagedZones.includes(zone)) return;
+    if (completedZones.includes(zone)) return;
+    setActiveTask(zone);
+  }, [role, sabotagedZones, completedZones, isOnline, matchId]);
+
+  const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
+
+  const handleTaskComplete = useCallback(async (success: boolean) => {
+    if (success && activeTask) {
+      if (isOnline && matchId) {
+        // Find first incomplete task in this zone
+        const zoneIdx = zoneToIndex(activeTask);
+        const target = matchTasks.find(t => t.zone === zoneIdx && !t.is_completed);
+        if (target) {
+          try { await completeTask(matchId, target.id); }
+          catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Error";
+            toast.error(msg);
+          }
+        }
+      } else {
+        setTasksCompleted((c) => c + 1);
+        setTotalTasksCompleted((c) => c + 1);
+        setCompletedZones((prev) => [...prev, activeTask]);
+      }
+    }
+    setActiveTask(null);
+  }, [activeTask, isOnline, matchId, matchTasks]);
+
+  const handleSabotage = useCallback(async (zone: Zone) => {
+    if (isOnline && matchId) {
+      try { await sabotageZone(matchId, zoneToIndex(zone)); }
+      catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Error";
+        toast.error(msg);
+      }
+    } else {
+      setSabotagedZones((prev) => [...prev, zone]);
+    }
+  }, [isOnline, matchId]);
+
+  useEffect(() => { if (!isOnline && tasksCompleted >= tasksTotal && phase === "action") { playRoundComplete(); setPhase("meeting"); } }, [tasksCompleted, tasksTotal, phase, isOnline]);
+
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
   const addXp = useProgressionStore((s) => s.addXp);
