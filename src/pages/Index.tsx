@@ -270,6 +270,7 @@ const Index = () => {
       return (
         <GameScreen
           role={myRole}
+          matchId={matchId}
           onGameEnd={(result, guessers, words, stats) => {
             setGameResult(result);
             setWordGuessers(guessers);
