@@ -156,8 +156,8 @@ const Index = () => {
     []
   );
 
-  const handleStartGame = useCallback((chosenRole: PlayerRole) => {
-    setMyRole(chosenRole);
+  const handleStartGame = useCallback((mid: string) => {
+    setMatchId(mid);
     setStep("role-reveal");
   }, []);
 
