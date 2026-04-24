@@ -52,7 +52,6 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const [chatInput, setChatInput] = useState("");
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
-  const [chosenRole, setChosenRole] = useState<"agent" | "saboteur">("agent");
 
   const sendMessage = (content: string, type: ChatMessage["messageType"] = "free") => {
     if (!content.trim()) return;
@@ -68,6 +67,18 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   };
 
   const toggleReady = () => setReady(!myReady);
+
+  const handleStart = async () => {
+    if (!roomId) return;
+    setStarting(true);
+    try {
+      const { matchId } = await startMatch(roomId);
+      onStart(matchId);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo iniciar la partida");
+      setStarting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
