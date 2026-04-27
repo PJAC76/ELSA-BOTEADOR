@@ -101,23 +101,48 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
-  // Server-side timer: derive from rounds.ends_at
+  // Server-authoritative timer: derive from rounds.ends_at without drift.
+  // When the timer hits 0, ask the server to advance the phase. Do NOT optimistically
+  // flip locally — wait for the realtime update so all clients transition together.
+  const advanceFiredForRoundRef = useRef<string | null>(null);
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
-    if (isOnline && matchRound?.ends_at) {
+
+    if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
+      const roundId = matchRound.id;
+      let urgentPlayed = false;
+
       const tick = () => {
         const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        setTimeLeft((prev) => { if (prev > 6 && remaining <= 6 && remaining > 0) playTimerUrgent(); return remaining; });
-        if (remaining <= 0) setPhase("meeting");
+        setTimeLeft(remaining);
+        if (remaining > 0 && remaining <= 6 && !urgentPlayed) {
+          urgentPlayed = true;
+          playTimerUrgent();
+        }
+        if (remaining <= 0 && advanceFiredForRoundRef.current !== roundId) {
+          advanceFiredForRoundRef.current = roundId;
+          advanceRoundPhase(matchId, "meeting").catch((e) => {
+            // Allow retry on next round id; clear guard if it was a transient error
+            console.warn("[advanceRoundPhase]", e);
+          });
+        }
       };
       tick();
-      const interval = setInterval(tick, 500);
+      const interval = setInterval(tick, 250);
       return () => clearInterval(interval);
     }
-    const interval = setInterval(() => { setTimeLeft((tl) => { if (tl <= 1) { setPhase("meeting"); return 0; } if (tl <= 6) playTimerUrgent(); return tl - 1; }); }, 1000);
+
+    // Offline fallback (single-player / bots): local countdown
+    const interval = setInterval(() => {
+      setTimeLeft((tl) => {
+        if (tl <= 1) { setPhase("meeting"); return 0; }
+        if (tl <= 6) playTimerUrgent();
+        return tl - 1;
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, [phase, activeTask, isOnline, matchRound?.ends_at]);
+  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId]);
 
   // Local sabotage countdown only when offline
   useEffect(() => {
