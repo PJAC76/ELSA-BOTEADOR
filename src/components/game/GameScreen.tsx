@@ -112,16 +112,32 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
 
   // Online: sync phase from server (rounds.phase). Local "round-summary" is preserved
   // because the server only knows action/meeting/voting.
+  // SFX guard: track the last (roundId, phase) we observed from the server so the
+  // round-complete sound fires EXACTLY once per real action→meeting transition,
+  // never on client re-renders, hot reloads, or refetches.
+  const lastServerPhaseRef = useRef<{ roundId: string; phase: string } | null>(null);
   useEffect(() => {
     if (!isOnline || !matchRound) return;
-    if (matchRound.phase === "meeting" && phase === "action") {
-      playRoundComplete();
-      setPhase("meeting");
-    } else if (matchRound.phase === "action" && phase === "meeting") {
-      // New round started server-side
-      setPhase("action");
+    const prev = lastServerPhaseRef.current;
+    const isNewServerState =
+      !prev || prev.roundId !== matchRound.id || prev.phase !== matchRound.phase;
+
+    if (isNewServerState) {
+      // Only play SFX on a genuine action→meeting transition for this round
+      const wasActionForSameRound = prev?.roundId === matchRound.id && prev.phase === "action";
+      if (matchRound.phase === "meeting" && wasActionForSameRound) {
+        playRoundComplete();
+      }
+      lastServerPhaseRef.current = { roundId: matchRound.id, phase: matchRound.phase };
     }
-  }, [isOnline, matchRound, phase]);
+
+    // Mirror server phase into local state (decoupled from SFX)
+    setPhase((current) => {
+      if (matchRound.phase === "meeting" && current === "action") return "meeting";
+      if (matchRound.phase === "action" && current === "meeting") return "action";
+      return current;
+    });
+  }, [isOnline, matchRound]);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
