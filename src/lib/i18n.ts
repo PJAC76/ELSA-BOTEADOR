@@ -202,6 +202,9 @@ const translations = {
 
     // Meeting
     emergencyMeeting: "Reunión de emergencia",
+    meetingPendingTitle: "¡Reuniéndose!",
+    meetingPendingSubtitle: "Termina tu tarea para unirte",
+    meetingPendingHint: "El resto del grupo te está esperando",
     discussSaboteur: "Discutan quién puede ser ELSA-BOTEADOR",
     voteNow: "¡Voten ahora!",
     voteResult: "Resultado de la votación",
@@ -919,6 +922,9 @@ const translations = {
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",
+    meetingPendingTitle: "Gathering!",
+    meetingPendingSubtitle: "Finish your task to join",
+    meetingPendingHint: "The rest of the group is waiting for you",
     discussSaboteur: "Discuss who could be ELSA-BOTEADOR",
     voteNow: "Vote now!",
     voteResult: "Vote result",

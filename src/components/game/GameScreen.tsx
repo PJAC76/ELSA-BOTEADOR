@@ -8,6 +8,7 @@ import MeetingScreen from "./MeetingScreen";
 import EmergencyButton from "./EmergencyButton";
 import GameTutorialOverlay from "./GameTutorialOverlay";
 import ReactionsPanel from "./ReactionsPanel";
+import MeetingPendingOverlay from "./MeetingPendingOverlay";
 import type { Zone, PlayerRole } from "@/types/game";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -116,6 +117,11 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // round-complete sound fires EXACTLY once per real action→meeting transition,
   // never on client re-renders, hot reloads, or refetches.
   const lastServerPhaseRef = useRef<{ roundId: string; phase: string } | null>(null);
+  // Timestamp (ms) when the server flipped the round to "meeting". Used by the
+  // pending overlay so the player whose minigame is still open can see how long
+  // the rest of the group has been waiting.
+  const [meetingTriggeredAtMs, setMeetingTriggeredAtMs] = useState<number | null>(null);
+
   useEffect(() => {
     if (!isOnline || !matchRound) return;
     const prev = lastServerPhaseRef.current;
@@ -123,21 +129,39 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       !prev || prev.roundId !== matchRound.id || prev.phase !== matchRound.phase;
 
     if (isNewServerState) {
-      // Only play SFX on a genuine action→meeting transition for this round
       const wasActionForSameRound = prev?.roundId === matchRound.id && prev.phase === "action";
       if (matchRound.phase === "meeting" && wasActionForSameRound) {
         playRoundComplete();
+        setMeetingTriggeredAtMs(Date.now());
+      }
+      if (matchRound.phase === "action") {
+        // New round: clear any pending-overlay state from the previous one.
+        setMeetingTriggeredAtMs(null);
       }
       lastServerPhaseRef.current = { roundId: matchRound.id, phase: matchRound.phase };
     }
 
-    // Mirror server phase into local state (decoupled from SFX)
+    // Mirror server phase into local state, but DEFER the action→meeting flip
+    // while a minigame is still open. This keeps the player on the action UI
+    // (with the pending overlay) until they finish or cancel the task.
     setPhase((current) => {
-      if (matchRound.phase === "meeting" && current === "action") return "meeting";
+      if (matchRound.phase === "meeting" && current === "action") {
+        if (activeTask) return current; // hold; overlay will be shown
+        return "meeting";
+      }
       if (matchRound.phase === "action" && current === "meeting") return "action";
       return current;
     });
-  }, [isOnline, matchRound]);
+  }, [isOnline, matchRound, activeTask]);
+
+  // When the active task closes after the server already moved to meeting,
+  // promote the local phase so the meeting screen renders immediately.
+  useEffect(() => {
+    if (!isOnline) return;
+    if (!activeTask && matchRound?.phase === "meeting" && phase === "action") {
+      setPhase("meeting");
+    }
+  }, [isOnline, activeTask, matchRound?.phase, phase]);
 
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
@@ -168,7 +192,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   }, []);
 
   useEffect(() => {
-    if (phase !== "action") return;
+    if (phase !== "action" || activeTask) return;
 
     if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
@@ -179,17 +203,14 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       const tick = () => {
         const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
         setTimeLeft(remaining);
-        if (remaining > 0 && remaining <= 6 && !urgentPlayed && !activeTask) {
+        if (remaining > 0 && remaining <= 6 && !urgentPlayed) {
           urgentPlayed = true;
           playTimerUrgent();
         }
-        // BLOCK transition if a minigame is in progress: do not fire advance
-        // until the active task is closed (success or cancel). The effect will
-        // re-run when activeTask becomes null and, if the timer is already
-        // expired, advance at that point.
-        if (remaining <= 0 && !activeTask && !hasAdvancedFor(roundId, guardUser)) {
+        if (remaining <= 0 && !hasAdvancedFor(roundId, guardUser)) {
           markAdvancedFor(roundId, guardUser);
           advanceRoundPhase(matchId, "meeting").catch((e) => {
+            // Transient error: clear the mark so a retry can happen on the next tick
             console.warn("[advanceRoundPhase]", e);
             clearAdvancedFor(roundId, guardUser);
           });
@@ -200,9 +221,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       return () => clearInterval(interval);
     }
 
-    // Offline fallback (single-player / bots): local countdown.
-    // Also blocked while a minigame is open to avoid inconsistent transitions.
-    if (activeTask) return;
+    // Offline fallback (single-player / bots): local countdown
     const interval = setInterval(() => {
       setTimeLeft((tl) => {
         if (tl <= 1) { setPhase("meeting"); return 0; }
@@ -333,6 +352,13 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
           />
+          <AnimatePresence>
+            <MeetingPendingOverlay
+              key="meeting-pending"
+              visible={isOnline && !!activeTask && matchRound?.phase === "meeting"}
+              triggeredAtMs={meetingTriggeredAtMs}
+            />
+          </AnimatePresence>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
             <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} />
           </motion.div>
