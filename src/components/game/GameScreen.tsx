@@ -139,13 +139,25 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // Server-authoritative timer: derive from rounds.ends_at without drift.
   // When the timer hits 0, ask the server to advance the phase. Do NOT optimistically
   // flip locally — wait for the realtime update so all clients transition together.
-  const advanceFiredForRoundRef = useRef<string | null>(null);
+  // Persistent guard (sessionStorage) keyed by round.id + user.id ensures we only
+  // fire advanceRoundPhase ONCE per client even across remounts/hot reloads.
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => { if (active) setAuthUserId(data.user?.id ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthUserId(session?.user?.id ?? null);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
 
     if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
       const roundId = matchRound.id;
+      const guardUser = authUserId ?? "anon";
       let urgentPlayed = false;
 
       const tick = () => {
@@ -155,11 +167,12 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
           urgentPlayed = true;
           playTimerUrgent();
         }
-        if (remaining <= 0 && advanceFiredForRoundRef.current !== roundId) {
-          advanceFiredForRoundRef.current = roundId;
+        if (remaining <= 0 && !hasAdvancedFor(roundId, guardUser)) {
+          markAdvancedFor(roundId, guardUser);
           advanceRoundPhase(matchId, "meeting").catch((e) => {
-            // Allow retry on next round id; clear guard if it was a transient error
+            // Transient error: clear the mark so a retry can happen on the next tick
             console.warn("[advanceRoundPhase]", e);
+            clearAdvancedFor(roundId, guardUser);
           });
         }
       };
@@ -177,7 +190,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId]);
+  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId, authUserId]);
 
   // Local sabotage countdown only when offline
   useEffect(() => {
