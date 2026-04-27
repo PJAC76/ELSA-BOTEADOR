@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import GameHUD from "./GameHUD";
 import ZoneMap from "./ZoneMap";
@@ -16,7 +16,7 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
-import { useMatch, moveToZone, completeTask, sabotageZone } from "@/hooks/use-match";
+import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase } from "@/hooks/use-match";
 import { toast } from "sonner";
 
 const ROUND_TIME = 90;
@@ -75,6 +75,19 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     if (matchRound) setRound(matchRound.round_number);
   }, [isOnline, matchSabotages, matchTasks, matchRound]);
 
+  // Online: sync phase from server (rounds.phase). Local "round-summary" is preserved
+  // because the server only knows action/meeting/voting.
+  useEffect(() => {
+    if (!isOnline || !matchRound) return;
+    if (matchRound.phase === "meeting" && phase === "action") {
+      playRoundComplete();
+      setPhase("meeting");
+    } else if (matchRound.phase === "action" && phase === "meeting") {
+      // New round started server-side
+      setPhase("action");
+    }
+  }, [isOnline, matchRound, phase]);
+
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
   const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
@@ -88,23 +101,48 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
-  // Server-side timer: derive from rounds.ends_at
+  // Server-authoritative timer: derive from rounds.ends_at without drift.
+  // When the timer hits 0, ask the server to advance the phase. Do NOT optimistically
+  // flip locally — wait for the realtime update so all clients transition together.
+  const advanceFiredForRoundRef = useRef<string | null>(null);
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
-    if (isOnline && matchRound?.ends_at) {
+
+    if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
+      const roundId = matchRound.id;
+      let urgentPlayed = false;
+
       const tick = () => {
         const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        setTimeLeft((prev) => { if (prev > 6 && remaining <= 6 && remaining > 0) playTimerUrgent(); return remaining; });
-        if (remaining <= 0) setPhase("meeting");
+        setTimeLeft(remaining);
+        if (remaining > 0 && remaining <= 6 && !urgentPlayed) {
+          urgentPlayed = true;
+          playTimerUrgent();
+        }
+        if (remaining <= 0 && advanceFiredForRoundRef.current !== roundId) {
+          advanceFiredForRoundRef.current = roundId;
+          advanceRoundPhase(matchId, "meeting").catch((e) => {
+            // Allow retry on next round id; clear guard if it was a transient error
+            console.warn("[advanceRoundPhase]", e);
+          });
+        }
       };
       tick();
-      const interval = setInterval(tick, 500);
+      const interval = setInterval(tick, 250);
       return () => clearInterval(interval);
     }
-    const interval = setInterval(() => { setTimeLeft((tl) => { if (tl <= 1) { setPhase("meeting"); return 0; } if (tl <= 6) playTimerUrgent(); return tl - 1; }); }, 1000);
+
+    // Offline fallback (single-player / bots): local countdown
+    const interval = setInterval(() => {
+      setTimeLeft((tl) => {
+        if (tl <= 1) { setPhase("meeting"); return 0; }
+        if (tl <= 6) playTimerUrgent();
+        return tl - 1;
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, [phase, activeTask, isOnline, matchRound?.ends_at]);
+  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId]);
 
   // Local sabotage countdown only when offline
   useEffect(() => {

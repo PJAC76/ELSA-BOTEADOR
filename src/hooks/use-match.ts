@@ -140,6 +140,13 @@ export async function sabotageZone(matchId: string, zone: number) {
   return data as { ok: boolean; expiresAt: string };
 }
 
+export async function advanceRoundPhase(matchId: string, targetPhase: "meeting" = "meeting") {
+  const { data, error } = await supabase.functions.invoke("round-advance-phase", { body: { matchId, targetPhase } });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data as { ok: boolean; phase: string; endsAt?: string; alreadyAdvanced?: boolean };
+}
+
 /** Find an active match for a given room (used when arriving at lobby that already started). */
 export async function findActiveMatchForRoom(roomId: string): Promise<string | null> {
   const { data } = await supabase
