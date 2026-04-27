@@ -17,7 +17,42 @@ import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
 import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase } from "@/hooks/use-match";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Persistent guard so advanceRoundPhase fires AT MOST once per (round, user)
+// across remounts, hot reloads or accidental re-renders.
+const ADVANCE_GUARD_KEY = "match:advanceFired";
+const hasAdvancedFor = (roundId: string, userId: string): boolean => {
+  try {
+    const raw = sessionStorage.getItem(ADVANCE_GUARD_KEY);
+    if (!raw) return false;
+    const map = JSON.parse(raw) as Record<string, true>;
+    return !!map[`${roundId}:${userId}`];
+  } catch { return false; }
+};
+const markAdvancedFor = (roundId: string, userId: string) => {
+  try {
+    const raw = sessionStorage.getItem(ADVANCE_GUARD_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, true>) : {};
+    map[`${roundId}:${userId}`] = true;
+    // Keep it bounded: drop oldest if it grows too big
+    const keys = Object.keys(map);
+    if (keys.length > 50) {
+      for (const k of keys.slice(0, keys.length - 50)) delete map[k];
+    }
+    sessionStorage.setItem(ADVANCE_GUARD_KEY, JSON.stringify(map));
+  } catch { /* noop */ }
+};
+const clearAdvancedFor = (roundId: string, userId: string) => {
+  try {
+    const raw = sessionStorage.getItem(ADVANCE_GUARD_KEY);
+    if (!raw) return;
+    const map = JSON.parse(raw) as Record<string, true>;
+    delete map[`${roundId}:${userId}`];
+    sessionStorage.setItem(ADVANCE_GUARD_KEY, JSON.stringify(map));
+  } catch { /* noop */ }
+};
 
 const ROUND_TIME = 90;
 const TASKS_PER_ROUND = 6;
@@ -104,13 +139,25 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // Server-authoritative timer: derive from rounds.ends_at without drift.
   // When the timer hits 0, ask the server to advance the phase. Do NOT optimistically
   // flip locally — wait for the realtime update so all clients transition together.
-  const advanceFiredForRoundRef = useRef<string | null>(null);
+  // Persistent guard (sessionStorage) keyed by round.id + user.id ensures we only
+  // fire advanceRoundPhase ONCE per client even across remounts/hot reloads.
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => { if (active) setAuthUserId(data.user?.id ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthUserId(session?.user?.id ?? null);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
 
     if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
       const roundId = matchRound.id;
+      const guardUser = authUserId ?? "anon";
       let urgentPlayed = false;
 
       const tick = () => {
@@ -120,11 +167,12 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
           urgentPlayed = true;
           playTimerUrgent();
         }
-        if (remaining <= 0 && advanceFiredForRoundRef.current !== roundId) {
-          advanceFiredForRoundRef.current = roundId;
+        if (remaining <= 0 && !hasAdvancedFor(roundId, guardUser)) {
+          markAdvancedFor(roundId, guardUser);
           advanceRoundPhase(matchId, "meeting").catch((e) => {
-            // Allow retry on next round id; clear guard if it was a transient error
+            // Transient error: clear the mark so a retry can happen on the next tick
             console.warn("[advanceRoundPhase]", e);
+            clearAdvancedFor(roundId, guardUser);
           });
         }
       };
@@ -142,7 +190,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId]);
+  }, [phase, activeTask, isOnline, matchRound?.ends_at, matchRound?.id, matchId, authUserId]);
 
   // Local sabotage countdown only when offline
   useEffect(() => {
