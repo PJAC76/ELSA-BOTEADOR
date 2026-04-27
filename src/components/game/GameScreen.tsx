@@ -75,6 +75,19 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     if (matchRound) setRound(matchRound.round_number);
   }, [isOnline, matchSabotages, matchTasks, matchRound]);
 
+  // Online: sync phase from server (rounds.phase). Local "round-summary" is preserved
+  // because the server only knows action/meeting/voting.
+  useEffect(() => {
+    if (!isOnline || !matchRound) return;
+    if (matchRound.phase === "meeting" && phase === "action") {
+      playRoundComplete();
+      setPhase("meeting");
+    } else if (matchRound.phase === "action" && phase === "meeting") {
+      // New round started server-side
+      setPhase("action");
+    }
+  }, [isOnline, matchRound, phase]);
+
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
   const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
