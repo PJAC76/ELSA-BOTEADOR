@@ -152,7 +152,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   }, []);
 
   useEffect(() => {
-    if (phase !== "action" || activeTask) return;
+    if (phase !== "action") return;
 
     if (isOnline && matchRound?.ends_at && matchId) {
       const endsAt = new Date(matchRound.ends_at).getTime();
@@ -163,14 +163,17 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       const tick = () => {
         const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
         setTimeLeft(remaining);
-        if (remaining > 0 && remaining <= 6 && !urgentPlayed) {
+        if (remaining > 0 && remaining <= 6 && !urgentPlayed && !activeTask) {
           urgentPlayed = true;
           playTimerUrgent();
         }
-        if (remaining <= 0 && !hasAdvancedFor(roundId, guardUser)) {
+        // BLOCK transition if a minigame is in progress: do not fire advance
+        // until the active task is closed (success or cancel). The effect will
+        // re-run when activeTask becomes null and, if the timer is already
+        // expired, advance at that point.
+        if (remaining <= 0 && !activeTask && !hasAdvancedFor(roundId, guardUser)) {
           markAdvancedFor(roundId, guardUser);
           advanceRoundPhase(matchId, "meeting").catch((e) => {
-            // Transient error: clear the mark so a retry can happen on the next tick
             console.warn("[advanceRoundPhase]", e);
             clearAdvancedFor(roundId, guardUser);
           });
@@ -181,7 +184,9 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       return () => clearInterval(interval);
     }
 
-    // Offline fallback (single-player / bots): local countdown
+    // Offline fallback (single-player / bots): local countdown.
+    // Also blocked while a minigame is open to avoid inconsistent transitions.
+    if (activeTask) return;
     const interval = setInterval(() => {
       setTimeLeft((tl) => {
         if (tl <= 1) { setPhase("meeting"); return 0; }
