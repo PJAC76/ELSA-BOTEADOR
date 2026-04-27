@@ -922,6 +922,9 @@ const translations = {
 
     // Meeting
     emergencyMeeting: "Emergency Meeting",
+    meetingPendingTitle: "Gathering!",
+    meetingPendingSubtitle: "Finish your task to join",
+    meetingPendingHint: "The rest of the group is waiting for you",
     discussSaboteur: "Discuss who could be ELSA-BOTEADOR",
     voteNow: "Vote now!",
     voteResult: "Vote result",
