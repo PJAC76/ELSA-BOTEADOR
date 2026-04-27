@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import GameHUD from "./GameHUD";
 import ZoneMap from "./ZoneMap";
@@ -16,7 +16,7 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
-import { useMatch, moveToZone, completeTask, sabotageZone } from "@/hooks/use-match";
+import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase } from "@/hooks/use-match";
 import { toast } from "sonner";
 
 const ROUND_TIME = 90;
