@@ -202,6 +202,9 @@ const translations = {
 
     // Meeting
     emergencyMeeting: "Reunión de emergencia",
+    meetingPendingTitle: "¡Reuniéndose!",
+    meetingPendingSubtitle: "Termina tu tarea para unirte",
+    meetingPendingHint: "El resto del grupo te está esperando",
     discussSaboteur: "Discutan quién puede ser ELSA-BOTEADOR",
     voteNow: "¡Voten ahora!",
     voteResult: "Resultado de la votación",
