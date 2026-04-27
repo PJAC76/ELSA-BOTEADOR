@@ -352,6 +352,13 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretWord={role === "saboteur" ? null : secretWord}
             secretCategory={secretCategory}
           />
+          <AnimatePresence>
+            <MeetingPendingOverlay
+              key="meeting-pending"
+              visible={isOnline && !!activeTask && matchRound?.phase === "meeting"}
+              triggeredAtMs={meetingTriggeredAtMs}
+            />
+          </AnimatePresence>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
             <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} />
           </motion.div>
