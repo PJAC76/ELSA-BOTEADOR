@@ -130,6 +130,50 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Concurrency lock: atomically flip 'meeting' -> 'voting'. Only ONE caller
+    // wins this update; all others get 0 rows and must back off as
+    // alreadyAdvanced. This prevents two clients from both creating a next
+    // round when the meeting timer expires.
+    const { data: locked, error: lockErr } = await admin
+      .from("rounds")
+      .update({ phase: "voting" })
+      .eq("id", round.id)
+      .eq("phase", "meeting")
+      .select()
+      .maybeSingle();
+    if (lockErr) {
+      return new Response(JSON.stringify({ error: lockErr.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!locked) {
+      // Another caller is resolving (or already did). Re-read latest state.
+      const { data: latestRound } = await admin
+        .from("rounds")
+        .select("*")
+        .eq("match_id", matchId)
+        .order("round_number", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const { data: latestMatch } = await admin
+        .from("matches")
+        .select("status, winner")
+        .eq("id", matchId)
+        .maybeSingle();
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          alreadyAdvanced: true,
+          finished: latestMatch?.status === "finished",
+          winner: latestMatch?.winner ?? null,
+          nextRoundId: latestRound && latestRound.round_number > round.round_number ? latestRound.id : undefined,
+          nextRoundNumber: latestRound && latestRound.round_number > round.round_number ? latestRound.round_number : undefined,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Load players
     const { data: players } = await admin
       .from("match_players")
