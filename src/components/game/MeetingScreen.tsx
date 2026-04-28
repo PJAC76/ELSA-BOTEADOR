@@ -6,6 +6,7 @@ import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
+import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
 
 // --- Types ---
 
@@ -31,6 +32,13 @@ type MeetingScreenProps = {
   secretCategory: string;
   secretClues: string[]; // contextual clues for the word
   myRole: PlayerRole;
+  // Online (server-authoritative) extras — optional
+  matchId?: string | null;
+  /** Map MeetingPlayer.id → real auth user_id (only humans). Used to translate
+   *  votes and eliminations between local mock IDs and server user IDs. */
+  playerUserIds?: Record<string, string | null>;
+  /** Called instead of onVoteResult when the server resolved the meeting. */
+  onServerResolved?: (result: VoteResolveResult) => void;
 };
 
 // --- Constants ---
