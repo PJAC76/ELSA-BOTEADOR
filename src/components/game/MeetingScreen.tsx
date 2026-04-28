@@ -750,6 +750,44 @@ const MeetingScreen = ({
   useEffect(() => { myVoteRef.current = myVote; }, [myVote]);
 
   const resolveVotes = useCallback(() => {
+    // Online: server is authoritative. Show local "result" UI immediately
+    // and call resolveMeeting once. The server returns the real eliminated
+    // player and any final winner; we surface that to the parent via
+    // onServerResolved (preferred) or onVoteResult.
+    if (isOnline && matchId) {
+      setPhase("result");
+      if (serverResolveOnceRef.current) return;
+      serverResolveOnceRef.current = true;
+      resolveMeeting(matchId)
+        .then((res) => {
+          // Try to find a local representation of the eliminated player to animate
+          let localElim: MeetingPlayer | null = null;
+          if (res.eliminated?.userId) {
+            const localId = Object.entries(playerUserIds).find(
+              ([, uid]) => uid === res.eliminated!.userId,
+            )?.[0];
+            if (localId) localElim = players.find((p) => p.id === localId) ?? null;
+          }
+          setEliminatedPlayer(localElim);
+          if (localElim || res.eliminated) playElimination();
+          // Give the result animation a beat, then notify parent
+          setTimeout(() => {
+            if (onServerResolved) {
+              onServerResolved(res);
+            } else {
+              onVoteResult(localElim?.id ?? res.eliminated?.userId ?? null);
+            }
+          }, 3500);
+        })
+        .catch((e) => {
+          console.warn("[resolveMeeting]", e);
+          // Fallback: don't get stuck — surface a no-elimination result
+          setTimeout(() => onVoteResult(null), 1500);
+        });
+      return;
+    }
+
+    // Offline: pure client-side tally
     const allVotes = { ...votesRef.current };
     if (myVoteRef.current) allVotes[myPlayerId] = myVoteRef.current;
 
@@ -769,7 +807,7 @@ const MeetingScreen = ({
     if (eliminated) playElimination();
 
     setTimeout(() => { onVoteResult(eliminated?.id || null); }, 3500);
-  }, [myPlayerId, players, onVoteResult]);
+  }, [isOnline, matchId, myPlayerId, players, playerUserIds, onVoteResult, onServerResolved]);
 
   const handleSendPreset = (content: string) => {
     if (isGhost) return;
@@ -793,6 +831,16 @@ const MeetingScreen = ({
       setVotes((prev) => ({ ...prev, [myPlayerId]: playerId }));
     } else {
       setVotes((prev) => { const next = { ...prev }; delete next[myPlayerId]; return next; });
+    }
+    // Push the human vote to the server (idempotent). "skip" → null target.
+    if (isOnline && matchId && !serverVoteSentRef.current) {
+      const targetUserId =
+        playerId && playerId !== "skip" ? playerUserIds[playerId] ?? null : null;
+      serverVoteSentRef.current = true;
+      castVote(matchId, targetUserId).catch((e) => {
+        console.warn("[castVote]", e);
+        serverVoteSentRef.current = false; // allow retry
+      });
     }
   };
 
