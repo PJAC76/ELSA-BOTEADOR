@@ -508,6 +508,9 @@ const MeetingScreen = ({
   secretCategory,
   secretClues,
   myRole,
+  matchId = null,
+  playerUserIds = {},
+  onServerResolved,
 }: MeetingScreenProps) => {
   const { t } = useTranslation();
   const players = propPlayers.length > 0 ? propPlayers : MOCK_PLAYERS;
@@ -522,6 +525,9 @@ const MeetingScreen = ({
   const [guessInput, setGuessInput] = useState("");
   const [guessResult, setGuessResult] = useState<"correct" | "wrong" | null>(null);
   const [hasGuessedCorrectly, setHasGuessedCorrectly] = useState(false);
+  const isOnline = !!matchId;
+  const serverResolveOnceRef = useRef(false);
+  const serverVoteSentRef = useRef(false);
 
   const normalizeWord = (w: string) => w.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
