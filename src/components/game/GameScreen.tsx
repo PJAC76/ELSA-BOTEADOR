@@ -163,6 +163,32 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     }
   }, [isOnline, activeTask, matchRound?.phase, phase]);
 
+  // Server-authoritative meeting → action: when vote-resolve creates a new
+  // action round, the realtime subscription delivers it here. Transition out
+  // of "round-summary" or "meeting" and reset per-round local state. The
+  // server already created tasks for the new round.
+  const lastSyncedRoundNumberRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isOnline || !matchRound) return;
+    if (lastSyncedRoundNumberRef.current === null) {
+      lastSyncedRoundNumberRef.current = matchRound.round_number;
+      return;
+    }
+    if (
+      matchRound.phase === "action" &&
+      matchRound.round_number > lastSyncedRoundNumberRef.current
+    ) {
+      lastSyncedRoundNumberRef.current = matchRound.round_number;
+      setRound(matchRound.round_number);
+      setTimeLeft(ROUND_TIME);
+      setTasksCompleted(0);
+      setCompletedZones([]);
+      setSabotagedZones([]);
+      setActiveTask(null);
+      setPhase("action");
+    }
+  }, [isOnline, matchRound]);
+
   // Secret word per round
   const roundWord = useMemo(() => getRandomWord(round - 1), [round]);
   const secretWord = language === "en" ? roundWord.wordEn : roundWord.word;
