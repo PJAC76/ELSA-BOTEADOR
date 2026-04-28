@@ -34,13 +34,24 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const canStart = isHost && allReady && players.length >= 1 && !starting;
 
   // When room flips to "playing" (host triggered match-start), all clients navigate to role-reveal.
+  // The host already navigates manually after the startMatch() promise resolves; this effect
+  // is what gets non-host clients into role-reveal via the realtime subscription on `rooms`.
+  // We retry briefly because the room.status flip may race with the match insert.
   useEffect(() => {
-    if (room?.status === "playing" && roomId) {
-      findActiveMatchForRoom(roomId).then((mid) => {
-        if (mid) onStart(mid);
-      });
-    }
-  }, [room?.status, roomId, onStart]);
+    if (room?.status !== "playing" || !roomId || starting) return;
+    let cancelled = false;
+    let attempts = 0;
+    const tryNavigate = async () => {
+      while (!cancelled && attempts < 8) {
+        const mid = await findActiveMatchForRoom(roomId);
+        if (mid) { if (!cancelled) onStart(mid); return; }
+        attempts += 1;
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    };
+    tryNavigate();
+    return () => { cancelled = true; };
+  }, [room?.status, roomId, onStart, starting]);
 
   const CHAT_PRESETS_TRANSLATED = useMemo(() => [
     t("chat-saw-player"), t("chat-i-was-in"), t("chat-i-think"), t("chat-acted-weird"),
