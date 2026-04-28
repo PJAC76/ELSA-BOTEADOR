@@ -105,6 +105,7 @@ export function useMatch(matchId: string | null) {
       .on("postgres_changes", { event: "*", schema: "public", table: "rounds", filter: `match_id=eq.${matchId}` }, fetchAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "sabotages", filter: `match_id=eq.${matchId}` }, fetchAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, fetchAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "votes" }, fetchAll)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [matchId, fetchAll]);
@@ -145,6 +146,35 @@ export async function advanceRoundPhase(matchId: string, targetPhase: "meeting" 
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
   return data as { ok: boolean; phase: string; endsAt?: string; alreadyAdvanced?: boolean };
+}
+
+export async function castVote(matchId: string, targetUserId: string | null) {
+  const { data, error } = await supabase.functions.invoke("vote-cast", {
+    body: { matchId, targetUserId },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data as { ok: boolean; roundId: string; target: string | null };
+}
+
+export type VoteResolveResult = {
+  ok: boolean;
+  finished: boolean;
+  alreadyFinished?: boolean;
+  alreadyAdvanced?: boolean;
+  winner?: "agents" | "saboteur" | null;
+  nextRoundId?: string;
+  nextRoundNumber?: number;
+  eliminated?: { id: string; userId: string | null; role: "agent" | "saboteur"; isBot: boolean } | null;
+};
+
+export async function resolveMeeting(matchId: string) {
+  const { data, error } = await supabase.functions.invoke("vote-resolve", {
+    body: { matchId },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data as VoteResolveResult;
 }
 
 /** Find an active match for a given room (used when arriving at lobby that already started). */

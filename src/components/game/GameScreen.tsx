@@ -17,7 +17,7 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
-import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase } from "@/hooks/use-match";
+import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase, type VoteResolveResult } from "@/hooks/use-match";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -292,6 +292,31 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
 
   const handleVoteResult = useCallback((eliminatedId: string | null) => { if (eliminatedId) setEliminatedPlayers((prev) => [...prev, eliminatedId]); setPhase("round-summary"); }, []);
 
+  // Server-resolved meeting (online): trust the edge function's result.
+  const handleServerResolved = useCallback((result: VoteResolveResult) => {
+    if (result.eliminated?.userId) {
+      setEliminatedPlayers((prev) => [...prev, result.eliminated!.userId!]);
+    }
+    if (result.finished) {
+      const stats: GameStats = {
+        tasksCompleted: totalTasksCompleted + tasksCompleted,
+        zonesVisited: zonesVisited.size,
+        cluesGiven,
+      };
+      onGameEnd(
+        result.winner === "agents" ? "agents-win" : "saboteur-wins",
+        wordGuessers,
+        secretWords,
+        stats,
+      );
+      return;
+    }
+    // Otherwise the server already created the next round; show summary
+    // and let handleNextRound transition us back to action. The realtime
+    // subscription on `rounds` will deliver the new round/phase data.
+    setPhase("round-summary");
+  }, [totalTasksCompleted, tasksCompleted, zonesVisited, cluesGiven, onGameEnd, wordGuessers, secretWords]);
+
   const addXp = useProgressionStore((s) => s.addXp);
   const handleWordGuessed = useCallback((playerName?: string, playerEmoji?: string) => {
     addXp(XP_REWARDS.WORD_GUESS);
@@ -338,6 +363,9 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
+            matchId={matchId ?? null}
+            playerUserIds={isOnline && authUserId ? { me: authUserId } : undefined}
+            onServerResolved={isOnline ? handleServerResolved : undefined}
           />
         </motion.div>
       ) : (
