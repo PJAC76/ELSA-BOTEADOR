@@ -363,6 +363,9 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretCategory={secretCategory}
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
+            matchId={matchId ?? null}
+            playerUserIds={isOnline && authUserId ? { me: authUserId } : undefined}
+            onServerResolved={isOnline ? handleServerResolved : undefined}
           />
         </motion.div>
       ) : (
