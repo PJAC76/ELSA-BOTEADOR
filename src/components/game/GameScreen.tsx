@@ -338,7 +338,21 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     setActiveTask(zone);
   }, [role, sabotagedZones, completedZones, isOnline, matchId, pendingTasksByZone]);
 
-  const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
+  const handleEmergency = useCallback(async () => {
+    if (phase !== "action") return;
+    if (isOnline && matchId) {
+      // Server-authoritative: advance the round to meeting. Realtime will
+      // mirror the new phase to every client (including this one).
+      try {
+        await advanceRoundPhase(matchId, "meeting", { emergency: true });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Error";
+        toast.error(msg);
+      }
+      return;
+    }
+    setPhase("meeting");
+  }, [phase, isOnline, matchId]);
 
   const handleTaskComplete = useCallback(async (success: boolean) => {
     if (success && activeTask) {

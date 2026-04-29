@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     const body = await req.json().catch(() => ({}));
-    const { matchId, targetPhase } = body as { matchId?: string; targetPhase?: string };
+    const { matchId, targetPhase, emergency } = body as { matchId?: string; targetPhase?: string; emergency?: boolean };
     if (!matchId || typeof matchId !== "string") {
       return new Response(JSON.stringify({ error: "matchId required" }), {
         status: 400,
@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
       });
     }
     const desired = targetPhase === "meeting" ? "meeting" : "meeting"; // only support meeting for now
+    const isEmergency = emergency === true;
 
     // Verify user is in the match
     const { data: mp } = await admin
@@ -96,20 +97,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate the timer has actually expired (small grace of 500ms for clock skew)
-    const endsAt = round.ends_at ? new Date(round.ends_at).getTime() : null;
-    const now = Date.now();
-    if (!endsAt || endsAt - now > 500) {
-      return new Response(
-        JSON.stringify({
-          error: "Timer not expired",
-          remainingMs: endsAt ? endsAt - now : null,
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    // Validate the timer has actually expired (small grace of 500ms for clock skew),
+    // unless this is an emergency call (player pressed the emergency button).
+    if (!isEmergency) {
+      const endsAt = round.ends_at ? new Date(round.ends_at).getTime() : null;
+      const now = Date.now();
+      if (!endsAt || endsAt - now > 500) {
+        return new Response(
+          JSON.stringify({
+            error: "Timer not expired",
+            remainingMs: endsAt ? endsAt - now : null,
+          }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
 
-    const meetingEnds = new Date(now + MEETING_DURATION_SEC * 1000).toISOString();
+    const meetingEnds = new Date(Date.now() + MEETING_DURATION_SEC * 1000).toISOString();
 
     // Conditional update: only flip if still in action (prevents race)
     const { data: updated, error: uErr } = await admin

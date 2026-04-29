@@ -141,8 +141,8 @@ export async function sabotageZone(matchId: string, zone: number) {
   return data as { ok: boolean; expiresAt: string };
 }
 
-export async function advanceRoundPhase(matchId: string, targetPhase: "meeting" = "meeting") {
-  const { data, error } = await supabase.functions.invoke("round-advance-phase", { body: { matchId, targetPhase } });
+export async function advanceRoundPhase(matchId: string, targetPhase: "meeting" = "meeting", opts?: { emergency?: boolean }) {
+  const { data, error } = await supabase.functions.invoke("round-advance-phase", { body: { matchId, targetPhase, emergency: opts?.emergency === true } });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
   return data as { ok: boolean; phase: string; endsAt?: string; alreadyAdvanced?: boolean };
