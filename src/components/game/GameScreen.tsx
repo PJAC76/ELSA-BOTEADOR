@@ -195,6 +195,17 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   const secretCategory = language === "en" ? roundWord.categoryEn : roundWord.category;
   const secretClues = language === "en" ? roundWord.cluesEn : roundWord.clues;
 
+  // Auth user id (used by online sync below + timer guard).
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => { if (active) setAuthUserId(data.user?.id ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthUserId(session?.user?.id ?? null);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
   const MOCK_ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
   const mockPlayerZones: Record<string, Zone> = isOnline
     ? Object.fromEntries(matchPlayers.map(p => [p.id, indexToZone(p.current_zone)]))
@@ -230,6 +241,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     const z = indexToZone(me.current_zone);
     setCurrentZone((prev) => (prev === z ? prev : z));
   }, [isOnline, authUserId, matchPlayers]);
+
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
@@ -238,15 +250,6 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // flip locally — wait for the realtime update so all clients transition together.
   // Persistent guard (sessionStorage) keyed by round.id + user.id ensures we only
   // fire advanceRoundPhase ONCE per client even across remounts/hot reloads.
-  const [authUserId, setAuthUserId] = useState<string | null>(null);
-  useEffect(() => {
-    let active = true;
-    supabase.auth.getUser().then(({ data }) => { if (active) setAuthUserId(data.user?.id ?? null); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthUserId(session?.user?.id ?? null);
-    });
-    return () => { active = false; sub.subscription.unsubscribe(); };
-  }, []);
 
   useEffect(() => {
     if (phase !== "action" || activeTask) return;
