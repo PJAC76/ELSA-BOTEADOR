@@ -199,6 +199,37 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   const mockPlayerZones: Record<string, Zone> = isOnline
     ? Object.fromEntries(matchPlayers.map(p => [p.id, indexToZone(p.current_zone)]))
     : { me: currentZone, p2: MOCK_ZONES[Math.floor(round * 1.3) % 6], p3: MOCK_ZONES[Math.floor(round * 2.7) % 6], p4: MOCK_ZONES[Math.floor(round * 0.5) % 6], p5: MOCK_ZONES[Math.floor(round * 3.1) % 6] };
+
+  // Authoritative zone occupancy for the map (online: from match_players via Realtime).
+  const zoneMapPlayers = useMemo(() => {
+    if (!isOnline) {
+      return [
+        { id: "me", name: t("you"), emoji: "🕵️", zone: currentZone, isMe: true, isAlive: true },
+        { id: "p2", name: "Luna", emoji: "🦊", zone: MOCK_ZONES[Math.floor(round * 1.3) % 6], isAlive: true },
+        { id: "p3", name: "Mia", emoji: "🐱", zone: MOCK_ZONES[Math.floor(round * 2.7) % 6], isAlive: true },
+        { id: "p4", name: "Zoe", emoji: "🐻", zone: MOCK_ZONES[Math.floor(round * 0.5) % 6], isAlive: true },
+        { id: "p5", name: "Ava", emoji: "🦄", zone: MOCK_ZONES[Math.floor(round * 3.1) % 6], isAlive: true },
+      ];
+    }
+    const BOT_EMOJIS = ["🦊", "🐱", "🐻", "🦄", "🐰", "🐼", "🦁", "🐨", "🐯", "🐸"];
+    return matchPlayers.map((p, i) => ({
+      id: p.id,
+      name: p.is_bot ? (p.bot_name ?? "Bot") : (p.user_id === authUserId ? t("you") : "Jugadora"),
+      emoji: p.is_bot ? BOT_EMOJIS[i % BOT_EMOJIS.length] : "🕵️",
+      zone: indexToZone(p.current_zone),
+      isMe: !!authUserId && p.user_id === authUserId,
+      isAlive: p.is_alive,
+    }));
+  }, [isOnline, matchPlayers, authUserId, currentZone, round, t]);
+
+  // Online: sync local currentZone from server (so refreshes / cross-device match).
+  useEffect(() => {
+    if (!isOnline || !authUserId) return;
+    const me = matchPlayers.find((p) => p.user_id === authUserId);
+    if (!me) return;
+    const z = indexToZone(me.current_zone);
+    setCurrentZone((prev) => (prev === z ? prev : z));
+  }, [isOnline, authUserId, matchPlayers]);
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
