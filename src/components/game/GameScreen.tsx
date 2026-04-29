@@ -160,10 +160,15 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       if (matchRound.phase === "meeting" && wasActionForSameRound) {
         playRoundComplete();
         setMeetingTriggeredAtMs(Date.now());
+        // Freeze last-seen zones for the meeting roster.
+        const snapshot: Record<string, Zone> = {};
+        for (const p of matchPlayers) snapshot[p.id] = indexToZone(p.current_zone);
+        setMeetingZonesSnapshot(snapshot);
       }
       if (matchRound.phase === "action") {
         // New round: clear any pending-overlay state from the previous one.
         setMeetingTriggeredAtMs(null);
+        setMeetingZonesSnapshot(null);
       }
       lastServerPhaseRef.current = { roundId: matchRound.id, phase: matchRound.phase };
     }
