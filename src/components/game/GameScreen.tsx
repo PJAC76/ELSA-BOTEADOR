@@ -17,7 +17,7 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
-import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase, type VoteResolveResult } from "@/hooks/use-match";
+import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase, botsTick, type VoteResolveResult } from "@/hooks/use-match";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
