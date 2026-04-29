@@ -512,6 +512,7 @@ const MeetingScreen = ({
   secretClues,
   myRole,
   matchId = null,
+  roundId = null,
   playerUserIds = {},
   onServerResolved,
 }: MeetingScreenProps) => {
