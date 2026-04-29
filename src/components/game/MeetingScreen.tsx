@@ -7,6 +7,7 @@ import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
+import { supabase } from "@/integrations/supabase/client";
 
 // --- Types ---
 
@@ -34,6 +35,8 @@ type MeetingScreenProps = {
   myRole: PlayerRole;
   // Online (server-authoritative) extras — optional
   matchId?: string | null;
+  /** Current round id, used for realtime chat subscription. */
+  roundId?: string | null;
   /** Map MeetingPlayer.id → real auth user_id (only humans). Used to translate
    *  votes and eliminations between local mock IDs and server user IDs. */
   playerUserIds?: Record<string, string | null>;
