@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     const body = await req.json().catch(() => ({}));
-    const { matchId, targetPhase } = body as { matchId?: string; targetPhase?: string };
+    const { matchId, targetPhase, emergency } = body as { matchId?: string; targetPhase?: string; emergency?: boolean };
     if (!matchId || typeof matchId !== "string") {
       return new Response(JSON.stringify({ error: "matchId required" }), {
         status: 400,
@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
       });
     }
     const desired = targetPhase === "meeting" ? "meeting" : "meeting"; // only support meeting for now
+    const isEmergency = emergency === true;
 
     // Verify user is in the match
     const { data: mp } = await admin
