@@ -666,7 +666,7 @@ const MeetingScreen = ({
 
   // Mock bot messages during discussion — agents accuse the saboteur
   useEffect(() => {
-    if (phase !== "discussion") return;
+    if (phase !== "discussion" || isOnline) return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const saboteurPlayer = players.find((p) => p.role === "saboteur" && p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -725,7 +725,7 @@ const MeetingScreen = ({
 
   // Bot word guess attempts during discussion
   useEffect(() => {
-    if (phase !== "discussion" || !secretWord) return;
+    if (phase !== "discussion" || !secretWord || isOnline) return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
 
