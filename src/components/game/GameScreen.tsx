@@ -184,7 +184,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       if (matchRound.phase === "action" && current === "meeting") return "action";
       return current;
     });
-  }, [isOnline, matchRound, activeTask]);
+  }, [isOnline, matchRound, activeTask, matchPlayers]);
 
   // When the active task closes after the server already moved to meeting,
   // promote the local phase so the meeting screen renders immediately.
