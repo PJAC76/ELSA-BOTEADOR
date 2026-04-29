@@ -891,16 +891,19 @@ const MeetingScreen = ({
 
   const handleSendPreset = (content: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(content, true); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content, createdAt: Date.now() }]);
   };
 
   const handleSendFree = (content: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(content, false); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
   };
 
   const handleSendEmoji = (emoji: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(emoji, false); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
   };
 
