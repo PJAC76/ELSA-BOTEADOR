@@ -35,7 +35,7 @@ const ZONE_COLORS: Record<Zone, string> = {
   garden: "from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30",
 };
 
-const ZoneMap = ({ onSelectZone, sabotagedZones, completedZones, currentZone, players = [] }: ZoneMapProps) => {
+const ZoneMap = ({ onSelectZone, sabotagedZones, completedZones, currentZone, players = [], pendingTasksByZone }: ZoneMapProps) => {
   const { t } = useTranslation();
   const zoneNames = useZoneNames();
 
