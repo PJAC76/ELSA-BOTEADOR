@@ -497,9 +497,9 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
           </motion.div>
           <MeetingScreen
             round={round}
-            players={[]}
-            myPlayerId="me"
-            isGhost={false}
+            players={meetingPlayers}
+            myPlayerId={myMeetingId}
+            isGhost={isMyselfGhost}
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
@@ -509,7 +509,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
             matchId={matchId ?? null}
-            playerUserIds={isOnline && authUserId ? { me: authUserId } : undefined}
+            playerUserIds={isOnline ? meetingPlayerUserIds : undefined}
             onServerResolved={isOnline ? handleServerResolved : undefined}
           />
         </motion.div>
