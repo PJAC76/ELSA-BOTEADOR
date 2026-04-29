@@ -105,11 +105,34 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     const now = Date.now();
     const activeSab = matchSabotages.filter(s => new Date(s.expires_at).getTime() > now);
     setSabotagedZones(activeSab.map(s => indexToZone(s.zone)));
-    const doneZones = matchTasks.filter(t => t.is_completed).map(t => indexToZone(t.zone));
-    setCompletedZones(Array.from(new Set(doneZones)));
+    // A zone is "completed" only when it has tasks AND all of them are done.
+    const tasksByZone = new Map<number, { total: number; done: number }>();
+    for (const tk of matchTasks) {
+      const e = tasksByZone.get(tk.zone) ?? { total: 0, done: 0 };
+      e.total += 1;
+      if (tk.is_completed) e.done += 1;
+      tasksByZone.set(tk.zone, e);
+    }
+    const doneZones: Zone[] = [];
+    tasksByZone.forEach((v, zoneIdx) => {
+      if (v.total > 0 && v.done >= v.total) doneZones.push(indexToZone(zoneIdx));
+    });
+    setCompletedZones(doneZones);
     setTasksCompleted(matchTasks.filter(t => t.is_completed).length);
     if (matchRound) setRound(matchRound.round_number);
   }, [isOnline, matchSabotages, matchTasks, matchRound]);
+
+  // Pending task count per zone (for the ZoneMap badge).
+  const pendingTasksByZone = useMemo(() => {
+    if (!isOnline) return undefined;
+    const counts: Partial<Record<Zone, number>> = {};
+    for (const tk of matchTasks) {
+      if (tk.is_completed) continue;
+      const z = indexToZone(tk.zone);
+      counts[z] = (counts[z] ?? 0) + 1;
+    }
+    return counts;
+  }, [isOnline, matchTasks]);
 
   // Online: sync phase from server (rounds.phase). Local "round-summary" is preserved
   // because the server only knows action/meeting/voting.
@@ -309,8 +332,11 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     if (role === "saboteur") return;
     if (sabotagedZones.includes(zone)) return;
     if (completedZones.includes(zone)) return;
+    // Online: don't open the minigame if there are no pending tasks in this zone
+    // (the server would reject anyway — better UX to not even try).
+    if (isOnline && pendingTasksByZone && (pendingTasksByZone[zone] ?? 0) === 0) return;
     setActiveTask(zone);
-  }, [role, sabotagedZones, completedZones, isOnline, matchId]);
+  }, [role, sabotagedZones, completedZones, isOnline, matchId, pendingTasksByZone]);
 
   const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
 
@@ -448,7 +474,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             />
           </AnimatePresence>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} players={zoneMapPlayers} />
+            <ZoneMap onSelectZone={handleSelectZone} sabotagedZones={sabotagedZones} completedZones={completedZones} currentZone={currentZone} players={zoneMapPlayers} pendingTasksByZone={pendingTasksByZone} />
           </motion.div>
           {role === "saboteur" && phase === "action" && <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}><SabotagePanel onSabotage={handleSabotage} sabotagedZones={sabotagedZones} /></motion.div>}
           {phase === "action" && (
