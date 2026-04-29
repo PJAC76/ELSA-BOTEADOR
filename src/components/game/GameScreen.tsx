@@ -144,6 +144,10 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // pending overlay so the player whose minigame is still open can see how long
   // the rest of the group has been waiting.
   const [meetingTriggeredAtMs, setMeetingTriggeredAtMs] = useState<number | null>(null);
+  // Snapshot of player zones at the moment the meeting starts. This freezes
+  // the "last seen zone" so MeetingScreen shows where everyone was when the
+  // emergency was called, not where they happen to be later.
+  const [meetingZonesSnapshot, setMeetingZonesSnapshot] = useState<Record<string, Zone> | null>(null);
 
   useEffect(() => {
     if (!isOnline || !matchRound) return;
@@ -156,10 +160,15 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       if (matchRound.phase === "meeting" && wasActionForSameRound) {
         playRoundComplete();
         setMeetingTriggeredAtMs(Date.now());
+        // Freeze last-seen zones for the meeting roster.
+        const snapshot: Record<string, Zone> = {};
+        for (const p of matchPlayers) snapshot[p.id] = indexToZone(p.current_zone);
+        setMeetingZonesSnapshot(snapshot);
       }
       if (matchRound.phase === "action") {
         // New round: clear any pending-overlay state from the previous one.
         setMeetingTriggeredAtMs(null);
+        setMeetingZonesSnapshot(null);
       }
       lastServerPhaseRef.current = { roundId: matchRound.id, phase: matchRound.phase };
     }
@@ -175,7 +184,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       if (matchRound.phase === "action" && current === "meeting") return "action";
       return current;
     });
-  }, [isOnline, matchRound, activeTask]);
+  }, [isOnline, matchRound, activeTask, matchPlayers]);
 
   // When the active task closes after the server already moved to meeting,
   // promote the local phase so the meeting screen renders immediately.
@@ -543,7 +552,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             players={meetingPlayers}
             myPlayerId={myMeetingId}
             isGhost={isMyselfGhost}
-            playerZones={mockPlayerZones}
+            playerZones={meetingZonesSnapshot ?? mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
             onClueGiven={() => setCluesGiven((c) => c + 1)}
@@ -552,6 +561,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
             matchId={matchId ?? null}
+            roundId={isOnline ? matchRound?.id ?? null : null}
             playerUserIds={isOnline ? meetingPlayerUserIds : undefined}
             onServerResolved={isOnline ? handleServerResolved : undefined}
           />

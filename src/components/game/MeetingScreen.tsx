@@ -7,6 +7,7 @@ import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
+import { supabase } from "@/integrations/supabase/client";
 
 // --- Types ---
 
@@ -34,6 +35,8 @@ type MeetingScreenProps = {
   myRole: PlayerRole;
   // Online (server-authoritative) extras — optional
   matchId?: string | null;
+  /** Current round id, used for realtime chat subscription. */
+  roundId?: string | null;
   /** Map MeetingPlayer.id → real auth user_id (only humans). Used to translate
    *  votes and eliminations between local mock IDs and server user IDs. */
   playerUserIds?: Record<string, string | null>;
@@ -509,6 +512,7 @@ const MeetingScreen = ({
   secretClues,
   myRole,
   matchId = null,
+  roundId = null,
   playerUserIds = {},
   onServerResolved,
 }: MeetingScreenProps) => {
@@ -528,6 +532,82 @@ const MeetingScreen = ({
   const isOnline = !!matchId;
   const serverResolveOnceRef = useRef(false);
   const serverVoteSentRef = useRef(false);
+
+  // Track my auth user_id so realtime echoes are labeled "Tú".
+  const myUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active) myUserIdRef.current = data.user?.id ?? null;
+    });
+    return () => { active = false; };
+  }, []);
+
+  // Realtime chat: subscribe to chat_messages for this round and render them.
+  // Names/emojis are looked up from the local meeting roster via playerUserIds.
+  useEffect(() => {
+    if (!isOnline || !roundId) return;
+    let cancelled = false;
+
+    const userIdToLocal = new Map<string, { id: string; name: string; emoji: string }>();
+    for (const [localId, uid] of Object.entries(playerUserIds)) {
+      if (!uid) continue;
+      const p = players.find((pp) => pp.id === localId);
+      if (p) userIdToLocal.set(uid, { id: p.id, name: p.name, emoji: p.emoji });
+    }
+
+    type Row = { id: string; sender_id: string; message: string; is_preset: boolean; created_at: string };
+    const ingest = (rows: Row[]) => {
+      setMessages((prev) => {
+        const seen = new Set(prev.map((m) => m.id));
+        const next = [...prev];
+        for (const r of rows) {
+          if (seen.has(r.id)) continue;
+          const meta = userIdToLocal.get(r.sender_id);
+          const isMe = r.sender_id === myUserIdRef.current;
+          const isEmoji = r.message.length <= 3 && /\p{Extended_Pictographic}/u.test(r.message);
+          next.push({
+            id: r.id,
+            senderId: r.sender_id,
+            senderName: isMe ? "Tú" : (meta?.name ?? "Jugadora"),
+            messageType: isEmoji ? "emoji" : (r.is_preset ? "preset" : "free"),
+            content: r.message,
+            createdAt: new Date(r.created_at).getTime(),
+          });
+        }
+        return next.sort((a, b) => a.createdAt - b.createdAt);
+      });
+    };
+
+    supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("round_id", roundId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => { if (!cancelled && data) ingest(data as Row[]); });
+
+    const channel = supabase
+      .channel(`chat-${roundId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages", filter: `round_id=eq.${roundId}` },
+        (payload) => { ingest([payload.new as Row]); },
+      )
+      .subscribe();
+
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [isOnline, roundId, players, playerUserIds]);
+
+  const sendChatToServer = useCallback(async (content: string, isPreset: boolean) => {
+    if (!isOnline || !roundId) return false;
+    const uid = myUserIdRef.current;
+    if (!uid) return false;
+    const { error } = await supabase
+      .from("chat_messages")
+      .insert({ round_id: roundId, sender_id: uid, message: content, is_preset: isPreset });
+    if (error) { console.warn("[chat insert]", error); return false; }
+    return true;
+  }, [isOnline, roundId]);
 
   const normalizeWord = (w: string) => w.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -586,7 +666,7 @@ const MeetingScreen = ({
 
   // Mock bot messages during discussion — agents accuse the saboteur
   useEffect(() => {
-    if (phase !== "discussion") return;
+    if (phase !== "discussion" || isOnline) return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const saboteurPlayer = players.find((p) => p.role === "saboteur" && p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -641,11 +721,11 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId, round]);
+  }, [phase, players, myPlayerId, round, isOnline]);
 
   // Bot word guess attempts during discussion
   useEffect(() => {
-    if (phase !== "discussion" || !secretWord) return;
+    if (phase !== "discussion" || !secretWord || isOnline) return;
     const botPlayers = players.filter((p) => p.id !== myPlayerId && p.isAlive);
     const timers: ReturnType<typeof setTimeout>[] = [];
 
@@ -692,7 +772,7 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId, secretWord, t]);
+  }, [phase, players, myPlayerId, secretWord, t, isOnline, onWordGuessed]);
 
   // Mock bot votes — agents tend to vote for the saboteur, saboteur votes randomly
   useEffect(() => {
@@ -811,16 +891,19 @@ const MeetingScreen = ({
 
   const handleSendPreset = (content: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(content, true); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content, createdAt: Date.now() }]);
   };
 
   const handleSendFree = (content: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(content, false); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
   };
 
   const handleSendEmoji = (emoji: string) => {
     if (isGhost) return;
+    if (isOnline) { void sendChatToServer(emoji, false); return; }
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
   };
 
