@@ -18,21 +18,42 @@ export function useGameResults(userId: string | undefined) {
         return;
       }
 
-      // 1. Insert game result
-      const { error: insertError } = await supabase.from("game_results").insert({
-        user_id: userId,
-        match_id: params.matchId ?? null,
-        role: params.role,
-        won: params.won,
-        xp_earned: params.xpEarned,
-        tasks_completed: params.tasksCompleted,
-        guessed_word: params.guessedWord,
-      });
-      if (insertError) {
-        console.error("[useGameResults] insert error:", insertError);
-        return;
+      // 1. Insert game result (idempotent: if server already wrote it for this
+      // match, skip the insert and trust the authoritative row).
+      let alreadyExisted = false;
+      if (params.matchId) {
+        const { data: existing } = await supabase
+          .from("game_results")
+          .select("id, xp_earned")
+          .eq("user_id", userId)
+          .eq("match_id", params.matchId)
+          .maybeSingle();
+        if (existing) {
+          alreadyExisted = true;
+          console.log("[useGameResults] server-authoritative result exists, skipping insert");
+        }
       }
-      console.log("[useGameResults] game result saved", params);
+
+      if (!alreadyExisted) {
+        const { error: insertError } = await supabase.from("game_results").insert({
+          user_id: userId,
+          match_id: params.matchId ?? null,
+          role: params.role,
+          won: params.won,
+          xp_earned: params.xpEarned,
+          tasks_completed: params.tasksCompleted,
+          guessed_word: params.guessedWord,
+        });
+        if (insertError) {
+          console.error("[useGameResults] insert error:", insertError);
+          return;
+        }
+        console.log("[useGameResults] game result saved", params);
+      }
+
+      // If the server already saved an authoritative row, the profile XP sync
+      // should NOT double-count. Skip it.
+      if (alreadyExisted) return;
 
       // 2. Sync XP to profile
       const { data: profile } = await supabase

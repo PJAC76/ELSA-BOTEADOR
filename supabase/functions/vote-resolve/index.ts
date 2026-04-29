@@ -289,6 +289,66 @@ Deno.serve(async (req) => {
         .from("matches")
         .update({ status: "finished", winner })
         .eq("id", matchId);
+
+      // Persist authoritative per-player results (humans only). Idempotent:
+      // if a row already exists for (user_id, match_id) we skip insert.
+      try {
+        const { data: allRoundsForXp } = await admin
+          .from("rounds")
+          .select("id")
+          .eq("match_id", matchId);
+        const roundIds = (allRoundsForXp ?? []).map((r) => r.id);
+        let allTasks: { is_completed: boolean; completed_by: string | null }[] = [];
+        if (roundIds.length > 0) {
+          const { data } = await admin
+            .from("tasks")
+            .select("is_completed, completed_by")
+            .in("round_id", roundIds);
+          allTasks = data ?? [];
+        }
+
+        const humans = allPlayers.filter((p) => !p.is_bot && p.user_id);
+        const userIds = humans.map((p) => p.user_id as string);
+        const existing = userIds.length
+          ? (await admin
+              .from("game_results")
+              .select("user_id")
+              .eq("match_id", matchId)
+              .in("user_id", userIds)).data ?? []
+          : [];
+        const existingSet = new Set(existing.map((r) => r.user_id));
+
+        const xpFor = (role: string, won: boolean, tasksDone: number) => {
+          let xp = 25; // participation
+          if (won) xp += role === "saboteur" ? 90 : 60;
+          xp += tasksDone * 10;
+          return xp;
+        };
+
+        const inserts: Array<Record<string, unknown>> = [];
+        for (const p of humans) {
+          if (existingSet.has(p.user_id as string)) continue;
+          const won =
+            (winner === "agents" && p.role === "agent") ||
+            (winner === "saboteur" && p.role === "saboteur");
+          const tasksDone = allTasks.filter((t) => t.is_completed && t.completed_by === p.user_id).length;
+          inserts.push({
+            user_id: p.user_id,
+            match_id: matchId,
+            role: p.role,
+            won,
+            tasks_completed: tasksDone,
+            guessed_word: false,
+            xp_earned: xpFor(p.role, won, tasksDone),
+          });
+        }
+        if (inserts.length > 0) {
+          await admin.from("game_results").insert(inserts);
+        }
+      } catch (e) {
+        console.warn("[vote-resolve] game_results persist failed", e);
+      }
+
       return new Response(
         JSON.stringify({
           ok: true,
