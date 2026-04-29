@@ -543,7 +543,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             players={meetingPlayers}
             myPlayerId={myMeetingId}
             isGhost={isMyselfGhost}
-            playerZones={mockPlayerZones}
+            playerZones={meetingZonesSnapshot ?? mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
             onClueGiven={() => setCluesGiven((c) => c + 1)}
@@ -552,6 +552,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
             matchId={matchId ?? null}
+            roundId={isOnline ? matchRound?.id ?? null : null}
             playerUserIds={isOnline ? meetingPlayerUserIds : undefined}
             onServerResolved={isOnline ? handleServerResolved : undefined}
           />
