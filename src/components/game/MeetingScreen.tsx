@@ -721,7 +721,7 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId, round]);
+  }, [phase, players, myPlayerId, round, isOnline]);
 
   // Bot word guess attempts during discussion
   useEffect(() => {
@@ -772,7 +772,7 @@ const MeetingScreen = ({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [phase, players, myPlayerId, secretWord, t]);
+  }, [phase, players, myPlayerId, secretWord, t, isOnline, onWordGuessed]);
 
   // Mock bot votes — agents tend to vote for the saboteur, saboteur votes randomly
   useEffect(() => {
