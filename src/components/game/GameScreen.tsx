@@ -144,6 +144,10 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
   // pending overlay so the player whose minigame is still open can see how long
   // the rest of the group has been waiting.
   const [meetingTriggeredAtMs, setMeetingTriggeredAtMs] = useState<number | null>(null);
+  // Snapshot of player zones at the moment the meeting starts. This freezes
+  // the "last seen zone" so MeetingScreen shows where everyone was when the
+  // emergency was called, not where they happen to be later.
+  const [meetingZonesSnapshot, setMeetingZonesSnapshot] = useState<Record<string, Zone> | null>(null);
 
   useEffect(() => {
     if (!isOnline || !matchRound) return;
