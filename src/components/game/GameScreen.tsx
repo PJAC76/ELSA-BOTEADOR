@@ -417,6 +417,28 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     setPhase("round-summary");
   }, [totalTasksCompleted, tasksCompleted, zonesVisited, cluesGiven, onGameEnd, wordGuessers, secretWords]);
 
+  // Authoritative end-of-match: the server may finish the match independently
+  // (vote-resolve sets matches.status='finished' + winner). Realtime delivers
+  // it here; trigger onGameEnd exactly once.
+  const endedFiredRef = useRef(false);
+  useEffect(() => {
+    if (!isOnline) return;
+    if (endedFiredRef.current) return;
+    if (match?.status !== "finished") return;
+    endedFiredRef.current = true;
+    const stats: GameStats = {
+      tasksCompleted: totalTasksCompleted + tasksCompleted,
+      zonesVisited: zonesVisited.size,
+      cluesGiven,
+    };
+    onGameEnd(
+      match.winner === "agents" ? "agents-win" : "saboteur-wins",
+      wordGuessers,
+      secretWords,
+      stats,
+    );
+  }, [isOnline, match?.status, match?.winner, totalTasksCompleted, tasksCompleted, zonesVisited, cluesGiven, onGameEnd, wordGuessers, secretWords]);
+
   const addXp = useProgressionStore((s) => s.addXp);
   const handleWordGuessed = useCallback((playerName?: string, playerEmoji?: string) => {
     addXp(XP_REWARDS.WORD_GUESS);
