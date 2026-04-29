@@ -323,6 +323,29 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     return () => clearTimeout(timer);
   }, [sabotagedZones, isOnline]);
 
+  // Online: bots-tick driver. Only the "tick leader" (alive human with the
+  // smallest match_player.id) actually invokes the edge function, so we don't
+  // hammer the backend with 6 parallel calls. Runs every 5s during action.
+  useEffect(() => {
+    if (!isOnline || !matchId || !authUserId) return;
+    if (matchRound?.phase !== "action") return;
+    const aliveHumans = matchPlayers
+      .filter((p) => !p.is_bot && p.is_alive && p.user_id)
+      .sort((a, b) => a.id.localeCompare(b.id));
+    const leader = aliveHumans[0];
+    if (!leader || leader.user_id !== authUserId) return;
+    const hasBots = matchPlayers.some((p) => p.is_bot && p.is_alive);
+    if (!hasBots) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      try { await botsTick(matchId); } catch (e) { console.warn("[botsTick]", e); }
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isOnline, matchId, authUserId, matchRound?.phase, matchPlayers]);
+
   const handleSelectZone = useCallback(async (zone: Zone) => {
     setCurrentZone(zone);
     setZonesVisited((prev) => new Set(prev).add(zone));
