@@ -344,7 +344,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
       // Server-authoritative: advance the round to meeting. Realtime will
       // mirror the new phase to every client (including this one).
       try {
-        await advanceRoundPhase(matchId, "meeting");
+        await advanceRoundPhase(matchId, "meeting", { emergency: true });
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Error";
         toast.error(msg);
