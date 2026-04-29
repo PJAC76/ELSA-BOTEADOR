@@ -332,8 +332,11 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     if (role === "saboteur") return;
     if (sabotagedZones.includes(zone)) return;
     if (completedZones.includes(zone)) return;
+    // Online: don't open the minigame if there are no pending tasks in this zone
+    // (the server would reject anyway — better UX to not even try).
+    if (isOnline && pendingTasksByZone && (pendingTasksByZone[zone] ?? 0) === 0) return;
     setActiveTask(zone);
-  }, [role, sabotagedZones, completedZones, isOnline, matchId]);
+  }, [role, sabotagedZones, completedZones, isOnline, matchId, pendingTasksByZone]);
 
   const handleEmergency = useCallback(() => { if (phase === "action") setPhase("meeting"); }, [phase]);
 
