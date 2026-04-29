@@ -265,6 +265,49 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     setCurrentZone((prev) => (prev === z ? prev : z));
   }, [isOnline, authUserId, matchPlayers]);
 
+  // Authoritative meeting roster derived from match_players (online only).
+  // - Real names hidden behind generic "Jugadora" for opponents to avoid leaks
+  // - role is faked to "agent" for everyone else (the server holds the truth)
+  // - isAlive / isGhost are taken straight from match_players.is_alive
+  const BOT_EMOJIS_MEETING = ["🦊", "🐱", "🐻", "🦄", "🐰", "🐼", "🦁", "🐨", "🐯", "🐸"];
+  const meetingPlayers = useMemo(() => {
+    if (!isOnline) return [] as Array<{ id: string; name: string; emoji: string; role: "agent" | "saboteur"; isAlive: boolean; isGhost: boolean }>;
+    return matchPlayers.map((p, i) => {
+      const isMe = !!authUserId && p.user_id === authUserId;
+      return {
+        id: p.id,
+        name: isMe ? t("you") : (p.is_bot ? (p.bot_name ?? "Bot") : "Jugadora"),
+        emoji: p.is_bot ? BOT_EMOJIS_MEETING[i % BOT_EMOJIS_MEETING.length] : "🕵️",
+        role: isMe ? role : "agent" as const,
+        isAlive: p.is_alive,
+        isGhost: !p.is_alive,
+      };
+    });
+  }, [isOnline, matchPlayers, authUserId, role, t]);
+
+  const myMeetingId = useMemo(() => {
+    if (!isOnline) return "me";
+    const me = matchPlayers.find((p) => p.user_id === authUserId);
+    return me?.id ?? "me";
+  }, [isOnline, matchPlayers, authUserId]);
+
+  // Authoritative ghost flag for the local user.
+  const isMyselfGhost = useMemo(() => {
+    if (!isOnline) return false;
+    const me = matchPlayers.find((p) => p.user_id === authUserId);
+    return me ? !me.is_alive : false;
+  }, [isOnline, matchPlayers, authUserId]);
+
+  // MeetingPlayer.id → real auth user_id (humans only). Used by vote-cast.
+  const meetingPlayerUserIds = useMemo(() => {
+    if (!isOnline) return {} as Record<string, string | null>;
+    const map: Record<string, string | null> = {};
+    for (const p of matchPlayers) {
+      map[p.id] = p.is_bot ? null : p.user_id;
+    }
+    return map;
+  }, [isOnline, matchPlayers]);
+
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
