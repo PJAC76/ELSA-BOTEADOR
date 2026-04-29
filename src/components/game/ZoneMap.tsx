@@ -66,6 +66,11 @@ const ZoneMap = ({ onSelectZone, sabotagedZones, completedZones, currentZone, pl
             >
               {isSabotaged && <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive/20"><Lock className="h-3 w-3 text-destructive" /></div>}
               {isCompleted && <div className="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent/30"><span className="text-xs">✅</span></div>}
+              {!isCompleted && !isSabotaged && pendingTasksByZone && (pendingTasksByZone[zone] ?? 0) > 0 && (
+                <div className="absolute top-2 right-2 flex h-6 min-w-[24px] items-center justify-center rounded-full bg-campus-yellow/90 px-1.5 font-display text-[10px] font-bold text-foreground shadow-soft">
+                  {pendingTasksByZone[zone]}
+                </div>
+              )}
               <span className="text-3xl mb-1">{info.emoji}</span>
               <span className="font-display text-xs font-bold text-foreground">{zoneNames[zone]}</span>
               {isSabotaged && <span className="font-body text-[10px] text-destructive font-semibold mt-0.5">{t("sabotaged")}</span>}
