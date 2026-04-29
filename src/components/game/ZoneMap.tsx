@@ -20,6 +20,8 @@ type ZoneMapProps = {
   currentZone?: Zone;
   /** Authoritative players-by-zone (from match_players via Realtime). */
   players?: ZonePlayer[];
+  /** Authoritative pending task counts per zone (online). Optional. */
+  pendingTasksByZone?: Partial<Record<Zone, number>>;
 };
 
 const ZONES: Zone[] = ["library", "cafeteria", "auditorium", "lab", "gym", "garden"];
