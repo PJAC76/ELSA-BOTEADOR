@@ -17,7 +17,7 @@ import { playTimerUrgent, playRoundComplete } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { getRandomWord, resetCategoryRotation } from "@/data/secret-words";
 import { useProgressionStore, XP_REWARDS } from "@/stores/progression-store";
-import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase, type VoteResolveResult } from "@/hooks/use-match";
+import { useMatch, moveToZone, completeTask, sabotageZone, advanceRoundPhase, botsTick, type VoteResolveResult } from "@/hooks/use-match";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -265,6 +265,49 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     setCurrentZone((prev) => (prev === z ? prev : z));
   }, [isOnline, authUserId, matchPlayers]);
 
+  // Authoritative meeting roster derived from match_players (online only).
+  // - Real names hidden behind generic "Jugadora" for opponents to avoid leaks
+  // - role is faked to "agent" for everyone else (the server holds the truth)
+  // - isAlive / isGhost are taken straight from match_players.is_alive
+  const BOT_EMOJIS_MEETING = ["🦊", "🐱", "🐻", "🦄", "🐰", "🐼", "🦁", "🐨", "🐯", "🐸"];
+  const meetingPlayers = useMemo(() => {
+    if (!isOnline) return [] as Array<{ id: string; name: string; emoji: string; role: "agent" | "saboteur"; isAlive: boolean; isGhost: boolean }>;
+    return matchPlayers.map((p, i) => {
+      const isMe = !!authUserId && p.user_id === authUserId;
+      return {
+        id: p.id,
+        name: isMe ? t("you") : (p.is_bot ? (p.bot_name ?? "Bot") : "Jugadora"),
+        emoji: p.is_bot ? BOT_EMOJIS_MEETING[i % BOT_EMOJIS_MEETING.length] : "🕵️",
+        role: isMe ? role : "agent" as const,
+        isAlive: p.is_alive,
+        isGhost: !p.is_alive,
+      };
+    });
+  }, [isOnline, matchPlayers, authUserId, role, t]);
+
+  const myMeetingId = useMemo(() => {
+    if (!isOnline) return "me";
+    const me = matchPlayers.find((p) => p.user_id === authUserId);
+    return me?.id ?? "me";
+  }, [isOnline, matchPlayers, authUserId]);
+
+  // Authoritative ghost flag for the local user.
+  const isMyselfGhost = useMemo(() => {
+    if (!isOnline) return false;
+    const me = matchPlayers.find((p) => p.user_id === authUserId);
+    return me ? !me.is_alive : false;
+  }, [isOnline, matchPlayers, authUserId]);
+
+  // MeetingPlayer.id → real auth user_id (humans only). Used by vote-cast.
+  const meetingPlayerUserIds = useMemo(() => {
+    if (!isOnline) return {} as Record<string, string | null>;
+    const map: Record<string, string | null> = {};
+    for (const p of matchPlayers) {
+      map[p.id] = p.is_bot ? null : p.user_id;
+    }
+    return map;
+  }, [isOnline, matchPlayers]);
+
   const tasksTotal = TASKS_PER_ROUND;
   const globalTasksTotal = TASKS_PER_ROUND * TOTAL_ROUNDS;
 
@@ -322,6 +365,29 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
     const timer = setTimeout(() => setSabotagedZones((prev) => prev.slice(1)), SABOTAGE_DURATION * 1000);
     return () => clearTimeout(timer);
   }, [sabotagedZones, isOnline]);
+
+  // Online: bots-tick driver. Only the "tick leader" (alive human with the
+  // smallest match_player.id) actually invokes the edge function, so we don't
+  // hammer the backend with 6 parallel calls. Runs every 5s during action.
+  useEffect(() => {
+    if (!isOnline || !matchId || !authUserId) return;
+    if (matchRound?.phase !== "action") return;
+    const aliveHumans = matchPlayers
+      .filter((p) => !p.is_bot && p.is_alive && p.user_id)
+      .sort((a, b) => a.id.localeCompare(b.id));
+    const leader = aliveHumans[0];
+    if (!leader || leader.user_id !== authUserId) return;
+    const hasBots = matchPlayers.some((p) => p.is_bot && p.is_alive);
+    if (!hasBots) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      try { await botsTick(matchId); } catch (e) { console.warn("[botsTick]", e); }
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isOnline, matchId, authUserId, matchRound?.phase, matchPlayers]);
 
   const handleSelectZone = useCallback(async (zone: Zone) => {
     setCurrentZone(zone);
@@ -474,9 +540,9 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
           </motion.div>
           <MeetingScreen
             round={round}
-            players={[]}
-            myPlayerId="me"
-            isGhost={false}
+            players={meetingPlayers}
+            myPlayerId={myMeetingId}
+            isGhost={isMyselfGhost}
             playerZones={mockPlayerZones}
             onVoteResult={handleVoteResult}
             onWordGuessed={handleWordGuessed}
@@ -486,7 +552,7 @@ const GameScreen = ({ role, matchId, onGameEnd }: GameScreenProps) => {
             secretClues={role === "saboteur" ? [] : secretClues}
             myRole={role}
             matchId={matchId ?? null}
-            playerUserIds={isOnline && authUserId ? { me: authUserId } : undefined}
+            playerUserIds={isOnline ? meetingPlayerUserIds : undefined}
             onServerResolved={isOnline ? handleServerResolved : undefined}
           />
         </motion.div>
