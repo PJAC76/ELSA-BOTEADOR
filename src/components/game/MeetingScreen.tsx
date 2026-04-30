@@ -323,6 +323,7 @@ const ChatPanel = ({
   disabled,
   players,
   clues,
+  myPlayerId,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -332,6 +333,7 @@ const ChatPanel = ({
   disabled: boolean;
   players: MeetingPlayer[];
   clues: ClueEntry[];
+  myPlayerId: string;
 }) => {
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
