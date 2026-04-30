@@ -350,7 +350,6 @@ const ChatPanel = ({
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const prevMessagesLenRef = useRef(messages.length);
-  const prevMessagesLenRef = useRef(messages.length);
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
