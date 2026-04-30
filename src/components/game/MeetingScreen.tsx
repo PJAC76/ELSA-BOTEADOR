@@ -804,7 +804,7 @@ const ChatPanel = ({
                     <button
                       key={emoji}
                       type="button"
-                      onClick={() => { onSendEmoji(emoji); playTap(); closeAllPanels(true); }}
+                      onClick={() => { if (!tryConsumeRate()) return; onSendEmoji(emoji); playTap(); closeAllPanels(true); }}
                       className="text-xl active:scale-90 transition-transform rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                       aria-label={`emoji ${emoji}`}
                     >
