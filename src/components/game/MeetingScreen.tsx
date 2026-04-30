@@ -381,6 +381,68 @@ const ChatPanel = ({
     });
   }, []);
 
+  // --- Rate limiting (sliding window + per-message cooldown) ---
+  const COOLDOWN_MS = 1200;
+  const RATE_WINDOW_MS = 10_000;
+  const RATE_MAX = 5;
+  const recentSendsRef = useRef<number[]>([]);
+  const [cooldownLeft, setCooldownLeft] = useState(0); // seconds, ceil
+  const [rateBlockedUntil, setRateBlockedUntil] = useState(0);
+  const [rateAnnouncement, setRateAnnouncement] = useState("");
+
+  // Tick: recompute remaining cooldown / rate-block once per second
+  useEffect(() => {
+    if (cooldownLeft <= 0 && rateBlockedUntil <= Date.now()) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      // Cooldown countdown
+      const lastSent = recentSendsRef.current[recentSendsRef.current.length - 1] ?? 0;
+      const cdRemainMs = Math.max(0, lastSent + COOLDOWN_MS - now);
+      const rateRemainMs = Math.max(0, rateBlockedUntil - now);
+      const remainMs = Math.max(cdRemainMs, rateRemainMs);
+      setCooldownLeft(remainMs > 0 ? Math.ceil(remainMs / 1000) : 0);
+      if (remainMs <= 0 && rateBlockedUntil > 0 && rateBlockedUntil <= now) {
+        setRateBlockedUntil(0);
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, [cooldownLeft, rateBlockedUntil]);
+
+  const tryConsumeRate = useCallback((): boolean => {
+    const now = Date.now();
+    if (rateBlockedUntil > now) {
+      const secs = Math.ceil((rateBlockedUntil - now) / 1000);
+      setRateAnnouncement(t("chatRateLimited").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    const lastSent = recentSendsRef.current[recentSendsRef.current.length - 1] ?? 0;
+    if (now - lastSent < COOLDOWN_MS) {
+      const secs = Math.max(1, Math.ceil((lastSent + COOLDOWN_MS - now) / 1000));
+      setRateAnnouncement(t("chatCooldownWait").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    // Drop expired entries from window
+    const windowStart = now - RATE_WINDOW_MS;
+    recentSendsRef.current = recentSendsRef.current.filter((ts) => ts > windowStart);
+    if (recentSendsRef.current.length >= RATE_MAX) {
+      const oldest = recentSendsRef.current[0];
+      const blockUntil = oldest + RATE_WINDOW_MS;
+      setRateBlockedUntil(blockUntil);
+      const secs = Math.max(1, Math.ceil((blockUntil - now) / 1000));
+      setRateAnnouncement(t("chatRateLimited").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    recentSendsRef.current.push(now);
+    setCooldownLeft(Math.ceil(COOLDOWN_MS / 1000));
+    setRateAnnouncement("");
+    return true;
+  }, [rateBlockedUntil, t]);
+
+  const isRateLimited = cooldownLeft > 0;
+
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
   const NEAR_BOTTOM_PX = 60;
@@ -475,6 +537,7 @@ const ChatPanel = ({
   const handleSendFree = () => {
     const trimmed = freeInput.trim().slice(0, MAX_LEN);
     if (!trimmed) return;
+    if (!tryConsumeRate()) return;
     onSendFree(trimmed);
     setFreeInput("");
     playTap();
@@ -741,7 +804,7 @@ const ChatPanel = ({
                     <button
                       key={emoji}
                       type="button"
-                      onClick={() => { onSendEmoji(emoji); playTap(); closeAllPanels(true); }}
+                      onClick={() => { if (!tryConsumeRate()) return; onSendEmoji(emoji); playTap(); closeAllPanels(true); }}
                       className="text-xl active:scale-90 transition-transform rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                       aria-label={`emoji ${emoji}`}
                     >
@@ -765,7 +828,7 @@ const ChatPanel = ({
                     <button
                       key={i}
                       type="button"
-                      onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); closeAllPanels(true); }}
+                      onClick={() => { if (!tryConsumeRate()) return; onSendPreset(fillTemplate(preset)); playTap(); closeAllPanels(true); }}
                       className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                     >
                       {preset.replace("{player}", "...").replace("{zone}", "...")}
@@ -797,7 +860,7 @@ const ChatPanel = ({
                         type="button"
                         role="gridcell"
                         tabIndex={idx === 0 ? 0 : -1}
-                        onClick={() => { onSendSticker(s.id); playTap(); closeAllPanels(true); }}
+                        onClick={() => { if (!tryConsumeRate()) return; onSendSticker(s.id); playTap(); closeAllPanels(true); }}
                         onMouseEnter={() => setPreviewSticker(s.id)}
                         onMouseLeave={() => setPreviewSticker((p) => (p === s.id ? null : p))}
                         onFocus={() => setPreviewSticker(s.id)}
@@ -836,6 +899,38 @@ const ChatPanel = ({
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Rate limit feedback banner */}
+          <AnimatePresence>
+            {isRateLimited && (
+              <motion.div
+                key="rate-banner"
+                initial={{ opacity: 0, y: -4, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -4, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-amber-500/15 px-3 py-1.5 text-amber-700 dark:text-amber-300"
+                >
+                  <span className="font-body text-[11px]">
+                    {rateBlockedUntil > Date.now()
+                      ? t("chatRateLimited").replace("{seconds}", String(cooldownLeft))
+                      : t("chatCooldownWait").replace("{seconds}", String(cooldownLeft))}
+                  </span>
+                  <span className="font-display text-[10px] font-bold tabular-nums opacity-70">
+                    {t("chatRateLimitHint")
+                      .replace("{count}", String(RATE_MAX))
+                      .replace("{window}", String(Math.round(RATE_WINDOW_MS / 1000)))}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* Hidden announcer (for SR even when banner not visible) */}
+          <span className="sr-only" role="status" aria-live="polite">{rateAnnouncement}</span>
 
           <div className="flex items-center gap-2">
             <button
@@ -900,11 +995,17 @@ const ChatPanel = ({
             <button
               type="button"
               onClick={handleSendFree}
-              disabled={!freeInput.trim()}
-              aria-label={t("send")}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              disabled={!freeInput.trim() || isRateLimited}
+              aria-label={isRateLimited ? t("chatCooldownWait").replace("{seconds}", String(cooldownLeft)) : t("send")}
+              aria-disabled={isRateLimited || undefined}
+              title={isRateLimited ? t("chatCooldownWait").replace("{seconds}", String(cooldownLeft)) : undefined}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             >
-              <Send className="h-4 w-4" aria-hidden="true" />
+              {isRateLimited ? (
+                <span className="font-display text-[10px] font-bold tabular-nums" aria-hidden="true">{cooldownLeft}s</span>
+              ) : (
+                <Send className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
