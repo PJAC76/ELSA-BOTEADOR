@@ -1632,8 +1632,25 @@ const MeetingScreen = ({
 
   const handleSendFree = (content: string) => {
     if (isGhost) return;
-    if (isOnline) { void sendChatToServer(content, false); return; }
-    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
+    // Client-side word filter for outgoing free text.
+    const analysis = analyzeMessage(content);
+    if (analysis.severity === "severe") {
+      toast({
+        title: t("chatBlockedTitle"),
+        description: t("chatBlockedDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
+    const safeContent = analysis.severity === "mild" ? analysis.maskedText : content;
+    if (analysis.severity === "mild") {
+      toast({
+        title: t("chatMaskedTitle"),
+        description: t("chatMaskedDesc"),
+      });
+    }
+    if (isOnline) { void sendChatToServer(safeContent, false); return; }
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content: safeContent, createdAt: Date.now() }]);
   };
 
   const handleSendEmoji = (emoji: string) => {
