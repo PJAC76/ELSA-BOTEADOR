@@ -319,6 +319,7 @@ const ChatPanel = ({
   onSendPreset,
   onSendEmoji,
   onSendFree,
+  onSendSticker,
   disabled,
   players,
   clues,
@@ -327,6 +328,7 @@ const ChatPanel = ({
   onSendPreset: (msg: string) => void;
   onSendEmoji: (emoji: string) => void;
   onSendFree: (msg: string) => void;
+  onSendSticker: (id: StickerId) => void;
   disabled: boolean;
   players: MeetingPlayer[];
   clues: ClueEntry[];
@@ -334,6 +336,8 @@ const ChatPanel = ({
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const [showStickers, setShowStickers] = useState(false);
+  const [previewSticker, setPreviewSticker] = useState<StickerId | null>(null);
   const [freeInput, setFreeInput] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
