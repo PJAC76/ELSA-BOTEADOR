@@ -441,42 +441,64 @@ const ChatPanel = ({
       )}
 
       {/* Messages */}
-      <div
-        ref={messagesScrollRef}
-        className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
-        aria-live="polite"
-      >
-        {messages.length === 0 ? (
-          <p className="font-body text-xs text-muted-foreground text-center py-6">
-            {t("discussionStarted")}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {messages.map((msg) => {
-              const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
-              const expanded = expandedIds.has(msg.id);
-              const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
-              return (
-                <div key={msg.id} className="flex gap-2">
-                  <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
-                  <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
-                    {display}
-                    {isLong && (
-                      <button
-                        type="button"
-                        onClick={() => toggleExpanded(msg.id)}
-                        className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
-                      >
-                        {expanded ? t("showLess") : t("showMore")}
-                      </button>
-                    )}
-                  </span>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+      <div className="relative">
+        <div
+          ref={messagesScrollRef}
+          className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
+          aria-live="polite"
+        >
+          {messages.length === 0 ? (
+            <p className="font-body text-xs text-muted-foreground text-center py-6">
+              {t("discussionStarted")}
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {messages.map((msg) => {
+                const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
+                const expanded = expandedIds.has(msg.id);
+                const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
+                return (
+                  <div key={msg.id} className="flex gap-2">
+                    <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
+                    <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
+                      {display}
+                      {isLong && (
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(msg.id)}
+                          className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
+                        >
+                          {expanded ? t("showLess") : t("showMore")}
+                        </button>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* New messages badge: appears when not near the bottom and new msgs arrive */}
+        <AnimatePresence>
+          {unreadCount > 0 && !isNearBottom && (
+            <motion.button
+              type="button"
+              onClick={() => scrollToBottom("smooth")}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-display text-[11px] font-bold text-primary-foreground shadow-glow hover:bg-primary/90 active:scale-95 transition-transform"
+              aria-label={t("newMessages")}
+            >
+              <span>↓</span>
+              <span>
+                {unreadCount} {unreadCount === 1 ? t("newMessage") : t("newMessages")}
+              </span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Input area */}
