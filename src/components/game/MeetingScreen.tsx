@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send } from "lucide-react";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send, Sticker as StickerIcon } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
+import { STICKERS, encodeSticker, parseSticker, type StickerId } from "@/lib/chat-stickers";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
