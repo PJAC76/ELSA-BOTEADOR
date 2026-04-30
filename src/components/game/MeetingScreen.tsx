@@ -602,9 +602,25 @@ const MeetingScreen = ({
     if (!isOnline || !roundId) return false;
     const uid = myUserIdRef.current;
     if (!uid) return false;
+    // Server-side dedupe: a stable per-send UUID. If a reconnect or a fast
+    // double-tap retries the same payload with the same client_msg_id, the
+    // unique index (round_id, sender_id, client_msg_id) drops the duplicate.
+    const clientMsgId =
+      (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const { error } = await supabase
       .from("chat_messages")
-      .insert({ round_id: roundId, sender_id: uid, message: content, is_preset: isPreset });
+      .upsert(
+        {
+          round_id: roundId,
+          sender_id: uid,
+          message: content,
+          is_preset: isPreset,
+          client_msg_id: clientMsgId,
+        },
+        { onConflict: "round_id,sender_id,client_msg_id", ignoreDuplicates: true },
+      );
     if (error) { console.warn("[chat insert]", error); return false; }
     return true;
   }, [isOnline, roundId]);
