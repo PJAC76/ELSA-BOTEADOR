@@ -410,9 +410,12 @@ const ChatPanel = ({
       e.preventDefault();
       handleSendFree();
     } else if (e.key === "Escape") {
-      if (showEmojis || showPresets) {
+      if (showEmojis || showPresets || showStickers) {
         e.preventDefault();
         setShowEmojis(false);
+        setShowPresets(false);
+        setShowStickers(false);
+      }
         setShowPresets(false);
       }
     }
