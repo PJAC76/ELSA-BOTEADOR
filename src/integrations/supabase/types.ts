@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       chat_messages: {
         Row: {
+          client_msg_id: string | null
           created_at: string
           id: string
           is_preset: boolean
@@ -24,6 +25,7 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          client_msg_id?: string | null
           created_at?: string
           id?: string
           is_preset?: boolean
@@ -32,6 +34,7 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          client_msg_id?: string | null
           created_at?: string
           id?: string
           is_preset?: boolean
