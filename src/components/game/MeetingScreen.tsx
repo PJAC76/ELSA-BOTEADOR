@@ -1151,6 +1151,10 @@ const MeetingScreen = ({
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingStateRef = useRef<boolean>(false);
+  const { toast } = useToast();
+  const submitReport = useReportsStore((s) => s.submitReport);
+  // Avoid auto-reporting the same incoming message twice (e.g., on refetch).
+  const autoReportedMsgIdsRef = useRef<Set<string>>(new Set());
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
