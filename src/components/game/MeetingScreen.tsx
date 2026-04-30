@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send, Sticker as StickerIcon } from "lucide-react";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send, Sticker as StickerIcon, VolumeX, Volume2 } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
 import { STICKERS, encodeSticker, parseSticker, type StickerId } from "@/lib/chat-stickers";
@@ -323,6 +323,7 @@ const ChatPanel = ({
   disabled,
   players,
   clues,
+  myPlayerId,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -332,6 +333,7 @@ const ChatPanel = ({
   disabled: boolean;
   players: MeetingPlayer[];
   clues: ClueEntry[];
+  myPlayerId: string;
 }) => {
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
@@ -354,6 +356,30 @@ const ChatPanel = ({
   const isNearBottomRef = useRef(true);
   const announceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAnnouncedRef = useRef<{ text: string; at: number }>({ text: "", at: 0 });
+  const [mutedIds, setMutedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = sessionStorage.getItem("meeting:mutedIds");
+      if (!raw) return new Set();
+      const arr = JSON.parse(raw) as string[];
+      return new Set(Array.isArray(arr) ? arr : []);
+    } catch {
+      return new Set();
+    }
+  });
+  const toggleMute = useCallback((senderId: string) => {
+    setMutedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(senderId)) next.delete(senderId);
+      else next.add(senderId);
+      try {
+        sessionStorage.setItem("meeting:mutedIds", JSON.stringify(Array.from(next)));
+      } catch {
+        /* ignore */
+      }
+      playTap();
+      return next;
+    });
+  }, []);
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
@@ -575,10 +601,36 @@ const ChatPanel = ({
           ) : (
             <div className="flex flex-col gap-2">
               {messages.map((msg) => {
+                const isMine = msg.senderId === myPlayerId;
+                const isMuted = mutedIds.has(msg.senderId);
+                const canMute = !isMine;
+
+                if (isMuted) {
+                  return (
+                    <div key={msg.id} className="flex items-center gap-2 opacity-60">
+                      <span className="font-display text-xs font-bold text-muted-foreground shrink-0 italic">
+                        {msg.senderName}:
+                      </span>
+                      <span className="font-body text-[11px] italic text-muted-foreground">
+                        {t("mutedMessage")}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleMute(msg.senderId)}
+                        aria-label={t("unmutePlayer").replace("{name}", msg.senderName)}
+                        title={t("unmutePlayer").replace("{name}", msg.senderName)}
+                        className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <Volume2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                }
+
                 const sticker = parseSticker(msg.content);
                 if (sticker) {
                   return (
-                    <div key={msg.id} className="flex items-center gap-2">
+                    <div key={msg.id} className="group flex items-center gap-2">
                       <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
                       <span
                         role="img"
@@ -587,6 +639,17 @@ const ChatPanel = ({
                       >
                         {sticker.glyph}
                       </span>
+                      {canMute && (
+                        <button
+                          type="button"
+                          onClick={() => toggleMute(msg.senderId)}
+                          aria-label={t("mutePlayer").replace("{name}", msg.senderName)}
+                          title={t("mutePlayer").replace("{name}", msg.senderName)}
+                          className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        >
+                          <VolumeX className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   );
                 }
@@ -594,9 +657,9 @@ const ChatPanel = ({
                 const expanded = expandedIds.has(msg.id);
                 const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
                 return (
-                  <div key={msg.id} className="flex gap-2">
+                  <div key={msg.id} className="group flex gap-2">
                     <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
-                    <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
+                    <span className={`font-body text-xs text-foreground break-words min-w-0 flex-1 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
                       {display}
                       {isLong && (
                         <button
@@ -609,6 +672,17 @@ const ChatPanel = ({
                         </button>
                       )}
                     </span>
+                    {canMute && (
+                      <button
+                        type="button"
+                        onClick={() => toggleMute(msg.senderId)}
+                        aria-label={t("mutePlayer").replace("{name}", msg.senderName)}
+                        title={t("mutePlayer").replace("{name}", msg.senderName)}
+                        className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <VolumeX className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -1530,7 +1604,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
