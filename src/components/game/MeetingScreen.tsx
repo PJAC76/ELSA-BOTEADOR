@@ -334,6 +334,26 @@ const ChatPanel = ({
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [freeInput, setFreeInput] = useState("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const MAX_LEN = 140;
+  const TRUNCATE_AT = 90;
+
+  // Auto-scroll: only stick to bottom if the user is already near the bottom,
+  // so reading older messages isn't interrupted.
+  useEffect(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distanceFromBottom < 60) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
+  }, [messages.length]);
 
   const fillTemplate = (template: string) => {
     const randomPlayer = players[Math.floor(Math.random() * players.length)];
@@ -343,11 +363,36 @@ const ChatPanel = ({
   };
 
   const handleSendFree = () => {
-    if (!freeInput.trim()) return;
-    onSendFree(freeInput.trim());
+    const trimmed = freeInput.trim().slice(0, MAX_LEN);
+    if (!trimmed) return;
+    onSendFree(trimmed);
     setFreeInput("");
     playTap();
   };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      handleSendFree();
+    } else if (e.key === "Escape") {
+      if (showEmojis || showPresets) {
+        e.preventDefault();
+        setShowEmojis(false);
+        setShowPresets(false);
+      }
+    }
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const remaining = MAX_LEN - freeInput.length;
+  const remainingTone = remaining <= 0 ? "text-destructive" : remaining <= 20 ? "text-amber-500" : "text-muted-foreground";
 
   return (
     <div className="flex flex-col gap-2">
@@ -366,19 +411,40 @@ const ChatPanel = ({
       )}
 
       {/* Messages */}
-      <div className="h-32 overflow-y-auto rounded-2xl bg-card p-3 shadow-soft">
+      <div
+        ref={messagesScrollRef}
+        className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
+        aria-live="polite"
+      >
         {messages.length === 0 ? (
           <p className="font-body text-xs text-muted-foreground text-center py-6">
             {t("discussionStarted")}
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {messages.map((msg) => (
-              <div key={msg.id} className="flex gap-2">
-                <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
-                <span className={`font-body text-xs text-foreground ${msg.messageType === "emoji" ? "text-lg" : ""}`}>{msg.content}</span>
-              </div>
-            ))}
+            {messages.map((msg) => {
+              const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
+              const expanded = expandedIds.has(msg.id);
+              const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
+              return (
+                <div key={msg.id} className="flex gap-2">
+                  <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
+                  <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
+                    {display}
+                    {isLong && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(msg.id)}
+                        className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
+                      >
+                        {expanded ? t("showLess") : t("showMore")}
+                      </button>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
@@ -391,7 +457,14 @@ const ChatPanel = ({
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                 <div className="flex flex-wrap gap-2 rounded-2xl bg-card p-3">
                   {CHAT_EMOJIS.map((emoji) => (
-                    <button key={emoji} onClick={() => { onSendEmoji(emoji); playTap(); }} className="text-xl active:scale-90 transition-transform">{emoji}</button>
+                    <button
+                      key={emoji}
+                      onClick={() => { onSendEmoji(emoji); playTap(); setShowEmojis(false); inputRef.current?.focus(); }}
+                      className="text-xl active:scale-90 transition-transform"
+                      aria-label={`emoji ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
                   ))}
                 </div>
               </motion.div>
@@ -416,17 +489,30 @@ const ChatPanel = ({
             <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <SmilePlus className="h-4 w-4" />
             </button>
-            <input
-              value={freeInput}
-              onChange={(e) => setFreeInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendFree()}
-              placeholder={t("writeMessage")}
-              maxLength={100}
-              className="h-9 flex-1 rounded-xl bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
-            />
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                value={freeInput}
+                onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
+                onKeyDown={handleInputKeyDown}
+                onFocus={() => { setShowEmojis(false); setShowPresets(false); }}
+                placeholder={t("writeMessage")}
+                maxLength={MAX_LEN}
+                enterKeyHint="send"
+                autoComplete="off"
+                autoCorrect="on"
+                className="h-9 w-full rounded-xl bg-muted pl-3 pr-10 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              {freeInput.length >= MAX_LEN - 30 && (
+                <span className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 font-display text-[10px] font-bold tabular-nums ${remainingTone}`}>
+                  {remaining}
+                </span>
+              )}
+            </div>
             <button
               onClick={handleSendFree}
               disabled={!freeInput.trim()}
+              aria-label={t("send")}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
