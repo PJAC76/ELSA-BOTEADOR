@@ -349,11 +349,17 @@ const ChatPanel = ({
   const stickerGridRef = useRef<HTMLDivElement | null>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const prevMessagesLenRef = useRef(messages.length);
+  const isNearBottomRef = useRef(true);
+  const announceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAnnouncedRef = useRef<{ text: string; at: number }>({ text: "", at: 0 });
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
   const NEAR_BOTTOM_PX = 60;
+  // Min gap between two consecutive announcements (avoids screen reader spam)
+  const ANNOUNCE_THROTTLE_MS = 1500;
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     requestAnimationFrame(() => {
@@ -370,6 +376,7 @@ const ChatPanel = ({
       const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
       const near = distance < NEAR_BOTTOM_PX;
       setIsNearBottom(near);
+      isNearBottomRef.current = near;
       if (near) setUnreadCount(0);
     };
     el.addEventListener("scroll", handle, { passive: true });
@@ -377,8 +384,15 @@ const ChatPanel = ({
     return () => el.removeEventListener("scroll", handle);
   }, []);
 
-  // Auto-scroll: only stick to bottom if the user is already near the bottom.
-  // Otherwise, increment the unread badge so they can jump down on demand.
+  // Cleanup pending announcement timer on unmount
+  useEffect(() => {
+    return () => {
+      if (announceTimerRef.current) clearTimeout(announceTimerRef.current);
+    };
+  }, []);
+
+  // Auto-scroll + accessible announcement when new messages arrive.
+  // Skip announcing if the user is already near the bottom (they're reading live).
   useEffect(() => {
     const prevLen = prevMessagesLenRef.current;
     const added = messages.length - prevLen;
@@ -387,12 +401,43 @@ const ChatPanel = ({
     const el = messagesScrollRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (distanceFromBottom < NEAR_BOTTOM_PX) {
+    const near = distanceFromBottom < NEAR_BOTTOM_PX;
+
+    if (near) {
       scrollToBottom("smooth");
-    } else {
-      setUnreadCount((c) => c + added);
+      return;
     }
-  }, [messages.length]);
+
+    setUnreadCount((c) => c + added);
+
+    // Build a concise announcement (latest message author or aggregate count).
+    const newOnes = messages.slice(-added);
+    let text: string;
+    if (added === 1) {
+      const m = newOnes[0];
+      const sticker = parseSticker(m.content);
+      const tpl = sticker ? t("chatNewStickerFrom") : t("chatNewMessageFrom");
+      text = (tpl || "{name}").replace("{name}", m.senderName);
+    } else {
+      const tpl = t("chatMultipleNewMessages") || "{count}";
+      text = tpl.replace("{count}", String(added));
+    }
+
+    // Throttle: avoid repeating the exact same announcement within the window.
+    const now = Date.now();
+    const last = lastAnnouncedRef.current;
+    if (text === last.text && now - last.at < ANNOUNCE_THROTTLE_MS) return;
+
+    if (announceTimerRef.current) clearTimeout(announceTimerRef.current);
+    // Re-check "near bottom" right before announcing — user may have scrolled.
+    announceTimerRef.current = setTimeout(() => {
+      if (isNearBottomRef.current) return;
+      // Toggle to empty first so identical consecutive texts still get announced.
+      setLiveAnnouncement("");
+      requestAnimationFrame(() => setLiveAnnouncement(text));
+      lastAnnouncedRef.current = { text, at: Date.now() };
+    }, 250);
+  }, [messages, t]);
 
   const fillTemplate = (template: string) => {
     const randomPlayer = players[Math.floor(Math.random() * players.length)];
