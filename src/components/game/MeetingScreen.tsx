@@ -356,6 +356,30 @@ const ChatPanel = ({
   const isNearBottomRef = useRef(true);
   const announceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAnnouncedRef = useRef<{ text: string; at: number }>({ text: "", at: 0 });
+  const [mutedIds, setMutedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = sessionStorage.getItem("meeting:mutedIds");
+      if (!raw) return new Set();
+      const arr = JSON.parse(raw) as string[];
+      return new Set(Array.isArray(arr) ? arr : []);
+    } catch {
+      return new Set();
+    }
+  });
+  const toggleMute = useCallback((senderId: string) => {
+    setMutedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(senderId)) next.delete(senderId);
+      else next.add(senderId);
+      try {
+        sessionStorage.setItem("meeting:mutedIds", JSON.stringify(Array.from(next)));
+      } catch {
+        /* ignore */
+      }
+      playTap();
+      return next;
+    });
+  }, []);
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
