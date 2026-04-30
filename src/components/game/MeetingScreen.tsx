@@ -537,6 +537,7 @@ const ChatPanel = ({
   const handleSendFree = () => {
     const trimmed = freeInput.trim().slice(0, MAX_LEN);
     if (!trimmed) return;
+    if (!tryConsumeRate()) return;
     onSendFree(trimmed);
     setFreeInput("");
     playTap();
