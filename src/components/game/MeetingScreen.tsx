@@ -343,8 +343,13 @@ const ChatPanel = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const presetsPanelRef = useRef<HTMLDivElement | null>(null);
+  const emojisPanelRef = useRef<HTMLDivElement | null>(null);
+  const stickersPanelRef = useRef<HTMLDivElement | null>(null);
+  const stickerGridRef = useRef<HTMLDivElement | null>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const prevMessagesLenRef = useRef(messages.length);
   const prevMessagesLenRef = useRef(messages.length);
 
   const MAX_LEN = 140;
