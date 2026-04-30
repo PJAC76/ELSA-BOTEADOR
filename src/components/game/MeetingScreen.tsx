@@ -1136,6 +1136,18 @@ const MeetingScreen = ({
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
   };
 
+  const handleSendSticker = (id: StickerId) => {
+    if (isGhost) return;
+    // Validate against the curated whitelist before sending.
+    const payload = encodeSticker(id);
+    if (!parseSticker(payload)) return; // safety: rejects anything not in catalog
+    if (isOnline) { void sendChatToServer(payload, true); return; }
+    setMessages((prev) => [
+      ...prev,
+      { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content: payload, createdAt: Date.now() },
+    ]);
+  };
+
   const handleVote = (playerId: string | null) => {
     if (isGhost) return;
     setMyVote(playerId);
