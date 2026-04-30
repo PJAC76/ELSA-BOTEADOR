@@ -324,6 +324,8 @@ const ChatPanel = ({
   players,
   clues,
   myPlayerId,
+  typingNames = [],
+  onTypingChange,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -334,6 +336,8 @@ const ChatPanel = ({
   players: MeetingPlayer[];
   clues: ClueEntry[];
   myPlayerId: string;
+  typingNames?: string[];
+  onTypingChange?: (typing: boolean) => void;
 }) => {
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
@@ -540,6 +544,7 @@ const ChatPanel = ({
     if (!tryConsumeRate()) return;
     onSendFree(trimmed);
     setFreeInput("");
+    onTypingChange?.(false);
     playTap();
   };
 
@@ -786,7 +791,34 @@ const ChatPanel = ({
         </div>
       </div>
 
-      {/* Input area */}
+      {/* Typing indicator (Presence) */}
+      <div className="min-h-[16px] px-1" aria-live="polite" aria-atomic="true">
+        <AnimatePresence>
+          {typingNames.length > 0 && (
+            <motion.div
+              key="typing"
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -2 }}
+              className="flex items-center gap-1.5 font-body text-[11px] text-muted-foreground italic"
+            >
+              <span className="inline-flex gap-0.5" aria-hidden="true">
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }}>•</motion.span>
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}>•</motion.span>
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}>•</motion.span>
+              </span>
+              <span>
+                {typingNames.length === 1
+                  ? t("typingOne").replace("{name}", typingNames[0])
+                  : typingNames.length === 2
+                    ? t("typingTwo").replace("{a}", typingNames[0]).replace("{b}", typingNames[1])
+                    : t("typingMany").replace("{count}", String(typingNames.length))}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {!disabled && (
         <div className="flex flex-col gap-2">
           <AnimatePresence>
@@ -972,7 +1004,11 @@ const ChatPanel = ({
                 id="chat-free-input"
                 ref={inputRef}
                 value={freeInput}
-                onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
+                onChange={(e) => {
+                  const v = e.target.value.slice(0, MAX_LEN);
+                  setFreeInput(v);
+                  onTypingChange?.(v.trim().length > 0);
+                }}
                 onKeyDown={handleInputKeyDown}
                 onFocus={() => { closeAllPanels(false); }}
                 placeholder={t("writeMessage")}
@@ -1108,6 +1144,10 @@ const MeetingScreen = ({
   const isOnline = !!matchId;
   const serverResolveOnceRef = useRef(false);
   const serverVoteSentRef = useRef(false);
+  const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingStateRef = useRef<boolean>(false);
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
@@ -1173,6 +1213,102 @@ const MeetingScreen = ({
 
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [isOnline, roundId, players, playerUserIds]);
+
+  // --- Presence: typing indicator ---
+  useEffect(() => {
+    if (!isOnline || !roundId) {
+      // Offline mode: still allow local typing notifications via local state.
+      return;
+    }
+    let cancelled = false;
+    const uid = myUserIdRef.current;
+    if (!uid) {
+      // Wait for auth to resolve, retry shortly.
+      const retry = setTimeout(() => {
+        if (!cancelled) setTypingUserIds((prev) => [...prev]);
+      }, 200);
+      return () => { cancelled = true; clearTimeout(retry); };
+    }
+
+    const channel = supabase.channel(`presence-chat-${roundId}`, {
+      config: { presence: { key: uid } },
+    });
+
+    const recomputeTypers = () => {
+      const state = channel.presenceState() as Record<string, Array<{ user_id?: string; is_typing?: boolean; ts?: number }>>;
+      const now = Date.now();
+      const typers: string[] = [];
+      for (const [key, metas] of Object.entries(state)) {
+        if (key === uid) continue; // never show self
+        const latest = metas[metas.length - 1];
+        if (!latest) continue;
+        // Stale guard: ignore if older than 6s (covers client crashes)
+        if (latest.is_typing && (!latest.ts || now - latest.ts < 6000)) {
+          typers.push(key);
+        }
+      }
+      setTypingUserIds(typers);
+    };
+
+    channel
+      .on("presence", { event: "sync" }, recomputeTypers)
+      .on("presence", { event: "join" }, recomputeTypers)
+      .on("presence", { event: "leave" }, recomputeTypers)
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ user_id: uid, is_typing: false, ts: Date.now() });
+        }
+      });
+
+    presenceChannelRef.current = channel;
+    return () => {
+      cancelled = true;
+      presenceChannelRef.current = null;
+      if (typingClearTimerRef.current) {
+        clearTimeout(typingClearTimerRef.current);
+        typingClearTimerRef.current = null;
+      }
+      try { channel.untrack(); } catch { /* ignore */ }
+      supabase.removeChannel(channel);
+    };
+  }, [isOnline, roundId]);
+
+  const onTypingChange = useCallback((isTyping: boolean) => {
+    const ch = presenceChannelRef.current;
+    if (!ch) return;
+    if (typingClearTimerRef.current) {
+      clearTimeout(typingClearTimerRef.current);
+      typingClearTimerRef.current = null;
+    }
+    if (isTyping) {
+      // Only re-track if state changed or to refresh ts every ~2s.
+      lastTypingStateRef.current = true;
+      ch.track({ user_id: myUserIdRef.current, is_typing: true, ts: Date.now() }).catch(() => { /* ignore */ });
+      // Auto-clear after 4s of no further activity.
+      typingClearTimerRef.current = setTimeout(() => {
+        if (!presenceChannelRef.current) return;
+        lastTypingStateRef.current = false;
+        presenceChannelRef.current
+          .track({ user_id: myUserIdRef.current, is_typing: false, ts: Date.now() })
+          .catch(() => { /* ignore */ });
+      }, 4000);
+    } else if (lastTypingStateRef.current) {
+      lastTypingStateRef.current = false;
+      ch.track({ user_id: myUserIdRef.current, is_typing: false, ts: Date.now() }).catch(() => { /* ignore */ });
+    }
+  }, []);
+
+  // Map typing user_ids -> display names via playerUserIds map.
+  const typingNames: string[] = (() => {
+    if (typingUserIds.length === 0) return [];
+    const uidToName = new Map<string, string>();
+    for (const [localId, uid] of Object.entries(playerUserIds)) {
+      if (!uid) continue;
+      const p = players.find((pp) => pp.id === localId);
+      if (p) uidToName.set(uid, p.name);
+    }
+    return typingUserIds.map((u) => uidToName.get(u) ?? "…").filter(Boolean);
+  })();
 
   const sendChatToServer = useCallback(async (content: string, isPreset: boolean) => {
     if (!isOnline || !roundId) return false;
@@ -1705,7 +1841,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} typingNames={typingNames} onTypingChange={onTypingChange} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
