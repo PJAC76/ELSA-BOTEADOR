@@ -416,9 +416,7 @@ const ChatPanel = ({
     } else if (e.key === "Escape") {
       if (showEmojis || showPresets || showStickers) {
         e.preventDefault();
-        setShowEmojis(false);
-        setShowPresets(false);
-        setShowStickers(false);
+        closeAllPanels(true);
       }
     }
   };
