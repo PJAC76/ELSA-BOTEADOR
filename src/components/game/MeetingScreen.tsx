@@ -324,6 +324,8 @@ const ChatPanel = ({
   players,
   clues,
   myPlayerId,
+  typingNames = [],
+  onTypingChange,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -334,6 +336,8 @@ const ChatPanel = ({
   players: MeetingPlayer[];
   clues: ClueEntry[];
   myPlayerId: string;
+  typingNames?: string[];
+  onTypingChange?: (typing: boolean) => void;
 }) => {
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
