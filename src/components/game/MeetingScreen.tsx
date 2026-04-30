@@ -860,7 +860,7 @@ const ChatPanel = ({
                         type="button"
                         role="gridcell"
                         tabIndex={idx === 0 ? 0 : -1}
-                        onClick={() => { onSendSticker(s.id); playTap(); closeAllPanels(true); }}
+                        onClick={() => { if (!tryConsumeRate()) return; onSendSticker(s.id); playTap(); closeAllPanels(true); }}
                         onMouseEnter={() => setPreviewSticker(s.id)}
                         onMouseLeave={() => setPreviewSticker((p) => (p === s.id ? null : p))}
                         onFocus={() => setPreviewSticker(s.id)}
