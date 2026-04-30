@@ -460,6 +460,21 @@ const ChatPanel = ({
           ) : (
             <div className="flex flex-col gap-2">
               {messages.map((msg) => {
+                const sticker = parseSticker(msg.content);
+                if (sticker) {
+                  return (
+                    <div key={msg.id} className="flex items-center gap-2">
+                      <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
+                      <span
+                        role="img"
+                        aria-label={`sticker ${sticker.label}`}
+                        className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl text-3xl leading-none shadow-soft ${sticker.bg}`}
+                      >
+                        {sticker.glyph}
+                      </span>
+                    </div>
+                  );
+                }
                 const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
                 const expanded = expandedIds.has(msg.id);
                 const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
