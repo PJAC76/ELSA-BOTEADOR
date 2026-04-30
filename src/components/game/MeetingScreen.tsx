@@ -338,20 +338,50 @@ const ChatPanel = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const prevMessagesLenRef = useRef(messages.length);
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
+  const NEAR_BOTTOM_PX = 60;
 
-  // Auto-scroll: only stick to bottom if the user is already near the bottom,
-  // so reading older messages isn't interrupted.
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+    });
+    setUnreadCount(0);
+  };
+
+  // Track scroll position to know if user is near the bottom.
   useEffect(() => {
     const el = messagesScrollRef.current;
     if (!el) return;
+    const handle = () => {
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      const near = distance < NEAR_BOTTOM_PX;
+      setIsNearBottom(near);
+      if (near) setUnreadCount(0);
+    };
+    el.addEventListener("scroll", handle, { passive: true });
+    handle();
+    return () => el.removeEventListener("scroll", handle);
+  }, []);
+
+  // Auto-scroll: only stick to bottom if the user is already near the bottom.
+  // Otherwise, increment the unread badge so they can jump down on demand.
+  useEffect(() => {
+    const prevLen = prevMessagesLenRef.current;
+    const added = messages.length - prevLen;
+    prevMessagesLenRef.current = messages.length;
+    if (added <= 0) return;
+    const el = messagesScrollRef.current;
+    if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (distanceFromBottom < 60) {
-      requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      });
+    if (distanceFromBottom < NEAR_BOTTOM_PX) {
+      scrollToBottom("smooth");
+    } else {
+      setUnreadCount((c) => c + added);
     }
   }, [messages.length]);
 
@@ -411,42 +441,64 @@ const ChatPanel = ({
       )}
 
       {/* Messages */}
-      <div
-        ref={messagesScrollRef}
-        className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
-        aria-live="polite"
-      >
-        {messages.length === 0 ? (
-          <p className="font-body text-xs text-muted-foreground text-center py-6">
-            {t("discussionStarted")}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {messages.map((msg) => {
-              const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
-              const expanded = expandedIds.has(msg.id);
-              const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
-              return (
-                <div key={msg.id} className="flex gap-2">
-                  <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
-                  <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
-                    {display}
-                    {isLong && (
-                      <button
-                        type="button"
-                        onClick={() => toggleExpanded(msg.id)}
-                        className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
-                      >
-                        {expanded ? t("showLess") : t("showMore")}
-                      </button>
-                    )}
-                  </span>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+      <div className="relative">
+        <div
+          ref={messagesScrollRef}
+          className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
+          aria-live="polite"
+        >
+          {messages.length === 0 ? (
+            <p className="font-body text-xs text-muted-foreground text-center py-6">
+              {t("discussionStarted")}
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {messages.map((msg) => {
+                const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
+                const expanded = expandedIds.has(msg.id);
+                const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
+                return (
+                  <div key={msg.id} className="flex gap-2">
+                    <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
+                    <span className={`font-body text-xs text-foreground break-words min-w-0 ${msg.messageType === "emoji" ? "text-lg" : ""}`}>
+                      {display}
+                      {isLong && (
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(msg.id)}
+                          className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
+                        >
+                          {expanded ? t("showLess") : t("showMore")}
+                        </button>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* New messages badge: appears when not near the bottom and new msgs arrive */}
+        <AnimatePresence>
+          {unreadCount > 0 && !isNearBottom && (
+            <motion.button
+              type="button"
+              onClick={() => scrollToBottom("smooth")}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-display text-[11px] font-bold text-primary-foreground shadow-glow hover:bg-primary/90 active:scale-95 transition-transform"
+              aria-label={t("newMessages")}
+            >
+              <span>↓</span>
+              <span>
+                {unreadCount} {unreadCount === 1 ? t("newMessage") : t("newMessages")}
+              </span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Input area */}
