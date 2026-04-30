@@ -834,6 +834,14 @@ const translations = {
     searchMatch: "Find match",
     searchingMatch: "Searching for match...",
     playersFound: "players found",
+    matchmakingWaiting: "Waiting for players…",
+    matchmakingFewPlayers: "Few players in {lang}. Still searching…",
+    matchmakingFillingBots: "Filling with bots to start now…",
+    matchmakingFallbackHint: "If not full, we'll fill with bots in {seconds}s",
+    matchmakingTimeLeft: "Time left: {seconds}s",
+    matchmakingStartWithBots: "Start with bots now",
+    matchmakingExpand: "Search any language",
+    matchmakingExpanded: "Searching any language",
 
     // Friends
     friendsTitle: "Friends",
