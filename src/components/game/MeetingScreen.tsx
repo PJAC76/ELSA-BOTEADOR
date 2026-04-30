@@ -636,6 +636,17 @@ const ChatPanel = ({
             </motion.button>
           )}
         </AnimatePresence>
+
+        {/* Visually hidden polite live region for accessible new-message announcements.
+            Only fires when the user is NOT near the bottom (handled in the effect above). */}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {liveAnnouncement}
+        </div>
       </div>
 
       {/* Input area */}
