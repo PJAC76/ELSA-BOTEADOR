@@ -544,6 +544,7 @@ const ChatPanel = ({
     if (!tryConsumeRate()) return;
     onSendFree(trimmed);
     setFreeInput("");
+    onTypingChange?.(false);
     playTap();
   };
 
