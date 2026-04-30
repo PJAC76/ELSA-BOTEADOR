@@ -791,7 +791,34 @@ const ChatPanel = ({
         </div>
       </div>
 
-      {/* Input area */}
+      {/* Typing indicator (Presence) */}
+      <div className="min-h-[16px] px-1" aria-live="polite" aria-atomic="true">
+        <AnimatePresence>
+          {typingNames.length > 0 && (
+            <motion.div
+              key="typing"
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -2 }}
+              className="flex items-center gap-1.5 font-body text-[11px] text-muted-foreground italic"
+            >
+              <span className="inline-flex gap-0.5" aria-hidden="true">
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }}>•</motion.span>
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}>•</motion.span>
+                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}>•</motion.span>
+              </span>
+              <span>
+                {typingNames.length === 1
+                  ? t("typingOne").replace("{name}", typingNames[0])
+                  : typingNames.length === 2
+                    ? t("typingTwo").replace("{a}", typingNames[0]).replace("{b}", typingNames[1])
+                    : t("typingMany").replace("{count}", String(typingNames.length))}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {!disabled && (
         <div className="flex flex-col gap-2">
           <AnimatePresence>
