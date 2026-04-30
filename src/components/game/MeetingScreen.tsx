@@ -9,6 +9,9 @@ import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
 import { supabase } from "@/integrations/supabase/client";
+import { analyzeMessage } from "@/lib/chat-filter";
+import { useReportsStore } from "@/stores/reports-store";
+import { useToast } from "@/hooks/use-toast";
 
 // --- Types ---
 
@@ -1148,6 +1151,10 @@ const MeetingScreen = ({
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingStateRef = useRef<boolean>(false);
+  const { toast } = useToast();
+  const submitReport = useReportsStore((s) => s.submitReport);
+  // Avoid auto-reporting the same incoming message twice (e.g., on refetch).
+  const autoReportedMsgIdsRef = useRef<Set<string>>(new Set());
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
@@ -1182,12 +1189,44 @@ const MeetingScreen = ({
           const meta = userIdToLocal.get(r.sender_id);
           const isMe = r.sender_id === myUserIdRef.current;
           const isEmoji = r.message.length <= 3 && /\p{Extended_Pictographic}/u.test(r.message);
+
+          // Client-side filter for incoming messages.
+          // Skip stickers (preset payloads parsed elsewhere) and own messages.
+          let displayContent = r.message;
+          if (!isMe && !r.is_preset && !isEmoji) {
+            const analysis = analyzeMessage(r.message);
+            if (analysis.severity === "severe") {
+              displayContent = t("chatFilteredMessage");
+              // Auto-report sender once per message id.
+              if (!autoReportedMsgIdsRef.current.has(r.id)) {
+                autoReportedMsgIdsRef.current.add(r.id);
+                const reportedName = meta?.name ?? "Jugadora";
+                try {
+                  submitReport({
+                    reportedPlayerId: r.sender_id,
+                    reportedPlayerName: reportedName,
+                    reason: "toxic-chat",
+                  });
+                  toast({
+                    title: t("chatAutoReportedTitle"),
+                    description: t("chatAutoReportedDesc").replace("{name}", reportedName),
+                    variant: "destructive",
+                  });
+                } catch {
+                  /* ignore */
+                }
+              }
+            } else if (analysis.severity === "mild") {
+              displayContent = analysis.maskedText;
+            }
+          }
+
           next.push({
             id: r.id,
             senderId: r.sender_id,
             senderName: isMe ? "Tú" : (meta?.name ?? "Jugadora"),
             messageType: isEmoji ? "emoji" : (r.is_preset ? "preset" : "free"),
-            content: r.message,
+            content: displayContent,
             createdAt: new Date(r.created_at).getTime(),
           });
         }
@@ -1625,8 +1664,25 @@ const MeetingScreen = ({
 
   const handleSendFree = (content: string) => {
     if (isGhost) return;
-    if (isOnline) { void sendChatToServer(content, false); return; }
-    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content, createdAt: Date.now() }]);
+    // Client-side word filter for outgoing free text.
+    const analysis = analyzeMessage(content);
+    if (analysis.severity === "severe") {
+      toast({
+        title: t("chatBlockedTitle"),
+        description: t("chatBlockedDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
+    const safeContent = analysis.severity === "mild" ? analysis.maskedText : content;
+    if (analysis.severity === "mild") {
+      toast({
+        title: t("chatMaskedTitle"),
+        description: t("chatMaskedDesc"),
+      });
+    }
+    if (isOnline) { void sendChatToServer(safeContent, false); return; }
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content: safeContent, createdAt: Date.now() }]);
   };
 
   const handleSendEmoji = (emoji: string) => {
