@@ -117,6 +117,8 @@ const translations = {
     writeMessage: "Escribe un mensaje...",
     showMore: "ver más",
     showLess: "ver menos",
+    newMessages: "mensajes nuevos",
+    newMessage: "mensaje nuevo",
     usePresetsOrEmojis: "Usa presets o emojis para chatear 👆",
     imReady: "Estoy lista",
     readyCheck: "✅ Lista",
