@@ -837,6 +837,8 @@ const translations = {
     ready: "ready",
     chat: "Chat 💬",
     writeMessage: "Write a message...",
+    showMore: "show more",
+    showLess: "show less",
     usePresetsOrEmojis: "Use presets or emojis to chat 👆",
     imReady: "I'm ready",
     readyCheck: "✅ Ready",
