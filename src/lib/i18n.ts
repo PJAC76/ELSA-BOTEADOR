@@ -115,6 +115,8 @@ const translations = {
     ready: "listas",
     chat: "Chat 💬",
     writeMessage: "Escribe un mensaje...",
+    showMore: "ver más",
+    showLess: "ver menos",
     usePresetsOrEmojis: "Usa presets o emojis para chatear 👆",
     imReady: "Estoy lista",
     readyCheck: "✅ Lista",
