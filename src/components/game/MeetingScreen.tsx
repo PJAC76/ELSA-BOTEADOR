@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send } from "lucide-react";
+import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send, Sticker as StickerIcon } from "lucide-react";
 import { CHAT_PRESETS, CHAT_EMOJIS, ZONE_INFO } from "@/types/game";
 import type { ChatMessage, Zone, PlayerRole } from "@/types/game";
+import { STICKERS, encodeSticker, parseSticker, type StickerId } from "@/lib/chat-stickers";
 import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/sounds";
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
@@ -318,6 +319,7 @@ const ChatPanel = ({
   onSendPreset,
   onSendEmoji,
   onSendFree,
+  onSendSticker,
   disabled,
   players,
   clues,
@@ -326,6 +328,7 @@ const ChatPanel = ({
   onSendPreset: (msg: string) => void;
   onSendEmoji: (emoji: string) => void;
   onSendFree: (msg: string) => void;
+  onSendSticker: (id: StickerId) => void;
   disabled: boolean;
   players: MeetingPlayer[];
   clues: ClueEntry[];
@@ -333,6 +336,8 @@ const ChatPanel = ({
   const { t } = useTranslation();
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const [showStickers, setShowStickers] = useState(false);
+  const [previewSticker, setPreviewSticker] = useState<StickerId | null>(null);
   const [freeInput, setFreeInput] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -405,10 +410,11 @@ const ChatPanel = ({
       e.preventDefault();
       handleSendFree();
     } else if (e.key === "Escape") {
-      if (showEmojis || showPresets) {
+      if (showEmojis || showPresets || showStickers) {
         e.preventDefault();
         setShowEmojis(false);
         setShowPresets(false);
+        setShowStickers(false);
       }
     }
   };
@@ -454,6 +460,21 @@ const ChatPanel = ({
           ) : (
             <div className="flex flex-col gap-2">
               {messages.map((msg) => {
+                const sticker = parseSticker(msg.content);
+                if (sticker) {
+                  return (
+                    <div key={msg.id} className="flex items-center gap-2">
+                      <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
+                      <span
+                        role="img"
+                        aria-label={`sticker ${sticker.label}`}
+                        className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl text-3xl leading-none shadow-soft ${sticker.bg}`}
+                      >
+                        {sticker.glyph}
+                      </span>
+                    </div>
+                  );
+                }
                 const isLong = msg.messageType !== "emoji" && msg.content.length > TRUNCATE_AT;
                 const expanded = expandedIds.has(msg.id);
                 const display = isLong && !expanded ? `${msg.content.slice(0, TRUNCATE_AT)}…` : msg.content;
@@ -532,14 +553,68 @@ const ChatPanel = ({
                 </div>
               </motion.div>
             )}
+            {showStickers && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="relative rounded-2xl bg-card p-3">
+                  <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
+                    {STICKERS.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          onSendSticker(s.id);
+                          playTap();
+                          setShowStickers(false);
+                          setPreviewSticker(null);
+                        }}
+                        onMouseEnter={() => setPreviewSticker(s.id)}
+                        onMouseLeave={() => setPreviewSticker((p) => (p === s.id ? null : p))}
+                        onFocus={() => setPreviewSticker(s.id)}
+                        onBlur={() => setPreviewSticker((p) => (p === s.id ? null : p))}
+                        aria-label={`sticker ${s.label}`}
+                        title={s.label}
+                        className={`flex aspect-square items-center justify-center rounded-xl text-2xl shadow-soft active:scale-90 transition-transform ${s.bg}`}
+                      >
+                        {s.glyph}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Floating preview */}
+                  <AnimatePresence>
+                    {previewSticker && (() => {
+                      const s = STICKERS.find((x) => x.id === previewSticker);
+                      if (!s) return null;
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                          className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+                        >
+                          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl text-5xl shadow-glow ${s.bg}`}>
+                            {s.glyph}
+                          </div>
+                          <span className="rounded-full bg-foreground/80 px-2 py-0.5 font-display text-[10px] font-bold text-background">
+                            {s.label}
+                          </span>
+                        </motion.div>
+                      );
+                    })()}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <MessageCircle className="h-4 w-4" />
             </button>
-            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <SmilePlus className="h-4 w-4" />
+            </button>
+            <button onClick={() => { setShowStickers(!showStickers); setShowEmojis(false); setShowPresets(false); }} aria-label="stickers" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showStickers ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              <StickerIcon className="h-4 w-4" />
             </button>
             <div className="relative flex-1">
               <input
@@ -547,7 +622,7 @@ const ChatPanel = ({
                 value={freeInput}
                 onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
                 onKeyDown={handleInputKeyDown}
-                onFocus={() => { setShowEmojis(false); setShowPresets(false); }}
+                onFocus={() => { setShowEmojis(false); setShowPresets(false); setShowStickers(false); }}
                 placeholder={t("writeMessage")}
                 maxLength={MAX_LEN}
                 enterKeyHint="send"
@@ -1061,6 +1136,18 @@ const MeetingScreen = ({
     setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
   };
 
+  const handleSendSticker = (id: StickerId) => {
+    if (isGhost) return;
+    // Validate against the curated whitelist before sending.
+    const payload = encodeSticker(id);
+    if (!parseSticker(payload)) return; // safety: rejects anything not in catalog
+    if (isOnline) { void sendChatToServer(payload, true); return; }
+    setMessages((prev) => [
+      ...prev,
+      { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content: payload, createdAt: Date.now() },
+    ]);
+  };
+
   const handleVote = (playerId: string | null) => {
     if (isGhost) return;
     setMyVote(playerId);
@@ -1255,7 +1342,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} disabled={isGhost} players={players} clues={roundClues} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
