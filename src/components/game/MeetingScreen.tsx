@@ -381,6 +381,68 @@ const ChatPanel = ({
     });
   }, []);
 
+  // --- Rate limiting (sliding window + per-message cooldown) ---
+  const COOLDOWN_MS = 1200;
+  const RATE_WINDOW_MS = 10_000;
+  const RATE_MAX = 5;
+  const recentSendsRef = useRef<number[]>([]);
+  const [cooldownLeft, setCooldownLeft] = useState(0); // seconds, ceil
+  const [rateBlockedUntil, setRateBlockedUntil] = useState(0);
+  const [rateAnnouncement, setRateAnnouncement] = useState("");
+
+  // Tick: recompute remaining cooldown / rate-block once per second
+  useEffect(() => {
+    if (cooldownLeft <= 0 && rateBlockedUntil <= Date.now()) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      // Cooldown countdown
+      const lastSent = recentSendsRef.current[recentSendsRef.current.length - 1] ?? 0;
+      const cdRemainMs = Math.max(0, lastSent + COOLDOWN_MS - now);
+      const rateRemainMs = Math.max(0, rateBlockedUntil - now);
+      const remainMs = Math.max(cdRemainMs, rateRemainMs);
+      setCooldownLeft(remainMs > 0 ? Math.ceil(remainMs / 1000) : 0);
+      if (remainMs <= 0 && rateBlockedUntil > 0 && rateBlockedUntil <= now) {
+        setRateBlockedUntil(0);
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, [cooldownLeft, rateBlockedUntil]);
+
+  const tryConsumeRate = useCallback((): boolean => {
+    const now = Date.now();
+    if (rateBlockedUntil > now) {
+      const secs = Math.ceil((rateBlockedUntil - now) / 1000);
+      setRateAnnouncement(t("chatRateLimited").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    const lastSent = recentSendsRef.current[recentSendsRef.current.length - 1] ?? 0;
+    if (now - lastSent < COOLDOWN_MS) {
+      const secs = Math.max(1, Math.ceil((lastSent + COOLDOWN_MS - now) / 1000));
+      setRateAnnouncement(t("chatCooldownWait").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    // Drop expired entries from window
+    const windowStart = now - RATE_WINDOW_MS;
+    recentSendsRef.current = recentSendsRef.current.filter((ts) => ts > windowStart);
+    if (recentSendsRef.current.length >= RATE_MAX) {
+      const oldest = recentSendsRef.current[0];
+      const blockUntil = oldest + RATE_WINDOW_MS;
+      setRateBlockedUntil(blockUntil);
+      const secs = Math.max(1, Math.ceil((blockUntil - now) / 1000));
+      setRateAnnouncement(t("chatRateLimited").replace("{seconds}", String(secs)));
+      setCooldownLeft(secs);
+      return false;
+    }
+    recentSendsRef.current.push(now);
+    setCooldownLeft(Math.ceil(COOLDOWN_MS / 1000));
+    setRateAnnouncement("");
+    return true;
+  }, [rateBlockedUntil, t]);
+
+  const isRateLimited = cooldownLeft > 0;
+
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
   const NEAR_BOTTOM_PX = 60;
