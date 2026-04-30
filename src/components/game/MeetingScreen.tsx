@@ -431,6 +431,71 @@ const ChatPanel = ({
     });
   };
 
+  // --- Focus management for popover panels ---
+  // When a panel opens, move focus to its first focusable item; when all
+  // panels close (e.g., via Escape), restore focus to the chat input.
+  const focusFirstIn = useCallback((container: HTMLElement | null) => {
+    if (!container) return;
+    const first = container.querySelector<HTMLElement>(
+      'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    first?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!showStickers) return;
+    const id = requestAnimationFrame(() => focusFirstIn(stickersPanelRef.current));
+    return () => cancelAnimationFrame(id);
+  }, [showStickers, focusFirstIn]);
+
+  useEffect(() => {
+    if (!showEmojis) return;
+    const id = requestAnimationFrame(() => focusFirstIn(emojisPanelRef.current));
+    return () => cancelAnimationFrame(id);
+  }, [showEmojis, focusFirstIn]);
+
+  useEffect(() => {
+    if (!showPresets) return;
+    const id = requestAnimationFrame(() => focusFirstIn(presetsPanelRef.current));
+    return () => cancelAnimationFrame(id);
+  }, [showPresets, focusFirstIn]);
+
+  const closeAllPanels = useCallback((restoreFocus = true) => {
+    setShowEmojis(false);
+    setShowPresets(false);
+    setShowStickers(false);
+    setPreviewSticker(null);
+    if (restoreFocus) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, []);
+
+  // Roving keyboard navigation inside the sticker grid (arrow keys + Home/End).
+  const handleStickerGridKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const grid = stickerGridRef.current;
+    if (!grid) return;
+    const items = Array.from(
+      grid.querySelectorAll<HTMLButtonElement>('button[role="gridcell"]'),
+    );
+    if (items.length === 0) return;
+    const activeIdx = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (activeIdx < 0) return;
+    // Detect columns from the layout (responsive: 6 base, 8 ≥ sm).
+    const cols = window.matchMedia("(min-width: 640px)").matches ? 8 : 6;
+    let nextIdx = activeIdx;
+    switch (e.key) {
+      case "ArrowRight": nextIdx = Math.min(items.length - 1, activeIdx + 1); break;
+      case "ArrowLeft": nextIdx = Math.max(0, activeIdx - 1); break;
+      case "ArrowDown": nextIdx = Math.min(items.length - 1, activeIdx + cols); break;
+      case "ArrowUp": nextIdx = Math.max(0, activeIdx - cols); break;
+      case "Home": nextIdx = 0; break;
+      case "End": nextIdx = items.length - 1; break;
+      default: return;
+    }
+    e.preventDefault();
+    items[nextIdx]?.focus();
+  };
+
   const remaining = MAX_LEN - freeInput.length;
   const remainingTone = remaining <= 0 ? "text-destructive" : remaining <= 20 ? "text-amber-500" : "text-muted-foreground";
 
