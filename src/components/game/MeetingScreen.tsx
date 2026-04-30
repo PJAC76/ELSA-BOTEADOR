@@ -338,20 +338,50 @@ const ChatPanel = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const prevMessagesLenRef = useRef(messages.length);
 
   const MAX_LEN = 140;
   const TRUNCATE_AT = 90;
+  const NEAR_BOTTOM_PX = 60;
 
-  // Auto-scroll: only stick to bottom if the user is already near the bottom,
-  // so reading older messages isn't interrupted.
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+    });
+    setUnreadCount(0);
+  };
+
+  // Track scroll position to know if user is near the bottom.
   useEffect(() => {
     const el = messagesScrollRef.current;
     if (!el) return;
+    const handle = () => {
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      const near = distance < NEAR_BOTTOM_PX;
+      setIsNearBottom(near);
+      if (near) setUnreadCount(0);
+    };
+    el.addEventListener("scroll", handle, { passive: true });
+    handle();
+    return () => el.removeEventListener("scroll", handle);
+  }, []);
+
+  // Auto-scroll: only stick to bottom if the user is already near the bottom.
+  // Otherwise, increment the unread badge so they can jump down on demand.
+  useEffect(() => {
+    const prevLen = prevMessagesLenRef.current;
+    const added = messages.length - prevLen;
+    prevMessagesLenRef.current = messages.length;
+    if (added <= 0) return;
+    const el = messagesScrollRef.current;
+    if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (distanceFromBottom < 60) {
-      requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      });
+    if (distanceFromBottom < NEAR_BOTTOM_PX) {
+      scrollToBottom("smooth");
+    } else {
+      setUnreadCount((c) => c + added);
     }
   }, [messages.length]);
 
