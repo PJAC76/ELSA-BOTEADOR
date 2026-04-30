@@ -828,7 +828,7 @@ const ChatPanel = ({
                     <button
                       key={i}
                       type="button"
-                      onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); closeAllPanels(true); }}
+                      onClick={() => { if (!tryConsumeRate()) return; onSendPreset(fillTemplate(preset)); playTap(); closeAllPanels(true); }}
                       className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                     >
                       {preset.replace("{player}", "...").replace("{zone}", "...")}
