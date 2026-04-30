@@ -600,12 +600,20 @@ const ChatPanel = ({
           <AnimatePresence>
             {showEmojis && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                <div className="flex flex-wrap gap-2 rounded-2xl bg-card p-3">
+                <div
+                  ref={emojisPanelRef}
+                  id="chat-emojis-panel"
+                  role="dialog"
+                  aria-label={t("emojis") || "Emojis"}
+                  onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); closeAllPanels(true); } }}
+                  className="flex flex-wrap gap-2 rounded-2xl bg-card p-3"
+                >
                   {CHAT_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
-                      onClick={() => { onSendEmoji(emoji); playTap(); setShowEmojis(false); inputRef.current?.focus(); }}
-                      className="text-xl active:scale-90 transition-transform"
+                      type="button"
+                      onClick={() => { onSendEmoji(emoji); playTap(); closeAllPanels(true); }}
+                      className="text-xl active:scale-90 transition-transform rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                       aria-label={`emoji ${emoji}`}
                     >
                       {emoji}
@@ -616,9 +624,21 @@ const ChatPanel = ({
             )}
             {showPresets && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                <div className="flex flex-wrap gap-2 rounded-2xl bg-card p-3">
+                <div
+                  ref={presetsPanelRef}
+                  id="chat-presets-panel"
+                  role="dialog"
+                  aria-label={t("presets") || "Frases rápidas"}
+                  onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); closeAllPanels(true); } }}
+                  className="flex flex-wrap gap-2 rounded-2xl bg-card p-3"
+                >
                   {CHAT_PRESETS.map((preset, i) => (
-                    <button key={i} onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); setShowPresets(false); }} className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform">
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => { onSendPreset(fillTemplate(preset)); playTap(); closeAllPanels(true); }}
+                      className="shrink-0 rounded-full bg-muted px-3 py-1.5 font-body text-xs text-foreground active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    >
                       {preset.replace("{player}", "...").replace("{zone}", "...")}
                     </button>
                   ))}
@@ -627,31 +647,40 @@ const ChatPanel = ({
             )}
             {showStickers && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                <div className="relative rounded-2xl bg-card p-3">
-                  <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
-                    {STICKERS.map((s) => (
+                <div
+                  ref={stickersPanelRef}
+                  id="chat-stickers-panel"
+                  role="dialog"
+                  aria-label={t("stickers") || "Stickers"}
+                  onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); closeAllPanels(true); } }}
+                  className="relative rounded-2xl bg-card p-3"
+                >
+                  <div
+                    ref={stickerGridRef}
+                    role="grid"
+                    aria-label={t("stickers") || "Stickers"}
+                    onKeyDown={handleStickerGridKeyDown}
+                    className="grid grid-cols-6 gap-2 sm:grid-cols-8"
+                  >
+                    {STICKERS.map((s, idx) => (
                       <button
                         key={s.id}
                         type="button"
-                        onClick={() => {
-                          onSendSticker(s.id);
-                          playTap();
-                          setShowStickers(false);
-                          setPreviewSticker(null);
-                        }}
+                        role="gridcell"
+                        tabIndex={idx === 0 ? 0 : -1}
+                        onClick={() => { onSendSticker(s.id); playTap(); closeAllPanels(true); }}
                         onMouseEnter={() => setPreviewSticker(s.id)}
                         onMouseLeave={() => setPreviewSticker((p) => (p === s.id ? null : p))}
                         onFocus={() => setPreviewSticker(s.id)}
                         onBlur={() => setPreviewSticker((p) => (p === s.id ? null : p))}
                         aria-label={`sticker ${s.label}`}
                         title={s.label}
-                        className={`flex aspect-square items-center justify-center rounded-xl text-2xl shadow-soft active:scale-90 transition-transform ${s.bg}`}
+                        className={`flex aspect-square items-center justify-center rounded-xl text-2xl shadow-soft active:scale-90 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-1 focus-visible:ring-offset-card ${s.bg}`}
                       >
                         {s.glyph}
                       </button>
                     ))}
                   </div>
-                  {/* Floating preview */}
                   <AnimatePresence>
                     {previewSticker && (() => {
                       const s = STICKERS.find((x) => x.id === previewSticker);
@@ -661,6 +690,7 @@ const ChatPanel = ({
                           initial={{ opacity: 0, y: 6, scale: 0.9 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                          aria-hidden="true"
                           className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
                         >
                           <div className={`flex h-16 w-16 items-center justify-center rounded-2xl text-5xl shadow-glow ${s.bg}`}>
@@ -679,42 +709,73 @@ const ChatPanel = ({
           </AnimatePresence>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <MessageCircle className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={() => { const next = !showPresets; closeAllPanels(false); setShowPresets(next); }}
+              aria-label={t("presets") || "Frases rápidas"}
+              aria-haspopup="dialog"
+              aria-expanded={showPresets}
+              aria-controls="chat-presets-panel"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
             </button>
-            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <SmilePlus className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={() => { const next = !showEmojis; closeAllPanels(false); setShowEmojis(next); }}
+              aria-label={t("emojis") || "Emojis"}
+              aria-haspopup="dialog"
+              aria-expanded={showEmojis}
+              aria-controls="chat-emojis-panel"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+            >
+              <SmilePlus className="h-4 w-4" aria-hidden="true" />
             </button>
-            <button onClick={() => { setShowStickers(!showStickers); setShowEmojis(false); setShowPresets(false); }} aria-label="stickers" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showStickers ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <StickerIcon className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={() => { const next = !showStickers; closeAllPanels(false); setShowStickers(next); }}
+              aria-label={t("stickers") || "Stickers"}
+              aria-haspopup="dialog"
+              aria-expanded={showStickers}
+              aria-controls="chat-stickers-panel"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${showStickers ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+            >
+              <StickerIcon className="h-4 w-4" aria-hidden="true" />
             </button>
             <div className="relative flex-1">
+              <label htmlFor="chat-free-input" className="sr-only">{t("writeMessage")}</label>
               <input
+                id="chat-free-input"
                 ref={inputRef}
                 value={freeInput}
                 onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
                 onKeyDown={handleInputKeyDown}
-                onFocus={() => { setShowEmojis(false); setShowPresets(false); setShowStickers(false); }}
+                onFocus={() => { closeAllPanels(false); }}
                 placeholder={t("writeMessage")}
                 maxLength={MAX_LEN}
                 enterKeyHint="send"
                 autoComplete="off"
                 autoCorrect="on"
+                aria-label={t("writeMessage")}
                 className="h-9 w-full rounded-xl bg-muted pl-3 pr-10 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
               />
               {freeInput.length >= MAX_LEN - 30 && (
-                <span className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 font-display text-[10px] font-bold tabular-nums ${remainingTone}`}>
+                <span
+                  aria-live="polite"
+                  className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 font-display text-[10px] font-bold tabular-nums ${remainingTone}`}
+                >
                   {remaining}
                 </span>
               )}
             </div>
             <button
+              type="button"
               onClick={handleSendFree}
               disabled={!freeInput.trim()}
               aria-label={t("send")}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>
