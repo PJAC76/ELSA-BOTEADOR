@@ -93,6 +93,14 @@ const translations = {
     searchMatch: "Buscar partida",
     searchingMatch: "Buscando partida...",
     playersFound: "jugadoras encontradas",
+    matchmakingWaiting: "Esperando jugadoras…",
+    matchmakingFewPlayers: "Pocas jugadoras en {lang}. Seguimos buscando…",
+    matchmakingFillingBots: "Completando con bots para empezar ya…",
+    matchmakingFallbackHint: "Si no se llena, completaremos con bots en {seconds}s",
+    matchmakingTimeLeft: "Tiempo restante: {seconds}s",
+    matchmakingStartWithBots: "Empezar con bots ahora",
+    matchmakingExpand: "Buscar en cualquier idioma",
+    matchmakingExpanded: "Buscando en cualquier idioma",
 
     // Friends
     friendsTitle: "Amigas",
@@ -826,6 +834,14 @@ const translations = {
     searchMatch: "Find match",
     searchingMatch: "Searching for match...",
     playersFound: "players found",
+    matchmakingWaiting: "Waiting for players…",
+    matchmakingFewPlayers: "Few players in {lang}. Still searching…",
+    matchmakingFillingBots: "Filling with bots to start now…",
+    matchmakingFallbackHint: "If not full, we'll fill with bots in {seconds}s",
+    matchmakingTimeLeft: "Time left: {seconds}s",
+    matchmakingStartWithBots: "Start with bots now",
+    matchmakingExpand: "Search any language",
+    matchmakingExpanded: "Searching any language",
 
     // Friends
     friendsTitle: "Friends",
