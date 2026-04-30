@@ -977,7 +977,11 @@ const ChatPanel = ({
                 id="chat-free-input"
                 ref={inputRef}
                 value={freeInput}
-                onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
+                onChange={(e) => {
+                  const v = e.target.value.slice(0, MAX_LEN);
+                  setFreeInput(v);
+                  onTypingChange?.(v.trim().length > 0);
+                }}
                 onKeyDown={handleInputKeyDown}
                 onFocus={() => { closeAllPanels(false); }}
                 placeholder={t("writeMessage")}
