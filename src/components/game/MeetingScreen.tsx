@@ -1178,6 +1178,102 @@ const MeetingScreen = ({
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [isOnline, roundId, players, playerUserIds]);
 
+  // --- Presence: typing indicator ---
+  useEffect(() => {
+    if (!isOnline || !roundId) {
+      // Offline mode: still allow local typing notifications via local state.
+      return;
+    }
+    let cancelled = false;
+    const uid = myUserIdRef.current;
+    if (!uid) {
+      // Wait for auth to resolve, retry shortly.
+      const retry = setTimeout(() => {
+        if (!cancelled) setTypingUserIds((prev) => [...prev]);
+      }, 200);
+      return () => { cancelled = true; clearTimeout(retry); };
+    }
+
+    const channel = supabase.channel(`presence-chat-${roundId}`, {
+      config: { presence: { key: uid } },
+    });
+
+    const recomputeTypers = () => {
+      const state = channel.presenceState() as Record<string, Array<{ user_id?: string; is_typing?: boolean; ts?: number }>>;
+      const now = Date.now();
+      const typers: string[] = [];
+      for (const [key, metas] of Object.entries(state)) {
+        if (key === uid) continue; // never show self
+        const latest = metas[metas.length - 1];
+        if (!latest) continue;
+        // Stale guard: ignore if older than 6s (covers client crashes)
+        if (latest.is_typing && (!latest.ts || now - latest.ts < 6000)) {
+          typers.push(key);
+        }
+      }
+      setTypingUserIds(typers);
+    };
+
+    channel
+      .on("presence", { event: "sync" }, recomputeTypers)
+      .on("presence", { event: "join" }, recomputeTypers)
+      .on("presence", { event: "leave" }, recomputeTypers)
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ user_id: uid, is_typing: false, ts: Date.now() });
+        }
+      });
+
+    presenceChannelRef.current = channel;
+    return () => {
+      cancelled = true;
+      presenceChannelRef.current = null;
+      if (typingClearTimerRef.current) {
+        clearTimeout(typingClearTimerRef.current);
+        typingClearTimerRef.current = null;
+      }
+      try { channel.untrack(); } catch { /* ignore */ }
+      supabase.removeChannel(channel);
+    };
+  }, [isOnline, roundId]);
+
+  const onTypingChange = useCallback((isTyping: boolean) => {
+    const ch = presenceChannelRef.current;
+    if (!ch) return;
+    if (typingClearTimerRef.current) {
+      clearTimeout(typingClearTimerRef.current);
+      typingClearTimerRef.current = null;
+    }
+    if (isTyping) {
+      // Only re-track if state changed or to refresh ts every ~2s.
+      lastTypingStateRef.current = true;
+      ch.track({ user_id: myUserIdRef.current, is_typing: true, ts: Date.now() }).catch(() => { /* ignore */ });
+      // Auto-clear after 4s of no further activity.
+      typingClearTimerRef.current = setTimeout(() => {
+        if (!presenceChannelRef.current) return;
+        lastTypingStateRef.current = false;
+        presenceChannelRef.current
+          .track({ user_id: myUserIdRef.current, is_typing: false, ts: Date.now() })
+          .catch(() => { /* ignore */ });
+      }, 4000);
+    } else if (lastTypingStateRef.current) {
+      lastTypingStateRef.current = false;
+      ch.track({ user_id: myUserIdRef.current, is_typing: false, ts: Date.now() }).catch(() => { /* ignore */ });
+    }
+  }, []);
+
+  // Map typing user_ids -> display names via playerUserIds map.
+  const typingNames: string[] = (() => {
+    if (typingUserIds.length === 0) return [];
+    const uidToName = new Map<string, string>();
+    for (const [localId, uid] of Object.entries(playerUserIds)) {
+      if (!uid) continue;
+      const p = players.find((pp) => pp.id === localId);
+      if (p) uidToName.set(uid, p.name);
+    }
+    return typingUserIds.map((u) => uidToName.get(u) ?? "…").filter(Boolean);
+  })();
+
   const sendChatToServer = useCallback(async (content: string, isPreset: boolean) => {
     if (!isOnline || !roundId) return false;
     const uid = myUserIdRef.current;
