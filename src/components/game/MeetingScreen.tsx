@@ -9,6 +9,9 @@ import { playTap, playVoteAlarm, playTimerUrgent, playElimination } from "@/lib/
 import { useTranslation } from "@/lib/i18n";
 import { castVote, resolveMeeting, type VoteResolveResult } from "@/hooks/use-match";
 import { supabase } from "@/integrations/supabase/client";
+import { analyzeMessage } from "@/lib/chat-filter";
+import { useReportsStore } from "@/stores/reports-store";
+import { useToast } from "@/hooks/use-toast";
 
 // --- Types ---
 
