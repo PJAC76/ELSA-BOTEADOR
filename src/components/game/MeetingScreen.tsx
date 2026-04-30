@@ -416,8 +416,6 @@ const ChatPanel = ({
         setShowPresets(false);
         setShowStickers(false);
       }
-        setShowPresets(false);
-      }
     }
   };
 
