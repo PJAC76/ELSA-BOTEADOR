@@ -450,8 +450,12 @@ const ChatPanel = ({
       <div className="relative">
         <div
           ref={messagesScrollRef}
-          className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth"
+          className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          role="log"
+          aria-label={t("chat") || "Chat"}
           aria-live="polite"
+          aria-relevant="additions"
+          tabIndex={0}
         >
           {messages.length === 0 ? (
             <p className="font-body text-xs text-muted-foreground text-center py-6">
@@ -467,7 +471,7 @@ const ChatPanel = ({
                       <span className="font-display text-xs font-bold text-primary shrink-0">{msg.senderName}:</span>
                       <span
                         role="img"
-                        aria-label={`sticker ${sticker.label}`}
+                        aria-label={`${msg.senderName}: sticker ${sticker.label}`}
                         className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl text-3xl leading-none shadow-soft ${sticker.bg}`}
                       >
                         {sticker.glyph}
@@ -487,7 +491,8 @@ const ChatPanel = ({
                         <button
                           type="button"
                           onClick={() => toggleExpanded(msg.id)}
-                          className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline"
+                          aria-expanded={expanded}
+                          className="ml-1 font-display text-[10px] font-bold text-primary underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
                         >
                           {expanded ? t("showLess") : t("showMore")}
                         </button>
@@ -510,10 +515,10 @@ const ChatPanel = ({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-display text-[11px] font-bold text-primary-foreground shadow-glow hover:bg-primary/90 active:scale-95 transition-transform"
-              aria-label={t("newMessages")}
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-display text-[11px] font-bold text-primary-foreground shadow-glow hover:bg-primary/90 active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/60"
+              aria-label={`${unreadCount} ${unreadCount === 1 ? t("newMessage") : t("newMessages")}`}
             >
-              <span>↓</span>
+              <span aria-hidden="true">↓</span>
               <span>
                 {unreadCount} {unreadCount === 1 ? t("newMessage") : t("newMessages")}
               </span>
