@@ -553,14 +553,68 @@ const ChatPanel = ({
                 </div>
               </motion.div>
             )}
+            {showStickers && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="relative rounded-2xl bg-card p-3">
+                  <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
+                    {STICKERS.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          onSendSticker(s.id);
+                          playTap();
+                          setShowStickers(false);
+                          setPreviewSticker(null);
+                        }}
+                        onMouseEnter={() => setPreviewSticker(s.id)}
+                        onMouseLeave={() => setPreviewSticker((p) => (p === s.id ? null : p))}
+                        onFocus={() => setPreviewSticker(s.id)}
+                        onBlur={() => setPreviewSticker((p) => (p === s.id ? null : p))}
+                        aria-label={`sticker ${s.label}`}
+                        title={s.label}
+                        className={`flex aspect-square items-center justify-center rounded-xl text-2xl shadow-soft active:scale-90 transition-transform ${s.bg}`}
+                      >
+                        {s.glyph}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Floating preview */}
+                  <AnimatePresence>
+                    {previewSticker && (() => {
+                      const s = STICKERS.find((x) => x.id === previewSticker);
+                      if (!s) return null;
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                          className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+                        >
+                          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl text-5xl shadow-glow ${s.bg}`}>
+                            {s.glyph}
+                          </div>
+                          <span className="rounded-full bg-foreground/80 px-2 py-0.5 font-display text-[10px] font-bold text-background">
+                            {s.label}
+                          </span>
+                        </motion.div>
+                      );
+                    })()}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showPresets ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <MessageCircle className="h-4 w-4" />
             </button>
-            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); setShowStickers(false); }} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showEmojis ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <SmilePlus className="h-4 w-4" />
+            </button>
+            <button onClick={() => { setShowStickers(!showStickers); setShowEmojis(false); setShowPresets(false); }} aria-label="stickers" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${showStickers ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              <StickerIcon className="h-4 w-4" />
             </button>
             <div className="relative flex-1">
               <input
