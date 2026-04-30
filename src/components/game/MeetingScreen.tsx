@@ -900,6 +900,38 @@ const ChatPanel = ({
             )}
           </AnimatePresence>
 
+          {/* Rate limit feedback banner */}
+          <AnimatePresence>
+            {isRateLimited && (
+              <motion.div
+                key="rate-banner"
+                initial={{ opacity: 0, y: -4, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -4, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-amber-500/15 px-3 py-1.5 text-amber-700 dark:text-amber-300"
+                >
+                  <span className="font-body text-[11px]">
+                    {rateBlockedUntil > Date.now()
+                      ? t("chatRateLimited").replace("{seconds}", String(cooldownLeft))
+                      : t("chatCooldownWait").replace("{seconds}", String(cooldownLeft))}
+                  </span>
+                  <span className="font-display text-[10px] font-bold tabular-nums opacity-70">
+                    {t("chatRateLimitHint")
+                      .replace("{count}", String(RATE_MAX))
+                      .replace("{window}", String(Math.round(RATE_WINDOW_MS / 1000)))}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* Hidden announcer (for SR even when banner not visible) */}
+          <span className="sr-only" role="status" aria-live="polite">{rateAnnouncement}</span>
+
           <div className="flex items-center gap-2">
             <button
               type="button"
