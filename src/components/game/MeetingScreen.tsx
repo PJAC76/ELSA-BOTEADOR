@@ -622,7 +622,7 @@ const ChatPanel = ({
                 value={freeInput}
                 onChange={(e) => setFreeInput(e.target.value.slice(0, MAX_LEN))}
                 onKeyDown={handleInputKeyDown}
-                onFocus={() => { setShowEmojis(false); setShowPresets(false); }}
+                onFocus={() => { setShowEmojis(false); setShowPresets(false); setShowStickers(false); }}
                 placeholder={t("writeMessage")}
                 maxLength={MAX_LEN}
                 enterKeyHint="send"
