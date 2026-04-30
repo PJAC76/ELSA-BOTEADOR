@@ -1189,12 +1189,44 @@ const MeetingScreen = ({
           const meta = userIdToLocal.get(r.sender_id);
           const isMe = r.sender_id === myUserIdRef.current;
           const isEmoji = r.message.length <= 3 && /\p{Extended_Pictographic}/u.test(r.message);
+
+          // Client-side filter for incoming messages.
+          // Skip stickers (preset payloads parsed elsewhere) and own messages.
+          let displayContent = r.message;
+          if (!isMe && !r.is_preset && !isEmoji) {
+            const analysis = analyzeMessage(r.message);
+            if (analysis.severity === "severe") {
+              displayContent = t("chatFilteredMessage");
+              // Auto-report sender once per message id.
+              if (!autoReportedMsgIdsRef.current.has(r.id)) {
+                autoReportedMsgIdsRef.current.add(r.id);
+                const reportedName = meta?.name ?? "Jugadora";
+                try {
+                  submitReport({
+                    reportedPlayerId: r.sender_id,
+                    reportedPlayerName: reportedName,
+                    reason: "toxic-chat",
+                  });
+                  toast({
+                    title: t("chatAutoReportedTitle"),
+                    description: t("chatAutoReportedDesc").replace("{name}", reportedName),
+                    variant: "destructive",
+                  });
+                } catch {
+                  /* ignore */
+                }
+              }
+            } else if (analysis.severity === "mild") {
+              displayContent = analysis.maskedText;
+            }
+          }
+
           next.push({
             id: r.id,
             senderId: r.sender_id,
             senderName: isMe ? "Tú" : (meta?.name ?? "Jugadora"),
             messageType: isEmoji ? "emoji" : (r.is_preset ? "preset" : "free"),
-            content: r.message,
+            content: displayContent,
             createdAt: new Date(r.created_at).getTime(),
           });
         }
