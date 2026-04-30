@@ -995,11 +995,17 @@ const ChatPanel = ({
             <button
               type="button"
               onClick={handleSendFree}
-              disabled={!freeInput.trim()}
-              aria-label={t("send")}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              disabled={!freeInput.trim() || isRateLimited}
+              aria-label={isRateLimited ? t("chatCooldownWait").replace("{seconds}", String(cooldownLeft)) : t("send")}
+              aria-disabled={isRateLimited || undefined}
+              title={isRateLimited ? t("chatCooldownWait").replace("{seconds}", String(cooldownLeft)) : undefined}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             >
-              <Send className="h-4 w-4" aria-hidden="true" />
+              {isRateLimited ? (
+                <span className="font-display text-[10px] font-bold tabular-nums" aria-hidden="true">{cooldownLeft}s</span>
+              ) : (
+                <Send className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
