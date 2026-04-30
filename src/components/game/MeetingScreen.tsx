@@ -565,8 +565,7 @@ const ChatPanel = ({
           className="h-32 overflow-y-auto overscroll-contain rounded-2xl bg-card p-3 shadow-soft scroll-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           role="log"
           aria-label={t("chat") || "Chat"}
-          aria-live="polite"
-          aria-relevant="additions"
+          aria-live="off"
           tabIndex={0}
         >
           {messages.length === 0 ? (
