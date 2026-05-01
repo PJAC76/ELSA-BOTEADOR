@@ -1,0 +1,278 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
+import { listFilterTerms, getFilterStats } from "@/lib/chat-filter";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
+
+type ReportRow = {
+  id: string;
+  created_at: string;
+  reason: string;
+  match_id: string | null;
+  reported_id: string;
+  reporter_id: string;
+};
+
+type ProfileMini = { user_id: string; display_name: string };
+
+export default function Moderation() {
+  const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [reports, setReports] = useState<ReportRow[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  // Verify role
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!active) return;
+      setIsAdmin(!!data && !error);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user, authLoading]);
+
+  const loadReports = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("reports")
+      .select("id, created_at, reason, match_id, reported_id, reporter_id")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (!error && data) {
+      setReports(data as ReportRow[]);
+      const ids = Array.from(
+        new Set(
+          (data as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
+        ),
+      );
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, display_name")
+          .in("user_id", ids);
+        const map: Record<string, string> = {};
+        (profs as ProfileMini[] | null)?.forEach((p) => {
+          map[p.user_id] = p.display_name;
+        });
+        setProfiles(map);
+      }
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (isAdmin) loadReports();
+  }, [isAdmin]);
+
+  const terms = useMemo(() => listFilterTerms(), []);
+  const stats = useMemo(() => getFilterStats(), []);
+
+  // Loading auth
+  if (authLoading || isAdmin === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // No access
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <Card className="max-w-md w-full p-6 text-center space-y-4">
+          <ShieldAlert className="h-12 w-12 mx-auto text-destructive" />
+          <h1 className="text-2xl font-bold">{t("modAccessDenied")}</h1>
+          <p className="text-muted-foreground">{t("modAccessDeniedDesc")}</p>
+          <Button asChild variant="outline">
+            <Link to="/">{t("back")}</Link>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const formatDate = (iso: string) => new Date(iso).toLocaleString();
+  const nameOf = (id: string) =>
+    profiles[id] ?? `${id.slice(0, 6)}…`;
+
+  const isAuto = (reason: string) =>
+    reason.toLowerCase().includes("toxic") ||
+    reason.toLowerCase().includes("auto");
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      <div className="max-w-5xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <ShieldCheck className="h-7 w-7 text-primary" />
+              {t("modTitle")}
+            </h1>
+            <p className="text-sm text-muted-foreground">{t("modSubtitle")}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/">{t("back")}</Link>
+            </Button>
+            <Button
+              size="sm"
+              onClick={loadReports}
+              disabled={loading}
+              className="gap-1"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {t("modRefresh")}
+            </Button>
+          </div>
+        </div>
+
+        <Tabs defaultValue="reports" className="w-full">
+          <TabsList>
+            <TabsTrigger value="reports">
+              {t("modReportsTab")}{" "}
+              <Badge variant="secondary" className="ml-2">
+                {reports.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="terms">
+              {t("modTermsTab")}{" "}
+              <Badge variant="secondary" className="ml-2">
+                {stats.severeCount}/{stats.mildCount}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Reports tab */}
+          <TabsContent value="reports" className="mt-4">
+            <Card className="p-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  {t("modLoading")}
+                </div>
+              ) : reports.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  {t("modNoReports")}
+                </div>
+              ) : (
+                <ScrollArea className="h-[60vh]">
+                  <div className="space-y-2 pr-2">
+                    {reports.map((r) => (
+                      <div
+                        key={r.id}
+                        className="rounded-lg border bg-card p-3 text-sm space-y-2"
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={isAuto(r.reason) ? "destructive" : "secondary"}
+                            >
+                              {isAuto(r.reason)
+                                ? t("modAutoBadge")
+                                : t("modManualBadge")}
+                            </Badge>
+                            <span className="font-medium">
+                              {t("modReported")}: {nameOf(r.reported_id)}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(r.created_at)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          <div>
+                            <span className="font-semibold">{t("modReporter")}:</span>{" "}
+                            {nameOf(r.reporter_id)}
+                          </div>
+                          <div className="truncate">
+                            <span className="font-semibold">{t("modMatch")}:</span>{" "}
+                            {r.match_id ? r.match_id.slice(0, 8) + "…" : "—"}
+                          </div>
+                        </div>
+                        <div className="text-sm">
+                          <span className="font-semibold">{t("modReason")}:</span>{" "}
+                          <span className="break-words">{r.reason}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </Card>
+          </TabsContent>
+
+          {/* Terms tab */}
+          <TabsContent value="terms" className="mt-4">
+            <Card className="p-4 space-y-4">
+              <p className="text-xs text-muted-foreground">{t("modTermsHint")}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge variant="destructive">{terms.severe.length}</Badge>
+                    {t("modSevereTerms")}
+                  </h3>
+                  <ScrollArea className="h-[50vh] rounded-md border p-2">
+                    <div className="flex flex-wrap gap-1">
+                      {terms.severe.map((w) => (
+                        <Badge
+                          key={`s-${w}`}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
+                          {w}
+                        </Badge>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge variant="secondary">{terms.mild.length}</Badge>
+                    {t("modMildTerms")}
+                  </h3>
+                  <ScrollArea className="h-[50vh] rounded-md border p-2">
+                    <div className="flex flex-wrap gap-1">
+                      {terms.mild.map((w) => (
+                        <Badge
+                          key={`m-${w}`}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
+                          {w}
+                        </Badge>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
