@@ -191,3 +191,23 @@ export function analyzeMessage(text: string): FilterResult {
     matches: [...matchesSevere, ...matchesMild],
   };
 }
+
+/** Stats about the active filter dictionaries. Used by the UI badge to
+ *  display how strict the filter currently is. The "active" flag is
+ *  always true while the filter module is loaded — kept for forward
+ *  compatibility (e.g., per-language dictionaries or user toggles). */
+export type FilterStats = {
+  active: boolean;
+  severeCount: number;
+  mildCount: number;
+  totalCount: number;
+};
+
+export function getFilterStats(): FilterStats {
+  return {
+    active: true,
+    severeCount: SEVERE_SET.size,
+    mildCount: MILD_SET.size,
+    totalCount: SEVERE_SET.size + MILD_SET.size,
+  };
+}
