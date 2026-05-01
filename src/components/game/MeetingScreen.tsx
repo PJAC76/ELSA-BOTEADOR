@@ -1190,6 +1190,10 @@ const MeetingScreen = ({
   const submitReport = useReportsStore((s) => s.submitReport);
   // Avoid auto-reporting the same incoming message twice (e.g., on refetch).
   const autoReportedMsgIdsRef = useRef<Set<string>>(new Set());
+  // Quota: max auto-reports per sender per round, to prevent mass-reporting spam.
+  const AUTO_REPORT_QUOTA_PER_SENDER = 2;
+  const autoReportCountsRef = useRef<Map<string, number>>(new Map());
+  const quotaNotifiedRef = useRef<Set<string>>(new Set());
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
