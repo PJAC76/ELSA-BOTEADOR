@@ -211,3 +211,12 @@ export function getFilterStats(): FilterStats {
     totalCount: SEVERE_SET.size + MILD_SET.size,
   };
 }
+
+/** Read-only listings of the active dictionaries (sorted). Useful for the
+ *  internal moderation screen where admins audit which terms are flagged. */
+export function listFilterTerms(): { severe: string[]; mild: string[] } {
+  return {
+    severe: [...SEVERE_TERMS].sort(),
+    mild: [...MILD_TERMS].sort(),
+  };
+}
