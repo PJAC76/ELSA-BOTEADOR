@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Timer, MessageCircle, SmilePlus, Vote, SkipForward, MapPin, Lightbulb, Key, Send, Sticker as StickerIcon, VolumeX, Volume2, ShieldCheck } from "lucide-react";
