@@ -928,6 +928,8 @@ const translations = {
     chatMaskedDesc: "Some words were hidden before sending your message.",
     chatAutoReportedTitle: "Message auto-reported",
     chatAutoReportedDesc: "We detected severe language from {name} and filed a report.",
+    chatAutoReportQuotaTitle: "Auto-report quota reached",
+    chatAutoReportQuotaDesc: "We've filed enough reports about {name} this round. Their new messages are still filtered, but no more reports will be sent until next round.",
     chatFilteredMessage: "[message filtered]",
     chatFilterBadge: "Filter",
     chatFilterActiveTitle: "Filtered language is on",
