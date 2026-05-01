@@ -1540,6 +1540,28 @@ const translations = {
     "theme-dark-academia-desc": "Dark tones, gold & scholarly aesthetic",
     "theme-barbie": "Barbie",
     "theme-barbie-desc": "Hot pink, glam & sparkles ✨",
+
+    // Moderation panel (admin)
+    modTitle: "Moderation panel",
+    modSubtitle: "Review automatic chat reports",
+    modRefresh: "Refresh",
+    modAccessDenied: "Access denied",
+    modAccessDeniedDesc: "This section is for admins only.",
+    modLoading: "Loading reports...",
+    modNoReports: "No pending reports 🎉",
+    modReportsTab: "Reports",
+    modTermsTab: "Dictionary",
+    modReporter: "Reporter",
+    modReported: "Reported",
+    modReason: "Reason",
+    modWhen: "When",
+    modMatch: "Match",
+    modSevereTerms: "Severe terms",
+    modMildTerms: "Mild terms",
+    modTermsHint: "Current client-side list. Read-only for now — edit `src/lib/chat-filter.ts` to tune it.",
+    modTotalReports: "Total: {count}",
+    modAutoBadge: "Auto",
+    modManualBadge: "Manual",
   },
 } as const;
 
