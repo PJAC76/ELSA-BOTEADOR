@@ -1190,6 +1190,10 @@ const MeetingScreen = ({
   const submitReport = useReportsStore((s) => s.submitReport);
   // Avoid auto-reporting the same incoming message twice (e.g., on refetch).
   const autoReportedMsgIdsRef = useRef<Set<string>>(new Set());
+  // Quota: max auto-reports per sender per round, to prevent mass-reporting spam.
+  const AUTO_REPORT_QUOTA_PER_SENDER = 2;
+  const autoReportCountsRef = useRef<Map<string, number>>(new Map());
+  const quotaNotifiedRef = useRef<Set<string>>(new Set());
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
@@ -1207,6 +1211,10 @@ const MeetingScreen = ({
     if (!isOnline || !roundId) return;
     let cancelled = false;
 
+    // Reset per-round quotas when round changes.
+    autoReportCountsRef.current = new Map();
+    quotaNotifiedRef.current = new Set();
+    autoReportedMsgIdsRef.current = new Set();
     const userIdToLocal = new Map<string, { id: string; name: string; emoji: string }>();
     for (const [localId, uid] of Object.entries(playerUserIds)) {
       if (!uid) continue;
@@ -1232,23 +1240,37 @@ const MeetingScreen = ({
             const analysis = analyzeMessage(r.message);
             if (analysis.severity === "severe") {
               displayContent = t("chatFilteredMessage");
-              // Auto-report sender once per message id.
+              // Auto-report sender once per message id, capped per round.
               if (!autoReportedMsgIdsRef.current.has(r.id)) {
                 autoReportedMsgIdsRef.current.add(r.id);
                 const reportedName = meta?.name ?? "Jugadora";
-                try {
-                  submitReport({
-                    reportedPlayerId: r.sender_id,
-                    reportedPlayerName: reportedName,
-                    reason: "toxic-chat",
-                  });
-                  toast({
-                    title: t("chatAutoReportedTitle"),
-                    description: t("chatAutoReportedDesc").replace("{name}", reportedName),
-                    variant: "destructive",
-                  });
-                } catch {
-                  /* ignore */
+                const prevCount = autoReportCountsRef.current.get(r.sender_id) ?? 0;
+                if (prevCount >= AUTO_REPORT_QUOTA_PER_SENDER) {
+                  // Quota exhausted for this sender in this round — skip
+                  // submitting another report and notify once.
+                  if (!quotaNotifiedRef.current.has(r.sender_id)) {
+                    quotaNotifiedRef.current.add(r.sender_id);
+                    toast({
+                      title: t("chatAutoReportQuotaTitle"),
+                      description: t("chatAutoReportQuotaDesc").replace("{name}", reportedName),
+                    });
+                  }
+                } else {
+                  autoReportCountsRef.current.set(r.sender_id, prevCount + 1);
+                  try {
+                    submitReport({
+                      reportedPlayerId: r.sender_id,
+                      reportedPlayerName: reportedName,
+                      reason: "toxic-chat",
+                    });
+                    toast({
+                      title: t("chatAutoReportedTitle"),
+                      description: t("chatAutoReportedDesc").replace("{name}", reportedName),
+                      variant: "destructive",
+                    });
+                  } catch {
+                    /* ignore */
+                  }
                 }
               }
             } else if (analysis.severity === "mild") {
