@@ -972,6 +972,37 @@ const ChatPanel = ({
           <span className="sr-only" role="status" aria-live="polite">{rateAnnouncement}</span>
 
           <div className="flex items-center gap-2">
+            {/* Filter status indicator: shows that the client-side word
+              * filter is active and how strict it is for the current
+              * language. Pure presentation — no behavior change. */}
+            <span
+              role="status"
+              aria-live="polite"
+              title={`${t("chatFilterActiveTitle")} — ${t("chatFilterActiveDesc")} ${t("chatFilterStrictness")
+                .replace("{severe}", String(filterStats.severeCount))
+                .replace("{mild}", String(filterStats.mildCount))} · ${t("chatFilterLangNote").replace("{lang}", filterLangLabel)}`}
+              aria-label={`${t("chatFilterActiveTitle")}. ${t("chatFilterStrictness")
+                .replace("{severe}", String(filterStats.severeCount))
+                .replace("{mild}", String(filterStats.mildCount))}. ${t("chatFilterLangNote").replace("{lang}", filterLangLabel)}`}
+              className="hidden sm:inline-flex h-9 items-center gap-1 rounded-full bg-emerald-500/10 px-2 font-display text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{t("chatFilterBadge")}</span>
+              <span className="rounded-full bg-emerald-500/20 px-1 text-[9px] tabular-nums">
+                {filterStats.severeCount}/{filterStats.mildCount}
+              </span>
+            </span>
+            {/* Compact icon-only variant for narrow viewports. */}
+            <span
+              role="status"
+              aria-hidden="true"
+              title={`${t("chatFilterActiveTitle")} — ${t("chatFilterStrictness")
+                .replace("{severe}", String(filterStats.severeCount))
+                .replace("{mild}", String(filterStats.mildCount))}`}
+              className="sm:hidden inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30"
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </span>
             <button
               type="button"
               onClick={() => { const next = !showPresets; closeAllPanels(false); setShowPresets(next); }}
