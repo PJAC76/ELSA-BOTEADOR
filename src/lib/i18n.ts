@@ -145,6 +145,8 @@ const translations = {
     chatMaskedDesc: "Algunas palabras se ocultaron antes de enviar el mensaje.",
     chatAutoReportedTitle: "Mensaje reportado automáticamente",
     chatAutoReportedDesc: "Detectamos lenguaje grave en {name} y se envió un reporte.",
+    chatAutoReportQuotaTitle: "Cuota de auto-reporte alcanzada",
+    chatAutoReportQuotaDesc: "Ya enviamos suficientes reportes de {name} en esta ronda. Sus nuevos mensajes se siguen filtrando, pero no generarán más reportes hasta la próxima ronda.",
     chatFilteredMessage: "[mensaje filtrado]",
     chatFilterBadge: "Filtro",
     chatFilterActiveTitle: "Lenguaje filtrado activo",
