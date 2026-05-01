@@ -1211,6 +1211,10 @@ const MeetingScreen = ({
     if (!isOnline || !roundId) return;
     let cancelled = false;
 
+    // Reset per-round quotas when round changes.
+    autoReportCountsRef.current = new Map();
+    quotaNotifiedRef.current = new Set();
+    autoReportedMsgIdsRef.current = new Set();
     const userIdToLocal = new Map<string, { id: string; name: string; emoji: string }>();
     for (const [localId, uid] of Object.entries(playerUserIds)) {
       if (!uid) continue;
