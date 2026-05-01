@@ -1656,15 +1656,12 @@ const MeetingScreen = ({
     setTimeout(() => { onVoteResult(eliminated?.id || null); }, 3500);
   }, [isOnline, matchId, myPlayerId, players, playerUserIds, onVoteResult, onServerResolved]);
 
-  const handleSendPreset = (content: string) => {
-    if (isGhost) return;
-    if (isOnline) { void sendChatToServer(content, true); return; }
-    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content, createdAt: Date.now() }]);
-  };
-
-  const handleSendFree = (content: string) => {
-    if (isGhost) return;
-    // Client-side word filter for outgoing free text.
+  // Centralized client-side filter for outgoing chat. Returns the safe
+  // content to send, or null when the message should be blocked.
+  // Applies to free text, presets and emojis alike — preset/emoji inputs
+  // come from curated catalogs but custom builds or future user-generated
+  // additions could still slip severe terms through, so we re-check.
+  const filterOutgoing = (content: string): string | null => {
     const analysis = analyzeMessage(content);
     if (analysis.severity === "severe") {
       toast({
@@ -1672,23 +1669,40 @@ const MeetingScreen = ({
         description: t("chatBlockedDesc"),
         variant: "destructive",
       });
-      return;
+      return null;
     }
-    const safeContent = analysis.severity === "mild" ? analysis.maskedText : content;
     if (analysis.severity === "mild") {
       toast({
         title: t("chatMaskedTitle"),
         description: t("chatMaskedDesc"),
       });
+      return analysis.maskedText;
     }
-    if (isOnline) { void sendChatToServer(safeContent, false); return; }
-    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content: safeContent, createdAt: Date.now() }]);
+    return content;
+  };
+
+  const handleSendPreset = (content: string) => {
+    if (isGhost) return;
+    const safe = filterOutgoing(content);
+    if (safe === null) return;
+    if (isOnline) { void sendChatToServer(safe, true); return; }
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "preset", content: safe, createdAt: Date.now() }]);
+  };
+
+  const handleSendFree = (content: string) => {
+    if (isGhost) return;
+    const safe = filterOutgoing(content);
+    if (safe === null) return;
+    if (isOnline) { void sendChatToServer(safe, false); return; }
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "free", content: safe, createdAt: Date.now() }]);
   };
 
   const handleSendEmoji = (emoji: string) => {
     if (isGhost) return;
-    if (isOnline) { void sendChatToServer(emoji, false); return; }
-    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: emoji, createdAt: Date.now() }]);
+    const safe = filterOutgoing(emoji);
+    if (safe === null) return;
+    if (isOnline) { void sendChatToServer(safe, false); return; }
+    setMessages((prev) => [...prev, { id: `me-${Date.now()}`, senderId: myPlayerId, senderName: "Tú", messageType: "emoji", content: safe, createdAt: Date.now() }]);
   };
 
   const handleSendSticker = (id: StickerId) => {
