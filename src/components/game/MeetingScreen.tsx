@@ -1988,7 +1988,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} typingNames={typingNames} onTypingChange={onTypingChange} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} typingNames={typingNames} onTypingChange={onTypingChange} autoReportQuotaPerSender={AUTO_REPORT_QUOTA_PER_SENDER} autoReportRemainingPerSender={autoReportRemainingPerSender} autoReportTotalSubmitted={autoReportTotalSubmitted} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
