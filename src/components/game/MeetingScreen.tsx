@@ -1350,7 +1350,7 @@ const MeetingScreen = ({
                           source: "auto-chat-filter",
                           severity: analysis.severity,
                           language: filterLang,
-                          diagnostics: diagnostics as unknown as Record<string, unknown>,
+                          diagnostics: diagnostics as unknown as never,
                         }])
                         .then(({ error }) => {
                           if (error) console.warn("[moderation] persist failed", error.message);
