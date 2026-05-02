@@ -510,6 +510,18 @@ export default function Moderation() {
                                   {r.language.toUpperCase()}
                                 </Badge>
                               )}
+                              <Badge
+                                variant={
+                                  r.status === "resolved"
+                                    ? "default"
+                                    : r.status === "reviewed"
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                                className="text-[10px] capitalize"
+                              >
+                                {r.status ?? "pending"}
+                              </Badge>
                               <span className="font-medium">
                                 {t("modReported")}: {nameOf(r.reported_id)}
                               </span>
@@ -517,6 +529,30 @@ export default function Moderation() {
                             <span className="text-xs text-muted-foreground">
                               {formatDate(r.created_at)}
                             </span>
+                          </div>
+                          {/* Review actions */}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {(["pending", "reviewed", "resolved"] as const).map((s) => {
+                              const active = (r.status ?? "pending") === s;
+                              return (
+                                <Button
+                                  key={s}
+                                  type="button"
+                                  size="sm"
+                                  variant={active ? "default" : "outline"}
+                                  className="h-7 px-2 text-xs capitalize"
+                                  disabled={updatingId === r.id || active}
+                                  onClick={() => updateStatus(r.id, s)}
+                                >
+                                  {s === "pending" ? "Reopen" : `Mark ${s}`}
+                                </Button>
+                              );
+                            })}
+                            {r.reviewed_at && (
+                              <span className="text-[10px] text-muted-foreground ml-1">
+                                · {formatDate(r.reviewed_at)}
+                              </span>
+                            )}
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                             <div>
