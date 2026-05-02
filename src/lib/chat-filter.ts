@@ -198,7 +198,7 @@ const TOKEN_RE = /[\p{L}\p{N}@$!|+()¢€£]+/gu;
  */
 export function analyzeMessage(text: string, lang?: FilterLanguage): FilterResult {
   if (!text || !text.trim()) {
-    return { severity: "clean", maskedText: text, matches: [] };
+    return { severity: "clean", maskedText: text, matches: [], severeMatches: [], mildMatches: [] };
   }
 
   const dict = pickDict(lang);
