@@ -1335,10 +1335,6 @@ const MeetingScreen = ({
                         maskedText: analysis.maskedText,
                         sourceId: r.id,
                       },
-                        originalText: r.message,
-                        maskedText: analysis.maskedText,
-                        sourceId: r.id,
-                      },
                     });
                     toast({
                       title: t("chatAutoReportedTitle"),
