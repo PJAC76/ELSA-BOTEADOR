@@ -367,7 +367,8 @@ export default function Moderation() {
                       return (
                         <div
                           key={r.id}
-                          className="rounded-lg border bg-card p-3 text-sm space-y-2"
+                          id={`evt-${r.id}`}
+                          className={`rounded-lg border bg-card p-3 text-sm space-y-2 transition-shadow ${openId === r.id ? "ring-2 ring-primary" : ""}`}
                         >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2 flex-wrap">
