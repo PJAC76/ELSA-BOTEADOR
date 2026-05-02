@@ -250,27 +250,39 @@ export type Database = {
       reports: {
         Row: {
           created_at: string
+          diagnostics: Json | null
           id: string
+          language: string | null
           match_id: string | null
           reason: string
           reported_id: string
           reporter_id: string
+          severity: string | null
+          source: string | null
         }
         Insert: {
           created_at?: string
+          diagnostics?: Json | null
           id?: string
+          language?: string | null
           match_id?: string | null
           reason: string
           reported_id: string
           reporter_id: string
+          severity?: string | null
+          source?: string | null
         }
         Update: {
           created_at?: string
+          diagnostics?: Json | null
           id?: string
+          language?: string | null
           match_id?: string | null
           reason?: string
           reported_id?: string
           reporter_id?: string
+          severity?: string | null
+          source?: string | null
         }
         Relationships: [
           {

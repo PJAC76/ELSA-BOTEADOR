@@ -1321,21 +1321,41 @@ const MeetingScreen = ({
                 } else {
                   autoReportCountsRef.current.set(r.sender_id, prevCount + 1);
                   setAutoReportUsageVersion((v) => v + 1);
+                  const diagnostics = {
+                    language: filterLang,
+                    severity: analysis.severity,
+                    severeMatches: analysis.severeMatches,
+                    mildMatches: analysis.mildMatches,
+                    originalText: r.message,
+                    maskedText: analysis.maskedText,
+                    sourceId: r.id,
+                  };
                   try {
                     submitReport({
                       reportedPlayerId: r.sender_id,
                       reportedPlayerName: reportedName,
                       reason: "toxic-chat",
-                      diagnostics: {
-                        language: filterLang,
-                        severity: analysis.severity,
-                        severeMatches: analysis.severeMatches,
-                        mildMatches: analysis.mildMatches,
-                        originalText: r.message,
-                        maskedText: analysis.maskedText,
-                        sourceId: r.id,
-                      },
+                      diagnostics,
                     });
+                    // Persist to Supabase for date-range audits.
+                    const reporterUid = myUserIdRef.current;
+                    if (reporterUid && matchId) {
+                      supabase
+                        .from("reports")
+                        .insert([{
+                          reporter_id: reporterUid,
+                          reported_id: r.sender_id,
+                          match_id: matchId,
+                          reason: "toxic-chat",
+                          source: "auto-chat-filter",
+                          severity: analysis.severity,
+                          language: filterLang,
+                          diagnostics: diagnostics as unknown as never,
+                        }])
+                        .then(({ error }) => {
+                          if (error) console.warn("[moderation] persist failed", error.message);
+                        });
+                    }
                     toast({
                       title: t("chatAutoReportedTitle"),
                       description: t("chatAutoReportedDesc").replace("{name}", reportedName),
