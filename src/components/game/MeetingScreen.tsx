@@ -329,6 +329,9 @@ const ChatPanel = ({
   myPlayerId,
   typingNames = [],
   onTypingChange,
+  autoReportQuotaPerSender,
+  autoReportRemainingPerSender,
+  autoReportTotalSubmitted,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -341,6 +344,9 @@ const ChatPanel = ({
   myPlayerId: string;
   typingNames?: string[];
   onTypingChange?: (typing: boolean) => void;
+  autoReportQuotaPerSender?: number;
+  autoReportRemainingPerSender?: number;
+  autoReportTotalSubmitted?: number;
 }) => {
   const { t, language } = useTranslation();
   // Filter status indicator (next to the chat input). Recomputed when the
@@ -1003,6 +1009,43 @@ const ChatPanel = ({
             >
               <ShieldCheck className="h-4 w-4" />
             </span>
+            {/* Auto-report quota indicator: shows how many auto-reports the
+              * local player can still trigger per offender in this round.
+              * Only rendered when the parent provides quota data (online). */}
+            {typeof autoReportQuotaPerSender === "number" &&
+              typeof autoReportRemainingPerSender === "number" && (
+                <span
+                  role="status"
+                  aria-live="polite"
+                  title={
+                    autoReportRemainingPerSender > 0
+                      ? `${t("chatAutoReportRemainingTitle")} — ${t("chatAutoReportRemainingDesc")
+                          .replace("{remaining}", String(autoReportRemainingPerSender))
+                          .replace("{max}", String(autoReportQuotaPerSender))
+                          .replace("{used}", String(autoReportTotalSubmitted ?? 0))}`
+                      : t("chatAutoReportRemainingExhausted")
+                  }
+                  aria-label={
+                    autoReportRemainingPerSender > 0
+                      ? t("chatAutoReportRemainingDesc")
+                          .replace("{remaining}", String(autoReportRemainingPerSender))
+                          .replace("{max}", String(autoReportQuotaPerSender))
+                          .replace("{used}", String(autoReportTotalSubmitted ?? 0))
+                      : t("chatAutoReportRemainingExhausted")
+                  }
+                  className={`hidden sm:inline-flex h-9 items-center gap-1 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide ring-1 ${
+                    autoReportRemainingPerSender > 0
+                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-amber-500/30"
+                      : "bg-muted text-muted-foreground ring-border"
+                  }`}
+                >
+                  <span aria-hidden="true">🚩</span>
+                  <span>{t("chatAutoReportRemaining")}</span>
+                  <span className="rounded-full bg-amber-500/20 px-1 text-[9px] tabular-nums">
+                    {autoReportRemainingPerSender}/{autoReportQuotaPerSender}
+                  </span>
+                </span>
+              )}
             <button
               type="button"
               onClick={() => { const next = !showPresets; closeAllPanels(false); setShowPresets(next); }}
@@ -1194,6 +1237,24 @@ const MeetingScreen = ({
   const AUTO_REPORT_QUOTA_PER_SENDER = 2;
   const autoReportCountsRef = useRef<Map<string, number>>(new Map());
   const quotaNotifiedRef = useRef<Set<string>>(new Set());
+  // Reactive mirror of auto-report usage so the chat indicator can render
+  // remaining capacity. We keep the ref above as the source of truth for the
+  // hot ingest path and sync this state after each successful submission.
+  const [autoReportUsageVersion, setAutoReportUsageVersion] = useState(0);
+  const autoReportTotalSubmitted = useMemo(() => {
+    let sum = 0;
+    for (const v of autoReportCountsRef.current.values()) sum += v;
+    return sum;
+    // version bump triggers recompute
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReportUsageVersion]);
+  const autoReportMaxUsedPerSender = useMemo(() => {
+    let max = 0;
+    for (const v of autoReportCountsRef.current.values()) if (v > max) max = v;
+    return max;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReportUsageVersion]);
+  const autoReportRemainingPerSender = Math.max(0, AUTO_REPORT_QUOTA_PER_SENDER - autoReportMaxUsedPerSender);
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
@@ -1215,6 +1276,7 @@ const MeetingScreen = ({
     autoReportCountsRef.current = new Map();
     quotaNotifiedRef.current = new Set();
     autoReportedMsgIdsRef.current = new Set();
+    setAutoReportUsageVersion((v) => v + 1);
     const userIdToLocal = new Map<string, { id: string; name: string; emoji: string }>();
     for (const [localId, uid] of Object.entries(playerUserIds)) {
       if (!uid) continue;
@@ -1257,6 +1319,7 @@ const MeetingScreen = ({
                   }
                 } else {
                   autoReportCountsRef.current.set(r.sender_id, prevCount + 1);
+                  setAutoReportUsageVersion((v) => v + 1);
                   try {
                     submitReport({
                       reportedPlayerId: r.sender_id,
@@ -1968,7 +2031,7 @@ const MeetingScreen = ({
                 </motion.div>
               )}
 
-              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} typingNames={typingNames} onTypingChange={onTypingChange} />
+              <ChatPanel messages={messages} onSendPreset={handleSendPreset} onSendEmoji={handleSendEmoji} onSendFree={handleSendFree} onSendSticker={handleSendSticker} disabled={isGhost} players={players} clues={roundClues} myPlayerId={myPlayerId} typingNames={typingNames} onTypingChange={onTypingChange} autoReportQuotaPerSender={AUTO_REPORT_QUOTA_PER_SENDER} autoReportRemainingPerSender={autoReportRemainingPerSender} autoReportTotalSubmitted={autoReportTotalSubmitted} />
 
               {isGhost && (
                 <div className="rounded-2xl bg-muted/50 p-3 text-center">
