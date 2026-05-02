@@ -90,6 +90,39 @@ export default function Moderation() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number>(50);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [filterStatus, setFilterStatus] = useState<"all" | ReportStatus>("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const updateStatus = async (id: string, status: ReportStatus | "pending") => {
+    setUpdatingId(id);
+    const patch: Record<string, unknown> = { status };
+    if (status === "pending") {
+      patch.reviewed_by = null;
+      patch.reviewed_at = null;
+    } else {
+      patch.reviewed_by = user?.id ?? null;
+      patch.reviewed_at = new Date().toISOString();
+    }
+    const { error } = await supabase.from("reports").update(patch).eq("id", id);
+    setUpdatingId(null);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setReports((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status,
+              reviewed_by: (patch.reviewed_by as string | null) ?? null,
+              reviewed_at: (patch.reviewed_at as string | null) ?? null,
+            }
+          : r,
+      ),
+    );
+    toast({ title: `Marked as ${status}` });
+  };
 
   const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
     const p = opts?.page ?? page;
