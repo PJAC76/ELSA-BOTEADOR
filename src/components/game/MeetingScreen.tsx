@@ -351,7 +351,7 @@ const ChatPanel = ({
   const { t, language } = useTranslation();
   // Filter status indicator (next to the chat input). Recomputed when the
   // language changes so the tooltip reflects the active dictionary size.
-  const filterStats = useMemo(() => getFilterStats(), [language]);
+  const filterStats = useMemo(() => getFilterStats(language === "en" ? "en" : "es"), [language]);
   const filterLangLabel = language === "es" ? "Español" : "English";
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
@@ -1209,7 +1209,8 @@ const MeetingScreen = ({
   playerUserIds = {},
   onServerResolved,
 }: MeetingScreenProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const filterLang = language === "en" ? "en" : "es";
   const players = propPlayers.length > 0 ? propPlayers : MOCK_PLAYERS;
   const [phase, setPhase] = useState<"clues" | "discussion" | "voting" | "result">("clues");
   const [timeLeft, setTimeLeft] = useState(DISCUSSION_TIME);
@@ -1299,7 +1300,7 @@ const MeetingScreen = ({
           // Skip stickers (preset payloads parsed elsewhere) and own messages.
           let displayContent = r.message;
           if (!isMe && !r.is_preset && !isEmoji) {
-            const analysis = analyzeMessage(r.message);
+            const analysis = analyzeMessage(r.message, filterLang);
             if (analysis.severity === "severe") {
               displayContent = t("chatFilteredMessage");
               // Auto-report sender once per message id, capped per round.
@@ -1782,7 +1783,7 @@ const MeetingScreen = ({
   // come from curated catalogs but custom builds or future user-generated
   // additions could still slip severe terms through, so we re-check.
   const filterOutgoing = (content: string): string | null => {
-    const analysis = analyzeMessage(content);
+    const analysis = analyzeMessage(content, filterLang);
     if (analysis.severity === "severe") {
       toast({
         title: t("chatBlockedTitle"),
