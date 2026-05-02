@@ -1329,12 +1329,12 @@ const MeetingScreen = ({
                       diagnostics: {
                         language: filterLang,
                         severity: analysis.severity,
-                        severeMatches: analysis.matches.filter((m) =>
-                          analyzeMessage(m, filterLang).severity === "severe",
-                        ),
-                        mildMatches: analysis.matches.filter((m) =>
-                          analyzeMessage(m, filterLang).severity === "mild",
-                        ),
+                        severeMatches: analysis.severeMatches,
+                        mildMatches: analysis.mildMatches,
+                        originalText: r.message,
+                        maskedText: analysis.maskedText,
+                        sourceId: r.id,
+                      },
                         originalText: r.message,
                         maskedText: analysis.maskedText,
                         sourceId: r.id,
