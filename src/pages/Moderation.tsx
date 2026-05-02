@@ -34,7 +34,12 @@ type ReportRow = {
   source?: string | null;
   severity?: string | null;
   language?: string | null;
+  status?: "pending" | "reviewed" | "resolved" | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
 };
+
+type ReportStatus = "pending" | "reviewed" | "resolved";
 
 type ProfileMini = { user_id: string; display_name: string };
 
@@ -85,6 +90,39 @@ export default function Moderation() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number>(50);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [filterStatus, setFilterStatus] = useState<"all" | ReportStatus>("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const updateStatus = async (id: string, status: ReportStatus | "pending") => {
+    setUpdatingId(id);
+    const patch: Record<string, unknown> = { status };
+    if (status === "pending") {
+      patch.reviewed_by = null;
+      patch.reviewed_at = null;
+    } else {
+      patch.reviewed_by = user?.id ?? null;
+      patch.reviewed_at = new Date().toISOString();
+    }
+    const { error } = await supabase.from("reports").update(patch).eq("id", id);
+    setUpdatingId(null);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setReports((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status,
+              reviewed_by: (patch.reviewed_by as string | null) ?? null,
+              reviewed_at: (patch.reviewed_at as string | null) ?? null,
+            }
+          : r,
+      ),
+    );
+    toast({ title: `Marked as ${status}` });
+  };
 
   const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
     const p = opts?.page ?? page;
@@ -95,11 +133,12 @@ export default function Moderation() {
     let q = supabase
       .from("reports")
       .select(
-        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language",
+        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language, status, reviewed_by, reviewed_at",
         { count: "exact" },
       )
       .order("created_at", { ascending: false })
       .range(from, to);
+    if (filterStatus !== "all") q = q.eq("status", filterStatus);
     if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
     if (dateTo) {
       const end = new Date(dateTo);
@@ -397,6 +436,27 @@ export default function Moderation() {
                     ))}
                   </div>
                 </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">Status</label>
+                  <div className="inline-flex rounded-md border p-0.5">
+                    {(["all", "pending", "reviewed", "resolved"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        size="sm"
+                        variant={filterStatus === v ? "default" : "ghost"}
+                        className="h-7 px-3 text-xs capitalize"
+                        onClick={() => {
+                          setFilterStatus(v);
+                          setPage(0);
+                          setTimeout(() => loadReports({ page: 0 }), 0);
+                        }}
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex flex-col flex-1 min-w-[180px]">
                   <label className="text-xs text-muted-foreground mb-1">Severe match</label>
                   <input
@@ -450,6 +510,18 @@ export default function Moderation() {
                                   {r.language.toUpperCase()}
                                 </Badge>
                               )}
+                              <Badge
+                                variant={
+                                  r.status === "resolved"
+                                    ? "default"
+                                    : r.status === "reviewed"
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                                className="text-[10px] capitalize"
+                              >
+                                {r.status ?? "pending"}
+                              </Badge>
                               <span className="font-medium">
                                 {t("modReported")}: {nameOf(r.reported_id)}
                               </span>
@@ -457,6 +529,30 @@ export default function Moderation() {
                             <span className="text-xs text-muted-foreground">
                               {formatDate(r.created_at)}
                             </span>
+                          </div>
+                          {/* Review actions */}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {(["pending", "reviewed", "resolved"] as const).map((s) => {
+                              const active = (r.status ?? "pending") === s;
+                              return (
+                                <Button
+                                  key={s}
+                                  type="button"
+                                  size="sm"
+                                  variant={active ? "default" : "outline"}
+                                  className="h-7 px-2 text-xs capitalize"
+                                  disabled={updatingId === r.id || active}
+                                  onClick={() => updateStatus(r.id, s)}
+                                >
+                                  {s === "pending" ? "Reopen" : `Mark ${s}`}
+                                </Button>
+                              );
+                            })}
+                            {r.reviewed_at && (
+                              <span className="text-[10px] text-muted-foreground ml-1">
+                                · {formatDate(r.reviewed_at)}
+                              </span>
+                            )}
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                             <div>

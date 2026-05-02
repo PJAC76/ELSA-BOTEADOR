@@ -257,8 +257,11 @@ export type Database = {
           reason: string
           reported_id: string
           reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           severity: string | null
           source: string | null
+          status: Database["public"]["Enums"]["report_status"]
         }
         Insert: {
           created_at?: string
@@ -269,8 +272,11 @@ export type Database = {
           reason: string
           reported_id: string
           reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string | null
           source?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
         }
         Update: {
           created_at?: string
@@ -281,8 +287,11 @@ export type Database = {
           reason?: string
           reported_id?: string
           reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string | null
           source?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
         }
         Relationships: [
           {
@@ -590,6 +599,7 @@ export type Database = {
       match_status: "in_progress" | "finished"
       match_winner: "agents" | "saboteur"
       player_role: "agent" | "saboteur"
+      report_status: "pending" | "reviewed" | "resolved"
       room_mode: "quick" | "friends"
       room_status: "waiting" | "playing" | "finished"
       round_phase: "action" | "meeting" | "voting"
@@ -726,6 +736,7 @@ export const Constants = {
       match_status: ["in_progress", "finished"],
       match_winner: ["agents", "saboteur"],
       player_role: ["agent", "saboteur"],
+      report_status: ["pending", "reviewed", "resolved"],
       room_mode: ["quick", "friends"],
       room_status: ["waiting", "playing", "finished"],
       round_phase: ["action", "meeting", "voting"],
