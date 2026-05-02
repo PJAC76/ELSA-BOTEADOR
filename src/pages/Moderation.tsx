@@ -41,6 +41,16 @@ type ProfileMini = { user_id: string; display_name: string };
 export default function Moderation() {
   const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const copy = async (label: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "Copied", description: label });
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  };
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
