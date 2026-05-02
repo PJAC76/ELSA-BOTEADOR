@@ -26,8 +26,12 @@ export type FilterResult = {
   severity: FilterSeverity;
   /** Original text with offending words replaced by "***". */
   maskedText: string;
-  /** Lowercased dictionary terms detected (deduped). */
+  /** Lowercased dictionary terms detected (deduped, severe first). */
   matches: string[];
+  /** Severe-tier normalized terms that matched. */
+  severeMatches: string[];
+  /** Mild-tier normalized terms that matched. */
+  mildMatches: string[];
 };
 
 // --- Dictionaries (normalized: lowercase, no accents) ---------------------
@@ -194,7 +198,7 @@ const TOKEN_RE = /[\p{L}\p{N}@$!|+()¢€£]+/gu;
  */
 export function analyzeMessage(text: string, lang?: FilterLanguage): FilterResult {
   if (!text || !text.trim()) {
-    return { severity: "clean", maskedText: text, matches: [] };
+    return { severity: "clean", maskedText: text, matches: [], severeMatches: [], mildMatches: [] };
   }
 
   const dict = pickDict(lang);
@@ -230,10 +234,14 @@ export function analyzeMessage(text: string, lang?: FilterLanguage): FilterResul
   if (matchesSevere.size > 0) severity = "severe";
   else if (matchesMild.size > 0) severity = "mild";
 
+  const severeArr = [...matchesSevere];
+  const mildArr = [...matchesMild];
   return {
     severity,
     maskedText: masked,
-    matches: [...matchesSevere, ...matchesMild],
+    matches: [...severeArr, ...mildArr],
+    severeMatches: severeArr,
+    mildMatches: mildArr,
   };
 }
 

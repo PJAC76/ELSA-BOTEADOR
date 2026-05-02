@@ -1326,6 +1326,15 @@ const MeetingScreen = ({
                       reportedPlayerId: r.sender_id,
                       reportedPlayerName: reportedName,
                       reason: "toxic-chat",
+                      diagnostics: {
+                        language: filterLang,
+                        severity: analysis.severity,
+                        severeMatches: analysis.severeMatches,
+                        mildMatches: analysis.mildMatches,
+                        originalText: r.message,
+                        maskedText: analysis.maskedText,
+                        sourceId: r.id,
+                      },
                     });
                     toast({
                       title: t("chatAutoReportedTitle"),
