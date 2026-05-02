@@ -351,7 +351,7 @@ const ChatPanel = ({
   const { t, language } = useTranslation();
   // Filter status indicator (next to the chat input). Recomputed when the
   // language changes so the tooltip reflects the active dictionary size.
-  const filterStats = useMemo(() => getFilterStats(), [language]);
+  const filterStats = useMemo(() => getFilterStats(language === "en" ? "en" : "es"), [language]);
   const filterLangLabel = language === "es" ? "Español" : "English";
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
