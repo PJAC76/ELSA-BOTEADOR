@@ -436,6 +436,26 @@ export default function Moderation() {
                     ))}
                   </div>
                 </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">Status</label>
+                  <div className="inline-flex rounded-md border p-0.5">
+                    {(["all", "pending", "reviewed", "resolved"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        size="sm"
+                        variant={filterStatus === v ? "default" : "ghost"}
+                        className="h-7 px-3 text-xs capitalize"
+                        onClick={() => {
+                          setFilterStatus(v);
+                          setPage(0);
+                          setTimeout(() => loadReports({ page: 0 }), 0);
+                        }}
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
                 <div className="flex flex-col flex-1 min-w-[180px]">
                   <label className="text-xs text-muted-foreground mb-1">Severe match</label>
                   <input
