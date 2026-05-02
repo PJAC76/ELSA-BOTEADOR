@@ -116,6 +116,24 @@ export default function Moderation() {
   const terms = useMemo(() => listFilterTerms(termsLang), [termsLang]);
   const stats = useMemo(() => getFilterStats(termsLang), [termsLang]);
 
+  // Filters for the events list
+  const [filterLang, setFilterLang] = useState<"all" | "es" | "en">("all");
+  const [filterSeverity, setFilterSeverity] = useState<"all" | "severe" | "mild" | "clean">("all");
+  const [filterMatch, setFilterMatch] = useState<string>("");
+
+  const filteredReports = useMemo(() => {
+    const q = filterMatch.trim().toLowerCase();
+    return reports.filter((r) => {
+      if (filterLang !== "all" && (r.language ?? r.diagnostics?.language) !== filterLang) return false;
+      if (filterSeverity !== "all" && (r.severity ?? r.diagnostics?.severity) !== filterSeverity) return false;
+      if (q) {
+        const sev = r.diagnostics?.severeMatches ?? [];
+        if (!sev.some((w) => w.toLowerCase().includes(q))) return false;
+      }
+      return true;
+    });
+  }, [reports, filterLang, filterSeverity, filterMatch]);
+
   // Loading auth
   if (authLoading || isAdmin === null) {
     return (
