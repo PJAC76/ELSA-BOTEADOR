@@ -1783,7 +1783,7 @@ const MeetingScreen = ({
   // come from curated catalogs but custom builds or future user-generated
   // additions could still slip severe terms through, so we re-check.
   const filterOutgoing = (content: string): string | null => {
-    const analysis = analyzeMessage(content);
+    const analysis = analyzeMessage(content, filterLang);
     if (analysis.severity === "severe") {
       toast({
         title: t("chatBlockedTitle"),
