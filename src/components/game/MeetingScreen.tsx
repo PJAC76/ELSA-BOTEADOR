@@ -1209,7 +1209,8 @@ const MeetingScreen = ({
   playerUserIds = {},
   onServerResolved,
 }: MeetingScreenProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const filterLang = language === "en" ? "en" : "es";
   const players = propPlayers.length > 0 ? propPlayers : MOCK_PLAYERS;
   const [phase, setPhase] = useState<"clues" | "discussion" | "voting" | "result">("clues");
   const [timeLeft, setTimeLeft] = useState(DISCUSSION_TIME);
