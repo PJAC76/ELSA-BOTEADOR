@@ -82,24 +82,34 @@ export default function Moderation() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
-  const loadReports = async () => {
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(50);
+  const [totalCount, setTotalCount] = useState<number>(0);
+
+  const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
+    const p = opts?.page ?? page;
+    const ps = opts?.pageSize ?? pageSize;
     setLoading(true);
+    const from = p * ps;
+    const to = from + ps - 1;
     let q = supabase
       .from("reports")
       .select(
         "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language",
+        { count: "exact" },
       )
       .order("created_at", { ascending: false })
-      .limit(200);
+      .range(from, to);
     if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
     if (dateTo) {
       const end = new Date(dateTo);
       end.setHours(23, 59, 59, 999);
       q = q.lte("created_at", end.toISOString());
     }
-    const { data, error } = await q;
+    const { data, error, count } = await q;
     if (!error && data) {
       setReports(data as unknown as ReportRow[]);
+      if (typeof count === "number") setTotalCount(count);
       const ids = Array.from(
         new Set(
           (data as unknown as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
@@ -111,8 +121,8 @@ export default function Moderation() {
           .select("user_id, display_name")
           .in("user_id", ids);
         const map: Record<string, string> = {};
-        (profs as ProfileMini[] | null)?.forEach((p) => {
-          map[p.user_id] = p.display_name;
+        (profs as ProfileMini[] | null)?.forEach((p2) => {
+          map[p2.user_id] = p2.display_name;
         });
         setProfiles(map);
       }
@@ -121,8 +131,27 @@ export default function Moderation() {
   };
 
   useEffect(() => {
-    if (isAdmin) loadReports();
+    if (isAdmin) loadReports({ page: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
+
+  const applyFilters = () => {
+    setPage(0);
+    loadReports({ page: 0 });
+  };
+
+  const goToPage = (next: number) => {
+    const maxPage = Math.max(0, Math.ceil(totalCount / pageSize) - 1);
+    const clamped = Math.min(Math.max(0, next), maxPage);
+    setPage(clamped);
+    loadReports({ page: clamped });
+  };
+
+  const changePageSize = (ps: number) => {
+    setPageSize(ps);
+    setPage(0);
+    loadReports({ page: 0, pageSize: ps });
+  };
 
   const [termsLang, setTermsLang] = useState<"es" | "en">("es");
   const terms = useMemo(() => listFilterTerms(termsLang), [termsLang]);
