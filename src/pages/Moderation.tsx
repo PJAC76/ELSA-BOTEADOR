@@ -373,54 +373,172 @@ export default function Moderation() {
                             <span className="break-words">{r.reason}</span>
                           </div>
                           {d && (
-                            <div className="rounded-md border bg-muted/30 p-2 text-xs space-y-1">
-                              {d.severeMatches && d.severeMatches.length > 0 && (
-                                <div className="flex flex-wrap gap-1 items-center">
-                                  <span className="font-semibold">Severe:</span>
-                                  {d.severeMatches.map((w) => (
-                                    <Badge
-                                      key={`sv-${r.id}-${w}`}
-                                      variant="destructive"
-                                      className="font-mono text-[10px]"
-                                    >
-                                      {w}
-                                    </Badge>
-                                  ))}
+                            <Collapsible
+                              open={openId === r.id}
+                              onOpenChange={(o) => setOpenId(o ? r.id : null)}
+                            >
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <CollapsibleTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs gap-1"
+                                  >
+                                    <ChevronDown
+                                      className={`h-3 w-3 transition-transform ${openId === r.id ? "rotate-180" : ""}`}
+                                    />
+                                    Diagnostics
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs gap-1"
+                                  onClick={() =>
+                                    copy("Full diagnostics JSON", JSON.stringify(d, null, 2))
+                                  }
+                                >
+                                  <Copy className="h-3 w-3" /> JSON
+                                </Button>
+                                {(d.severeMatches?.length ?? 0) > 0 && (
+                                  <Badge variant="destructive" className="text-[10px]">
+                                    {d.severeMatches!.length} severe
+                                  </Badge>
+                                )}
+                                {(d.mildMatches?.length ?? 0) > 0 && (
+                                  <Badge variant="secondary" className="text-[10px]">
+                                    {d.mildMatches!.length} mild
+                                  </Badge>
+                                )}
+                              </div>
+                              <CollapsibleContent className="mt-2">
+                                <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-3">
+                                  {d.severeMatches && d.severeMatches.length > 0 && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">
+                                          Severe matches
+                                        </span>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-1.5 text-[10px] gap-1"
+                                          onClick={() =>
+                                            copy("Severe matches", d.severeMatches!.join(", "))
+                                          }
+                                        >
+                                          <Copy className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {d.severeMatches.map((w) => (
+                                          <Badge
+                                            key={`sv-${r.id}-${w}`}
+                                            variant="destructive"
+                                            className="font-mono text-[10px]"
+                                          >
+                                            {w}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {d.mildMatches && d.mildMatches.length > 0 && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">
+                                          Mild matches
+                                        </span>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-1.5 text-[10px] gap-1"
+                                          onClick={() =>
+                                            copy("Mild matches", d.mildMatches!.join(", "))
+                                          }
+                                        >
+                                          <Copy className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {d.mildMatches.map((w) => (
+                                          <Badge
+                                            key={`md-${r.id}-${w}`}
+                                            variant="secondary"
+                                            className="font-mono text-[10px]"
+                                          >
+                                            {w}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {d.originalText && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">
+                                          Original text
+                                        </span>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-1.5 text-[10px] gap-1"
+                                          onClick={() => copy("Original text", d.originalText!)}
+                                        >
+                                          <Copy className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      <pre className="whitespace-pre-wrap break-words rounded bg-background/60 border p-2 font-mono text-[11px]">
+                                        {d.originalText}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {d.maskedText && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">
+                                          Masked text
+                                        </span>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-1.5 text-[10px] gap-1"
+                                          onClick={() => copy("Masked text", d.maskedText!)}
+                                        >
+                                          <Copy className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      <pre className="whitespace-pre-wrap break-words rounded bg-background/60 border p-2 font-mono text-[11px]">
+                                        {d.maskedText}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {d.sourceId && (
+                                    <div className="flex items-center justify-between text-muted-foreground">
+                                      <div>
+                                        <span className="font-semibold">Msg ID:</span>{" "}
+                                        <span className="font-mono">{d.sourceId}</span>
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-1.5 text-[10px] gap-1"
+                                        onClick={() => copy("Message ID", d.sourceId!)}
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                              {d.mildMatches && d.mildMatches.length > 0 && (
-                                <div className="flex flex-wrap gap-1 items-center">
-                                  <span className="font-semibold">Mild:</span>
-                                  {d.mildMatches.map((w) => (
-                                    <Badge
-                                      key={`md-${r.id}-${w}`}
-                                      variant="secondary"
-                                      className="font-mono text-[10px]"
-                                    >
-                                      {w}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                              {d.originalText && (
-                                <div className="break-words">
-                                  <span className="font-semibold">Original:</span>{" "}
-                                  <span className="font-mono">{d.originalText}</span>
-                                </div>
-                              )}
-                              {d.maskedText && (
-                                <div className="break-words">
-                                  <span className="font-semibold">Masked:</span>{" "}
-                                  <span className="font-mono">{d.maskedText}</span>
-                                </div>
-                              )}
-                              {d.sourceId && (
-                                <div className="text-muted-foreground">
-                                  <span className="font-semibold">Msg ID:</span>{" "}
-                                  <span className="font-mono">{d.sourceId.slice(0, 8)}…</span>
-                                </div>
-                              )}
-                            </div>
+                              </CollapsibleContent>
+                            </Collapsible>
                           )}
                         </div>
                       );
