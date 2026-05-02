@@ -11,6 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 
+type ReportDiagnostics = {
+  language?: string;
+  severity?: string;
+  severeMatches?: string[];
+  mildMatches?: string[];
+  originalText?: string;
+  maskedText?: string;
+  sourceId?: string;
+};
+
 type ReportRow = {
   id: string;
   created_at: string;
@@ -18,6 +28,10 @@ type ReportRow = {
   match_id: string | null;
   reported_id: string;
   reporter_id: string;
+  diagnostics?: ReportDiagnostics | null;
+  source?: string | null;
+  severity?: string | null;
+  language?: string | null;
 };
 
 type ProfileMini = { user_id: string; display_name: string };
