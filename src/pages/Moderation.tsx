@@ -229,7 +229,29 @@ export default function Moderation() {
           {/* Terms tab */}
           <TabsContent value="terms" className="mt-4">
             <Card className="p-4 space-y-4">
-              <p className="text-xs text-muted-foreground">{t("modTermsHint")}</p>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">{t("modTermsHint")}</p>
+                <div className="inline-flex rounded-md border p-0.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={termsLang === "es" ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setTermsLang("es")}
+                  >
+                    ES
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={termsLang === "en" ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setTermsLang("en")}
+                  >
+                    EN
+                  </Button>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
