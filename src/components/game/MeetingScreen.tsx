@@ -1300,7 +1300,7 @@ const MeetingScreen = ({
           // Skip stickers (preset payloads parsed elsewhere) and own messages.
           let displayContent = r.message;
           if (!isMe && !r.is_preset && !isEmoji) {
-            const analysis = analyzeMessage(r.message);
+            const analysis = analyzeMessage(r.message, filterLang);
             if (analysis.severity === "severe") {
               displayContent = t("chatFilteredMessage");
               // Auto-report sender once per message id, capped per round.
