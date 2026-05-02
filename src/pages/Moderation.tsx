@@ -195,7 +195,43 @@ export default function Moderation() {
 
           {/* Reports tab */}
           <TabsContent value="reports" className="mt-4">
-            <Card className="p-4">
+            <Card className="p-4 space-y-3">
+              <div className="flex items-end gap-2 flex-wrap">
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">From</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="h-9 rounded-md border bg-background px-2 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">To</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="h-9 rounded-md border bg-background px-2 text-sm"
+                  />
+                </div>
+                <Button size="sm" onClick={loadReports} disabled={loading}>
+                  Apply
+                </Button>
+                {(dateFrom || dateTo) && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setDateFrom("");
+                      setDateTo("");
+                      setTimeout(loadReports, 0);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
               {loading ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -208,44 +244,107 @@ export default function Moderation() {
               ) : (
                 <ScrollArea className="h-[60vh]">
                   <div className="space-y-2 pr-2">
-                    {reports.map((r) => (
-                      <div
-                        key={r.id}
-                        className="rounded-lg border bg-card p-3 text-sm space-y-2"
-                      >
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={isAuto(r.reason) ? "destructive" : "secondary"}
-                            >
-                              {isAuto(r.reason)
-                                ? t("modAutoBadge")
-                                : t("modManualBadge")}
-                            </Badge>
-                            <span className="font-medium">
-                              {t("modReported")}: {nameOf(r.reported_id)}
+                    {reports.map((r) => {
+                      const d = r.diagnostics ?? null;
+                      return (
+                        <div
+                          key={r.id}
+                          className="rounded-lg border bg-card p-3 text-sm space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge
+                                variant={isAuto(r.reason) ? "destructive" : "secondary"}
+                              >
+                                {isAuto(r.reason)
+                                  ? t("modAutoBadge")
+                                  : t("modManualBadge")}
+                              </Badge>
+                              {r.severity && (
+                                <Badge variant="outline" className="uppercase text-[10px]">
+                                  {r.severity}
+                                </Badge>
+                              )}
+                              {r.language && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  {r.language.toUpperCase()}
+                                </Badge>
+                              )}
+                              <span className="font-medium">
+                                {t("modReported")}: {nameOf(r.reported_id)}
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(r.created_at)}
                             </span>
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(r.created_at)}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                          <div>
-                            <span className="font-semibold">{t("modReporter")}:</span>{" "}
-                            {nameOf(r.reporter_id)}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            <div>
+                              <span className="font-semibold">{t("modReporter")}:</span>{" "}
+                              {nameOf(r.reporter_id)}
+                            </div>
+                            <div className="truncate">
+                              <span className="font-semibold">{t("modMatch")}:</span>{" "}
+                              {r.match_id ? r.match_id.slice(0, 8) + "…" : "—"}
+                            </div>
                           </div>
-                          <div className="truncate">
-                            <span className="font-semibold">{t("modMatch")}:</span>{" "}
-                            {r.match_id ? r.match_id.slice(0, 8) + "…" : "—"}
+                          <div className="text-sm">
+                            <span className="font-semibold">{t("modReason")}:</span>{" "}
+                            <span className="break-words">{r.reason}</span>
                           </div>
+                          {d && (
+                            <div className="rounded-md border bg-muted/30 p-2 text-xs space-y-1">
+                              {d.severeMatches && d.severeMatches.length > 0 && (
+                                <div className="flex flex-wrap gap-1 items-center">
+                                  <span className="font-semibold">Severe:</span>
+                                  {d.severeMatches.map((w) => (
+                                    <Badge
+                                      key={`sv-${r.id}-${w}`}
+                                      variant="destructive"
+                                      className="font-mono text-[10px]"
+                                    >
+                                      {w}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {d.mildMatches && d.mildMatches.length > 0 && (
+                                <div className="flex flex-wrap gap-1 items-center">
+                                  <span className="font-semibold">Mild:</span>
+                                  {d.mildMatches.map((w) => (
+                                    <Badge
+                                      key={`md-${r.id}-${w}`}
+                                      variant="secondary"
+                                      className="font-mono text-[10px]"
+                                    >
+                                      {w}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {d.originalText && (
+                                <div className="break-words">
+                                  <span className="font-semibold">Original:</span>{" "}
+                                  <span className="font-mono">{d.originalText}</span>
+                                </div>
+                              )}
+                              {d.maskedText && (
+                                <div className="break-words">
+                                  <span className="font-semibold">Masked:</span>{" "}
+                                  <span className="font-mono">{d.maskedText}</span>
+                                </div>
+                              )}
+                              {d.sourceId && (
+                                <div className="text-muted-foreground">
+                                  <span className="font-semibold">Msg ID:</span>{" "}
+                                  <span className="font-mono">{d.sourceId.slice(0, 8)}…</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-sm">
-                          <span className="font-semibold">{t("modReason")}:</span>{" "}
-                          <span className="break-words">{r.reason}</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               )}
