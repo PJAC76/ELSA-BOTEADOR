@@ -646,6 +646,72 @@ export default function Moderation() {
                   </div>
                 </ScrollArea>
               )}
+              {/* Pagination */}
+              <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Per page</span>
+                  <div className="inline-flex rounded-md border p-0.5">
+                    {[25, 50, 100, 200].map((n) => (
+                      <Button
+                        key={n}
+                        type="button"
+                        size="sm"
+                        variant={pageSize === n ? "default" : "ghost"}
+                        className="h-7 px-2 text-xs"
+                        onClick={() => changePageSize(n)}
+                      >
+                        {n}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-muted-foreground">
+                  {totalCount === 0
+                    ? "0"
+                    : `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, totalCount)} of ${totalCount}`}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={loading || page === 0}
+                    onClick={() => goToPage(0)}
+                  >
+                    «
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={loading || page === 0}
+                    onClick={() => goToPage(page - 1)}
+                  >
+                    Prev
+                  </Button>
+                  <span className="px-2">
+                    {page + 1} / {Math.max(1, Math.ceil(totalCount / pageSize))}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={loading || (page + 1) * pageSize >= totalCount}
+                    onClick={() => goToPage(page + 1)}
+                  >
+                    Next
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={loading || (page + 1) * pageSize >= totalCount}
+                    onClick={() => goToPage(Math.ceil(totalCount / pageSize) - 1)}
+                  >
+                    »
+                  </Button>
+                </div>
+              </div>
             </Card>
           </TabsContent>
 
