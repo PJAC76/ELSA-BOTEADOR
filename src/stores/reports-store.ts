@@ -18,12 +18,36 @@ export const REPORT_REASONS: { value: ReportReason; label: string; emoji: string
   { value: "other", label: "Otro motivo", emoji: "❓" },
 ];
 
+/**
+ * Per-message diagnostic payload attached to auto-moderation events.
+ * Lets us audit *why* a message was blocked or masked: which locale
+ * dictionary was active, what severe/mild terms matched, and the
+ * before/after text. Manual reports usually omit this.
+ */
+export type ReportDiagnostics = {
+  /** Active filter locale at the time of detection (e.g. "es", "en"). */
+  language: string;
+  /** Severity bucket the analyzer assigned. */
+  severity: "clean" | "mild" | "severe";
+  /** Normalized severe dictionary terms that matched. */
+  severeMatches: string[];
+  /** Normalized mild dictionary terms that matched. */
+  mildMatches: string[];
+  /** Raw text the player sent (before masking). */
+  originalText: string;
+  /** Text after masking (what other players actually saw). */
+  maskedText: string;
+  /** Optional source identifier (e.g. chat message id). */
+  sourceId?: string;
+};
+
 type Report = {
   id: string;
   reportedPlayerId: string;
   reportedPlayerName: string;
   reason: ReportReason;
   timestamp: number;
+  diagnostics?: ReportDiagnostics;
 };
 
 type ReportsStore = {
