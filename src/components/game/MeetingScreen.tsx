@@ -329,6 +329,9 @@ const ChatPanel = ({
   myPlayerId,
   typingNames = [],
   onTypingChange,
+  autoReportQuotaPerSender,
+  autoReportRemainingPerSender,
+  autoReportTotalSubmitted,
 }: {
   messages: ChatMessage[];
   onSendPreset: (msg: string) => void;
@@ -341,6 +344,9 @@ const ChatPanel = ({
   myPlayerId: string;
   typingNames?: string[];
   onTypingChange?: (typing: boolean) => void;
+  autoReportQuotaPerSender?: number;
+  autoReportRemainingPerSender?: number;
+  autoReportTotalSubmitted?: number;
 }) => {
   const { t, language } = useTranslation();
   // Filter status indicator (next to the chat input). Recomputed when the
