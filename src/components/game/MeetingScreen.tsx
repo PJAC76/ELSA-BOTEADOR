@@ -1276,6 +1276,7 @@ const MeetingScreen = ({
                   }
                 } else {
                   autoReportCountsRef.current.set(r.sender_id, prevCount + 1);
+                  setAutoReportUsageVersion((v) => v + 1);
                   try {
                     submitReport({
                       reportedPlayerId: r.sender_id,
