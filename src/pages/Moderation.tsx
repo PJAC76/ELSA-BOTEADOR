@@ -67,18 +67,30 @@ export default function Moderation() {
     };
   }, [user, authLoading]);
 
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+
   const loadReports = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("reports")
-      .select("id, created_at, reason, match_id, reported_id, reporter_id")
+      .select(
+        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language",
+      )
       .order("created_at", { ascending: false })
       .limit(200);
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
+    if (dateTo) {
+      const end = new Date(dateTo);
+      end.setHours(23, 59, 59, 999);
+      q = q.lte("created_at", end.toISOString());
+    }
+    const { data, error } = await q;
     if (!error && data) {
-      setReports(data as ReportRow[]);
+      setReports(data as unknown as ReportRow[]);
       const ids = Array.from(
         new Set(
-          (data as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
+          (data as unknown as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
         ),
       );
       if (ids.length) {
