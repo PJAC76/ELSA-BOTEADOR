@@ -234,10 +234,14 @@ export function analyzeMessage(text: string, lang?: FilterLanguage): FilterResul
   if (matchesSevere.size > 0) severity = "severe";
   else if (matchesMild.size > 0) severity = "mild";
 
+  const severeArr = [...matchesSevere];
+  const mildArr = [...matchesMild];
   return {
     severity,
     maskedText: masked,
-    matches: [...matchesSevere, ...matchesMild],
+    matches: [...severeArr, ...mildArr],
+    severeMatches: severeArr,
+    mildMatches: mildArr,
   };
 }
 
