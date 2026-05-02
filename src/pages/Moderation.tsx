@@ -264,7 +264,7 @@ export default function Moderation() {
             </Button>
             <Button
               size="sm"
-              onClick={loadReports}
+              onClick={() => loadReports()}
               disabled={loading}
               className="gap-1"
             >
