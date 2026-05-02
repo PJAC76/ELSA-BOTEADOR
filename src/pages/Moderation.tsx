@@ -116,6 +116,24 @@ export default function Moderation() {
   const terms = useMemo(() => listFilterTerms(termsLang), [termsLang]);
   const stats = useMemo(() => getFilterStats(termsLang), [termsLang]);
 
+  // Filters for the events list
+  const [filterLang, setFilterLang] = useState<"all" | "es" | "en">("all");
+  const [filterSeverity, setFilterSeverity] = useState<"all" | "severe" | "mild" | "clean">("all");
+  const [filterMatch, setFilterMatch] = useState<string>("");
+
+  const filteredReports = useMemo(() => {
+    const q = filterMatch.trim().toLowerCase();
+    return reports.filter((r) => {
+      if (filterLang !== "all" && (r.language ?? r.diagnostics?.language) !== filterLang) return false;
+      if (filterSeverity !== "all" && (r.severity ?? r.diagnostics?.severity) !== filterSeverity) return false;
+      if (q) {
+        const sev = r.diagnostics?.severeMatches ?? [];
+        if (!sev.some((w) => w.toLowerCase().includes(q))) return false;
+      }
+      return true;
+    });
+  }, [reports, filterLang, filterSeverity, filterMatch]);
+
   // Loading auth
   if (authLoading || isAdmin === null) {
     return (
@@ -232,19 +250,69 @@ export default function Moderation() {
                   </Button>
                 )}
               </div>
+              {/* Diagnostic filters */}
+              <div className="flex items-end gap-2 flex-wrap border-t pt-3">
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">Language</label>
+                  <div className="inline-flex rounded-md border p-0.5">
+                    {(["all", "es", "en"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        size="sm"
+                        variant={filterLang === v ? "default" : "ghost"}
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setFilterLang(v)}
+                      >
+                        {v.toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-muted-foreground mb-1">Severity</label>
+                  <div className="inline-flex rounded-md border p-0.5">
+                    {(["all", "severe", "mild", "clean"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        size="sm"
+                        variant={filterSeverity === v ? "default" : "ghost"}
+                        className="h-7 px-3 text-xs capitalize"
+                        onClick={() => setFilterSeverity(v)}
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col flex-1 min-w-[180px]">
+                  <label className="text-xs text-muted-foreground mb-1">Severe match</label>
+                  <input
+                    type="text"
+                    value={filterMatch}
+                    onChange={(e) => setFilterMatch(e.target.value)}
+                    placeholder="e.g. puta, bitch…"
+                    className="h-9 rounded-md border bg-background px-2 text-sm"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground ml-auto">
+                  {filteredReports.length} / {reports.length}
+                </div>
+              </div>
               {loading ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   {t("modLoading")}
                 </div>
-              ) : reports.length === 0 ? (
+              ) : filteredReports.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {t("modNoReports")}
                 </div>
               ) : (
                 <ScrollArea className="h-[60vh]">
                   <div className="space-y-2 pr-2">
-                    {reports.map((r) => {
+                    {filteredReports.map((r) => {
                       const d = r.diagnostics ?? null;
                       return (
                         <div
