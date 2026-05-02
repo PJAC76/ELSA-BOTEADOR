@@ -132,6 +132,44 @@ export default function Moderation() {
   const [filterLang, setFilterLang] = useState<"all" | "es" | "en">("all");
   const [filterSeverity, setFilterSeverity] = useState<"all" | "severe" | "mild" | "clean">("all");
   const [filterMatch, setFilterMatch] = useState<string>("");
+  const [searchSource, setSearchSource] = useState<string>("");
+
+  const findAndOpen = (raw: string) => {
+    const q = raw.trim().toLowerCase();
+    if (!q) return;
+    const found = reports.find(
+      (r) =>
+        r.id.toLowerCase().startsWith(q) ||
+        (r.diagnostics?.sourceId ?? "").toLowerCase().startsWith(q) ||
+        (r.diagnostics?.sourceId ?? "").toLowerCase() === q,
+    );
+    if (!found) {
+      toast({ title: "Not found", description: `No event for "${raw}"`, variant: "destructive" });
+      return;
+    }
+    // Reset filters that could hide it
+    setFilterLang("all");
+    setFilterSeverity("all");
+    setFilterMatch("");
+    setOpenId(found.id);
+    setTimeout(() => {
+      const el = document.getElementById(`evt-${found.id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
+
+  // Deep link: ?source=<id> or #source=<id>
+  useEffect(() => {
+    if (!reports.length) return;
+    const url = new URL(window.location.href);
+    const fromQuery = url.searchParams.get("source");
+    const hash = window.location.hash.startsWith("#source=")
+      ? window.location.hash.slice("#source=".length)
+      : "";
+    const target = fromQuery || hash;
+    if (target) findAndOpen(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports]);
 
   const filteredReports = useMemo(() => {
     const q = filterMatch.trim().toLowerCase();
@@ -207,6 +245,38 @@ export default function Moderation() {
           </div>
         </div>
 
+        {/* Global search by sourceId / event id */}
+        <Card className="p-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              findAndOpen(searchSource);
+            }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <label className="text-xs text-muted-foreground">Find event</label>
+            <input
+              type="text"
+              value={searchSource}
+              onChange={(e) => setSearchSource(e.target.value)}
+              placeholder="Paste sourceId or event ID…"
+              className="h-9 flex-1 min-w-[220px] rounded-md border bg-background px-2 text-sm font-mono"
+            />
+            <Button type="submit" size="sm" disabled={!searchSource.trim()}>
+              Open
+            </Button>
+            {searchSource && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setSearchSource("")}
+              >
+                Clear
+              </Button>
+            )}
+          </form>
+        </Card>
         <Tabs defaultValue="reports" className="w-full">
           <TabsList>
             <TabsTrigger value="reports">
@@ -329,7 +399,8 @@ export default function Moderation() {
                       return (
                         <div
                           key={r.id}
-                          className="rounded-lg border bg-card p-3 text-sm space-y-2"
+                          id={`evt-${r.id}`}
+                          className={`rounded-lg border bg-card p-3 text-sm space-y-2 transition-shadow ${openId === r.id ? "ring-2 ring-primary" : ""}`}
                         >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2 flex-wrap">
