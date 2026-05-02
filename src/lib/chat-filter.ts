@@ -26,8 +26,12 @@ export type FilterResult = {
   severity: FilterSeverity;
   /** Original text with offending words replaced by "***". */
   maskedText: string;
-  /** Lowercased dictionary terms detected (deduped). */
+  /** Lowercased dictionary terms detected (deduped, severe first). */
   matches: string[];
+  /** Severe-tier normalized terms that matched. */
+  severeMatches: string[];
+  /** Mild-tier normalized terms that matched. */
+  mildMatches: string[];
 };
 
 // --- Dictionaries (normalized: lowercase, no accents) ---------------------
