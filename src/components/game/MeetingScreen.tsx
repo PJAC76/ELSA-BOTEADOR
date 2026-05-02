@@ -1233,6 +1233,7 @@ const MeetingScreen = ({
     autoReportCountsRef.current = new Map();
     quotaNotifiedRef.current = new Set();
     autoReportedMsgIdsRef.current = new Set();
+    setAutoReportUsageVersion((v) => v + 1);
     const userIdToLocal = new Map<string, { id: string; name: string; emoji: string }>();
     for (const [localId, uid] of Object.entries(playerUserIds)) {
       if (!uid) continue;
