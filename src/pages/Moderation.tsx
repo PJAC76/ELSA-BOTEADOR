@@ -34,7 +34,12 @@ type ReportRow = {
   source?: string | null;
   severity?: string | null;
   language?: string | null;
+  status?: "pending" | "reviewed" | "resolved" | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
 };
+
+type ReportStatus = "pending" | "reviewed" | "resolved";
 
 type ProfileMini = { user_id: string; display_name: string };
 
