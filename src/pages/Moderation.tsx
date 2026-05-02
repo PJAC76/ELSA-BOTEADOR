@@ -86,8 +86,9 @@ export default function Moderation() {
     if (isAdmin) loadReports();
   }, [isAdmin]);
 
-  const terms = useMemo(() => listFilterTerms(), []);
-  const stats = useMemo(() => getFilterStats(), []);
+  const [termsLang, setTermsLang] = useState<"es" | "en">("es");
+  const terms = useMemo(() => listFilterTerms(termsLang), [termsLang]);
+  const stats = useMemo(() => getFilterStats(termsLang), [termsLang]);
 
   // Loading auth
   if (authLoading || isAdmin === null) {
