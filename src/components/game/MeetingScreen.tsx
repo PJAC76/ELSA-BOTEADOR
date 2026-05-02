@@ -1194,6 +1194,24 @@ const MeetingScreen = ({
   const AUTO_REPORT_QUOTA_PER_SENDER = 2;
   const autoReportCountsRef = useRef<Map<string, number>>(new Map());
   const quotaNotifiedRef = useRef<Set<string>>(new Set());
+  // Reactive mirror of auto-report usage so the chat indicator can render
+  // remaining capacity. We keep the ref above as the source of truth for the
+  // hot ingest path and sync this state after each successful submission.
+  const [autoReportUsageVersion, setAutoReportUsageVersion] = useState(0);
+  const autoReportTotalSubmitted = useMemo(() => {
+    let sum = 0;
+    for (const v of autoReportCountsRef.current.values()) sum += v;
+    return sum;
+    // version bump triggers recompute
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReportUsageVersion]);
+  const autoReportMaxUsedPerSender = useMemo(() => {
+    let max = 0;
+    for (const v of autoReportCountsRef.current.values()) if (v > max) max = v;
+    return max;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReportUsageVersion]);
+  const autoReportRemainingPerSender = Math.max(0, AUTO_REPORT_QUOTA_PER_SENDER - autoReportMaxUsedPerSender);
 
   // Track my auth user_id so realtime echoes are labeled "Tú".
   const myUserIdRef = useRef<string | null>(null);
