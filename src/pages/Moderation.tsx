@@ -344,7 +344,7 @@ export default function Moderation() {
                     className="h-9 rounded-md border bg-background px-2 text-sm"
                   />
                 </div>
-                <Button size="sm" onClick={loadReports} disabled={loading}>
+                <Button size="sm" onClick={applyFilters} disabled={loading}>
                   Apply
                 </Button>
                 {(dateFrom || dateTo) && (
@@ -354,7 +354,7 @@ export default function Moderation() {
                     onClick={() => {
                       setDateFrom("");
                       setDateTo("");
-                      setTimeout(loadReports, 0);
+                      setTimeout(applyFilters, 0);
                     }}
                   >
                     Clear
