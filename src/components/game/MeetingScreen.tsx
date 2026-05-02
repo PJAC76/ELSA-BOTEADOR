@@ -1351,7 +1351,7 @@ const MeetingScreen = ({
                           severity: analysis.severity,
                           language: filterLang,
                           diagnostics: diagnostics as unknown as Record<string, unknown>,
-                        })
+                        }])
                         .then(({ error }) => {
                           if (error) console.warn("[moderation] persist failed", error.message);
                         });
