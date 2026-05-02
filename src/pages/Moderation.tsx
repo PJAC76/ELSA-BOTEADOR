@@ -456,6 +456,7 @@ export default function Moderation() {
                       </Button>
                     ))}
                   </div>
+                </div>
                 <div className="flex flex-col flex-1 min-w-[180px]">
                   <label className="text-xs text-muted-foreground mb-1">Severe match</label>
                   <input
