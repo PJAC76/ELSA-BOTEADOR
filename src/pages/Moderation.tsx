@@ -245,6 +245,38 @@ export default function Moderation() {
           </div>
         </div>
 
+        {/* Global search by sourceId / event id */}
+        <Card className="p-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              findAndOpen(searchSource);
+            }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <label className="text-xs text-muted-foreground">Find event</label>
+            <input
+              type="text"
+              value={searchSource}
+              onChange={(e) => setSearchSource(e.target.value)}
+              placeholder="Paste sourceId or event ID…"
+              className="h-9 flex-1 min-w-[220px] rounded-md border bg-background px-2 text-sm font-mono"
+            />
+            <Button type="submit" size="sm" disabled={!searchSource.trim()}>
+              Open
+            </Button>
+            {searchSource && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setSearchSource("")}
+              >
+                Clear
+              </Button>
+            )}
+          </form>
+        </Card>
         <Tabs defaultValue="reports" className="w-full">
           <TabsList>
             <TabsTrigger value="reports">
