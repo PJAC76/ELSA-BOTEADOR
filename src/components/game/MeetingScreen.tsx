@@ -1342,7 +1342,7 @@ const MeetingScreen = ({
                     if (reporterUid && matchId) {
                       supabase
                         .from("reports")
-                        .insert({
+                        .insert([{
                           reporter_id: reporterUid,
                           reported_id: r.sender_id,
                           match_id: matchId,
