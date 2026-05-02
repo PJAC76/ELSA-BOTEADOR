@@ -100,11 +100,12 @@ export default function Moderation() {
     let q = supabase
       .from("reports")
       .select(
-        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language",
+        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language, status, reviewed_by, reviewed_at",
         { count: "exact" },
       )
       .order("created_at", { ascending: false })
       .range(from, to);
+    if (filterStatus !== "all") q = q.eq("status", filterStatus);
     if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
     if (dateTo) {
       const end = new Date(dateTo);
