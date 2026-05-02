@@ -1009,6 +1009,43 @@ const ChatPanel = ({
             >
               <ShieldCheck className="h-4 w-4" />
             </span>
+            {/* Auto-report quota indicator: shows how many auto-reports the
+              * local player can still trigger per offender in this round.
+              * Only rendered when the parent provides quota data (online). */}
+            {typeof autoReportQuotaPerSender === "number" &&
+              typeof autoReportRemainingPerSender === "number" && (
+                <span
+                  role="status"
+                  aria-live="polite"
+                  title={
+                    autoReportRemainingPerSender > 0
+                      ? `${t("chatAutoReportRemainingTitle")} — ${t("chatAutoReportRemainingDesc")
+                          .replace("{remaining}", String(autoReportRemainingPerSender))
+                          .replace("{max}", String(autoReportQuotaPerSender))
+                          .replace("{used}", String(autoReportTotalSubmitted ?? 0))}`
+                      : t("chatAutoReportRemainingExhausted")
+                  }
+                  aria-label={
+                    autoReportRemainingPerSender > 0
+                      ? t("chatAutoReportRemainingDesc")
+                          .replace("{remaining}", String(autoReportRemainingPerSender))
+                          .replace("{max}", String(autoReportQuotaPerSender))
+                          .replace("{used}", String(autoReportTotalSubmitted ?? 0))
+                      : t("chatAutoReportRemainingExhausted")
+                  }
+                  className={`hidden sm:inline-flex h-9 items-center gap-1 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide ring-1 ${
+                    autoReportRemainingPerSender > 0
+                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-amber-500/30"
+                      : "bg-muted text-muted-foreground ring-border"
+                  }`}
+                >
+                  <span aria-hidden="true">🚩</span>
+                  <span>{t("chatAutoReportRemaining")}</span>
+                  <span className="rounded-full bg-amber-500/20 px-1 text-[9px] tabular-nums">
+                    {autoReportRemainingPerSender}/{autoReportQuotaPerSender}
+                  </span>
+                </span>
+              )}
             <button
               type="button"
               onClick={() => { const next = !showPresets; closeAllPanels(false); setShowPresets(next); }}
