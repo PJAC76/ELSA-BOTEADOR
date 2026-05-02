@@ -124,9 +124,21 @@ export default function Moderation() {
     toast({ title: `Marked as ${status}` });
   };
 
+  // Monotonic request token: any in-flight loadReports whose token is no
+  // longer the latest will discard its response so users never see stale rows
+  // after switching filters / page size quickly.
+  const reqIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
   const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
+    // Cancel previous in-flight request and bump the token
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const myReqId = ++reqIdRef.current;
+
     setLoading(true);
     const from = p * ps;
     const to = from + ps - 1;
@@ -137,7 +149,8 @@ export default function Moderation() {
         { count: "exact" },
       )
       .order("created_at", { ascending: false })
-      .range(from, to);
+      .range(from, to)
+      .abortSignal(controller.signal);
     if (filterStatus !== "all") q = q.eq("status", filterStatus);
     if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
     if (dateTo) {
@@ -146,7 +159,17 @@ export default function Moderation() {
       q = q.lte("created_at", end.toISOString());
     }
     const { data, error, count } = await q;
-    if (!error && data) {
+    // Stale response — a newer request superseded us; drop it silently.
+    if (myReqId !== reqIdRef.current) return;
+    if (error) {
+      // Aborted requests surface as errors; ignore them quietly.
+      if (!controller.signal.aborted) {
+        toast({ title: "Load failed", description: error.message, variant: "destructive" });
+      }
+      setLoading(false);
+      return;
+    }
+    if (data) {
       setReports(data as unknown as ReportRow[]);
       if (typeof count === "number") setTotalCount(count);
       const ids = Array.from(
@@ -159,6 +182,8 @@ export default function Moderation() {
           .from("profiles")
           .select("user_id, display_name")
           .in("user_id", ids);
+        // Drop stale profile fetch too
+        if (myReqId !== reqIdRef.current) return;
         const map: Record<string, string> = {};
         (profs as ProfileMini[] | null)?.forEach((p2) => {
           map[p2.user_id] = p2.display_name;
@@ -168,6 +193,14 @@ export default function Moderation() {
     }
     setLoading(false);
   };
+
+  // Cancel any pending request when leaving the screen
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      reqIdRef.current++;
+    };
+  }, []);
 
   useEffect(() => {
     if (isAdmin) loadReports({ page: 0 });
