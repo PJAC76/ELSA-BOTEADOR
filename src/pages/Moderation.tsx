@@ -363,6 +363,21 @@ export default function Moderation() {
     });
   }, [reports, filterLang, filterSeverity, filterMatch]);
 
+  // Virtualization: render only visible report cards. Cards have variable
+  // heights (diagnostics collapse), so we use measureElement for accuracy.
+  const listParentRef = useRef<HTMLDivElement | null>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: filteredReports.length,
+    getScrollElement: () => listParentRef.current,
+    estimateSize: () => 220,
+    overscan: 6,
+    getItemKey: (i) => filteredReports[i]?.id ?? i,
+    measureElement:
+      typeof window !== "undefined" && "ResizeObserver" in window
+        ? (el) => el.getBoundingClientRect().height
+        : undefined,
+  });
+
   // Loading auth
   if (authLoading || isAdmin === null) {
     return (
