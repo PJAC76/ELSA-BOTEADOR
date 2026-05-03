@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/lib/i18n";
@@ -331,8 +332,19 @@ export default function Moderation() {
     setFilterMatch("");
     setOpenId(found.id);
     setTimeout(() => {
-      const el = document.getElementById(`evt-${found.id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const idx = filteredReports.findIndex((r) => r.id === found.id);
+      if (idx >= 0) {
+        try {
+          rowVirtualizer.scrollToIndex(idx, { align: "center" });
+        } catch {
+          /* ignore */
+        }
+      }
+      // After virtualization renders the row, focus it.
+      setTimeout(() => {
+        const el = document.getElementById(`evt-${found.id}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
     }, 50);
   };
 
@@ -361,6 +373,21 @@ export default function Moderation() {
       return true;
     });
   }, [reports, filterLang, filterSeverity, filterMatch]);
+
+  // Virtualization: render only visible report cards. Cards have variable
+  // heights (diagnostics collapse), so we use measureElement for accuracy.
+  const listParentRef = useRef<HTMLDivElement | null>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: filteredReports.length,
+    getScrollElement: () => listParentRef.current,
+    estimateSize: () => 220,
+    overscan: 6,
+    getItemKey: (i) => filteredReports[i]?.id ?? i,
+    measureElement:
+      typeof window !== "undefined" && "ResizeObserver" in window
+        ? (el) => el.getBoundingClientRect().height
+        : undefined,
+  });
 
   // Loading auth
   if (authLoading || isAdmin === null) {
@@ -591,16 +618,36 @@ export default function Moderation() {
                   {t("modNoReports")}
                 </div>
               ) : (
-                <ScrollArea className="h-[60vh]">
-                  <div className="space-y-2 pr-2">
-                    {filteredReports.map((r) => {
+                <div
+                  ref={listParentRef}
+                  className="h-[60vh] overflow-auto rounded-md"
+                  style={{ contain: "strict" }}
+                >
+                  <div
+                    className="relative w-full pr-2"
+                    style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+                  >
+                    {rowVirtualizer.getVirtualItems().map((vRow) => {
+                      const r = filteredReports[vRow.index];
                       const d = r.diagnostics ?? null;
                       return (
                         <div
-                          key={r.id}
-                          id={`evt-${r.id}`}
-                          className={`rounded-lg border bg-card p-3 text-sm space-y-2 transition-shadow ${openId === r.id ? "ring-2 ring-primary" : ""}`}
+                          key={vRow.key}
+                          data-index={vRow.index}
+                          ref={rowVirtualizer.measureElement}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            transform: `translateY(${vRow.start}px)`,
+                            paddingBottom: 8,
+                          }}
                         >
+                          <div
+                            id={`evt-${r.id}`}
+                            className={`rounded-lg border bg-card p-3 text-sm space-y-2 transition-shadow ${openId === r.id ? "ring-2 ring-primary" : ""}`}
+                          >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Badge
@@ -846,11 +893,12 @@ export default function Moderation() {
                               </CollapsibleContent>
                             </Collapsible>
                           )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                </ScrollArea>
+                </div>
               )}
               {/* Pagination */}
               <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t text-xs">
