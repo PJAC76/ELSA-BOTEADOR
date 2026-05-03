@@ -244,7 +244,7 @@ export default function Moderation() {
       if (!error) break;
       // Aborted: stop without retrying or toasting
       if (controller.signal.aborted) {
-        setLoading(false);
+        finishIfCurrent();
         return;
       }
       // Non-network errors: stop immediately
@@ -260,7 +260,7 @@ export default function Moderation() {
       } catch {
         // Aborted during backoff
         if (myReqId !== reqIdRef.current) return;
-        setLoading(false);
+        finishIfCurrent();
         return;
       }
       if (myReqId !== reqIdRef.current) return;
@@ -277,7 +277,7 @@ export default function Moderation() {
           variant: "destructive",
         });
       }
-      setLoading(false);
+      finishIfCurrent();
       return;
     }
     if (data) {
@@ -302,7 +302,7 @@ export default function Moderation() {
         setProfiles(map);
       }
     }
-    setLoading(false);
+    finishIfCurrent();
   };
 
   // Cancel any pending request when leaving the screen
