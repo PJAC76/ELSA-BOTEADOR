@@ -178,7 +178,9 @@ export default function Moderation() {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
     // Cancel previous in-flight request and bump the token
+    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && loading;
     abortRef.current?.abort();
+    if (hadInFlight) flashCancelledHint();
     const controller = new AbortController();
     abortRef.current = controller;
     const myReqId = ++reqIdRef.current;
