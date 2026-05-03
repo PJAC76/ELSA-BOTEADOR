@@ -332,8 +332,19 @@ export default function Moderation() {
     setFilterMatch("");
     setOpenId(found.id);
     setTimeout(() => {
-      const el = document.getElementById(`evt-${found.id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const idx = filteredReports.findIndex((r) => r.id === found.id);
+      if (idx >= 0) {
+        try {
+          rowVirtualizer.scrollToIndex(idx, { align: "center" });
+        } catch {
+          /* ignore */
+        }
+      }
+      // After virtualization renders the row, focus it.
+      setTimeout(() => {
+        const el = document.getElementById(`evt-${found.id}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
     }, 50);
   };
 
