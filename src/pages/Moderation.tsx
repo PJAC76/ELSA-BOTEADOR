@@ -285,7 +285,31 @@ export default function Moderation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
+  // Debounced auto-reload when server-side filters change. Keeps a single
+  // pending timer so rapid edits to date inputs / status toggles only fire
+  // one request, and the in-flight request gets cancelled inside loadReports.
+  const filtersInitRef = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isAdmin) return;
+    // Skip the very first run — initial fetch is handled by the isAdmin effect.
+    if (!filtersInitRef.current) {
+      filtersInitRef.current = true;
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(0);
+      loadReports({ page: 0 });
+    }, 350);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFrom, dateTo, filterStatus, isAdmin]);
+
   const applyFilters = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setPage(0);
     loadReports({ page: 0 });
   };
@@ -583,11 +607,7 @@ export default function Moderation() {
                         size="sm"
                         variant={filterStatus === v ? "default" : "ghost"}
                         className="h-7 px-3 text-xs capitalize"
-                        onClick={() => {
-                          setFilterStatus(v);
-                          setPage(0);
-                          setTimeout(() => loadReports({ page: 0 }), 0);
-                        }}
+                        onClick={() => setFilterStatus(v)}
                       >
                         {v}
                       </Button>
