@@ -180,14 +180,32 @@ export default function Moderation() {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
     // Cancel previous in-flight request and bump the token
-    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && loading;
+    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && reqState.activeId !== null;
     abortRef.current?.abort();
-    if (hadInFlight) flashCancelledHint();
     const controller = new AbortController();
     abortRef.current = controller;
     const myReqId = ++reqIdRef.current;
 
-    setLoading(true);
+    // Mark this request as the active one. If we cancelled a previous one,
+    // surface the hint and schedule its auto-clear from a single place.
+    setReqState((prev) => ({
+      activeId: myReqId,
+      cancelledAt: hadInFlight ? Date.now() : prev.cancelledAt,
+    }));
+    if (hadInFlight) {
+      if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+      cancelledHintTimerRef.current = setTimeout(() => {
+        setReqState((prev) => ({ ...prev, cancelledAt: null }));
+      }, 1800);
+    }
+
+    // Helper: clear the active flag iff this is still the latest request.
+    const finishIfCurrent = () => {
+      setReqState((prev) =>
+        prev.activeId === myReqId ? { ...prev, activeId: null } : prev,
+      );
+    };
+
     const from = p * ps;
     const to = from + ps - 1;
 
