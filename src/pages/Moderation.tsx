@@ -471,7 +471,17 @@ export default function Moderation() {
             </h1>
             <p className="text-sm text-muted-foreground">{t("modSubtitle")}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div
+              role="status"
+              aria-live="polite"
+              className={`flex items-center gap-1 text-xs text-muted-foreground transition-opacity duration-300 ${
+                cancelledHint ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <Ban className="h-3.5 w-3.5" />
+              <span>Solicitud anterior cancelada</span>
+            </div>
             <Button variant="outline" size="sm" asChild>
               <Link to="/">{t("back")}</Link>
             </Button>
