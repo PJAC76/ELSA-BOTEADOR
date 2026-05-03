@@ -61,6 +61,17 @@ export default function Moderation() {
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  // Subtle indicator: a previous in-flight request was cancelled because filters/page changed.
+  const [cancelledHint, setCancelledHint] = useState(false);
+  const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashCancelledHint = () => {
+    setCancelledHint(true);
+    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+    cancelledHintTimerRef.current = setTimeout(() => setCancelledHint(false), 1800);
+  };
+  useEffect(() => () => {
+    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+  }, []);
 
   // Verify role
   useEffect(() => {
