@@ -618,9 +618,33 @@ export default function Moderation() {
                   {t("modNoReports")}
                 </div>
               ) : (
-                <ScrollArea className="h-[60vh]">
-                  <div className="space-y-2 pr-2">
-                    {filteredReports.map((r) => {
+                <div
+                  ref={listParentRef}
+                  className="h-[60vh] overflow-auto rounded-md"
+                  style={{ contain: "strict" }}
+                >
+                  <div
+                    className="relative w-full pr-2"
+                    style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+                  >
+                    {rowVirtualizer.getVirtualItems().map((vRow) => {
+                      const r = filteredReports[vRow.index];
+                      const d = r.diagnostics ?? null;
+                      return (
+                        <div
+                          key={vRow.key}
+                          data-index={vRow.index}
+                          ref={rowVirtualizer.measureElement}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            transform: `translateY(${vRow.start}px)`,
+                            paddingBottom: 8,
+                          }}
+                        >
+                          {(() => { void r; return null; })()}
                       const d = r.diagnostics ?? null;
                       return (
                         <div
