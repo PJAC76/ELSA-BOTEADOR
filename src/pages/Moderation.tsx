@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
 
 type ReportDiagnostics = {
   language?: string;
@@ -61,6 +61,17 @@ export default function Moderation() {
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  // Subtle indicator: a previous in-flight request was cancelled because filters/page changed.
+  const [cancelledHint, setCancelledHint] = useState(false);
+  const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashCancelledHint = () => {
+    setCancelledHint(true);
+    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+    cancelledHintTimerRef.current = setTimeout(() => setCancelledHint(false), 1800);
+  };
+  useEffect(() => () => {
+    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+  }, []);
 
   // Verify role
   useEffect(() => {
@@ -167,7 +178,9 @@ export default function Moderation() {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
     // Cancel previous in-flight request and bump the token
+    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && loading;
     abortRef.current?.abort();
+    if (hadInFlight) flashCancelledHint();
     const controller = new AbortController();
     abortRef.current = controller;
     const myReqId = ++reqIdRef.current;
@@ -458,7 +471,17 @@ export default function Moderation() {
             </h1>
             <p className="text-sm text-muted-foreground">{t("modSubtitle")}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div
+              role="status"
+              aria-live="polite"
+              className={`flex items-center gap-1 text-xs text-muted-foreground transition-opacity duration-300 ${
+                cancelledHint ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <Ban className="h-3.5 w-3.5" />
+              <span>Solicitud anterior cancelada</span>
+            </div>
             <Button variant="outline" size="sm" asChild>
               <Link to="/">{t("back")}</Link>
             </Button>
