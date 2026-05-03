@@ -130,6 +130,38 @@ export default function Moderation() {
   const reqIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Heuristic: detect transient network errors that are worth retrying.
+  // Supabase surfaces fetch failures with no code or with "FetchError"/network-ish messages.
+  const isNetworkError = (err: { message?: string; code?: string; name?: string } | null) => {
+    if (!err) return false;
+    const msg = (err.message ?? "").toLowerCase();
+    const name = (err.name ?? "").toLowerCase();
+    return (
+      name === "typeerror" ||
+      name === "fetcherror" ||
+      msg.includes("failed to fetch") ||
+      msg.includes("networkerror") ||
+      msg.includes("network request failed") ||
+      msg.includes("load failed") ||
+      msg.includes("timeout") ||
+      msg.includes("econnreset") ||
+      msg.includes("enetunreach")
+    );
+  };
+
+  const sleep = (ms: number, signal: AbortSignal) =>
+    new Promise<void>((resolve, reject) => {
+      const t = setTimeout(resolve, ms);
+      const onAbort = () => {
+        clearTimeout(t);
+        reject(new DOMException("Aborted", "AbortError"));
+      };
+      if (signal.aborted) return onAbort();
+      signal.addEventListener("abort", onAbort, { once: true });
+    });
+
+  const MAX_RETRIES = 3;
+
   const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
@@ -142,29 +174,74 @@ export default function Moderation() {
     setLoading(true);
     const from = p * ps;
     const to = from + ps - 1;
-    let q = supabase
-      .from("reports")
-      .select(
-        "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language, status, reviewed_by, reviewed_at",
-        { count: "exact" },
-      )
-      .order("created_at", { ascending: false })
-      .range(from, to)
-      .abortSignal(controller.signal);
-    if (filterStatus !== "all") q = q.eq("status", filterStatus);
-    if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
-    if (dateTo) {
-      const end = new Date(dateTo);
-      end.setHours(23, 59, 59, 999);
-      q = q.lte("created_at", end.toISOString());
+
+    const runQuery = () => {
+      let q = supabase
+        .from("reports")
+        .select(
+          "id, created_at, reason, match_id, reported_id, reporter_id, diagnostics, source, severity, language, status, reviewed_by, reviewed_at",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .range(from, to)
+        .abortSignal(controller.signal);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      if (dateFrom) q = q.gte("created_at", new Date(dateFrom).toISOString());
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        q = q.lte("created_at", end.toISOString());
+      }
+      return q;
+    };
+
+    let data: unknown = null;
+    let error: { message?: string; code?: string; name?: string } | null = null;
+    let count: number | null = null;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const res = await runQuery();
+      // Stale response — drop silently.
+      if (myReqId !== reqIdRef.current) return;
+      data = res.data;
+      error = res.error as typeof error;
+      count = res.count ?? null;
+
+      if (!error) break;
+      // Aborted: stop without retrying or toasting
+      if (controller.signal.aborted) {
+        setLoading(false);
+        return;
+      }
+      // Non-network errors: stop immediately
+      if (!isNetworkError(error)) break;
+      // Out of retries
+      if (attempt === MAX_RETRIES) break;
+
+      // Exponential backoff with jitter: 400ms, 800ms, 1600ms (+/- 25%)
+      const base = 400 * Math.pow(2, attempt);
+      const jitter = base * (0.75 + Math.random() * 0.5);
+      try {
+        await sleep(jitter, controller.signal);
+      } catch {
+        // Aborted during backoff
+        if (myReqId !== reqIdRef.current) return;
+        setLoading(false);
+        return;
+      }
+      if (myReqId !== reqIdRef.current) return;
     }
-    const { data, error, count } = await q;
-    // Stale response — a newer request superseded us; drop it silently.
-    if (myReqId !== reqIdRef.current) return;
+
     if (error) {
-      // Aborted requests surface as errors; ignore them quietly.
       if (!controller.signal.aborted) {
-        toast({ title: "Load failed", description: error.message, variant: "destructive" });
+        const networky = isNetworkError(error);
+        toast({
+          title: networky ? "Network error" : "Load failed",
+          description: networky
+            ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
+            : error.message,
+          variant: "destructive",
+        });
       }
       setLoading(false);
       return;
