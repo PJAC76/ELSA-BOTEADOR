@@ -893,11 +893,12 @@ export default function Moderation() {
                               </CollapsibleContent>
                             </Collapsible>
                           )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                </ScrollArea>
+                </div>
               )}
               {/* Pagination */}
               <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t text-xs">
