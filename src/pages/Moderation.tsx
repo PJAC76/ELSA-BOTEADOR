@@ -607,11 +607,7 @@ export default function Moderation() {
                         size="sm"
                         variant={filterStatus === v ? "default" : "ghost"}
                         className="h-7 px-3 text-xs capitalize"
-                        onClick={() => {
-                          setFilterStatus(v);
-                          setPage(0);
-                          setTimeout(() => loadReports({ page: 0 }), 0);
-                        }}
+                        onClick={() => setFilterStatus(v)}
                       >
                         {v}
                       </Button>
