@@ -60,15 +60,17 @@ export default function Moderation() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-  // Subtle indicator: a previous in-flight request was cancelled because filters/page changed.
-  const [cancelledHint, setCancelledHint] = useState(false);
+  // Single source of truth for request lifecycle. `loading` and `cancelledHint`
+  // are derived from this so they can never disagree across renders.
+  //  - activeId: id of the in-flight loadReports call, or null when idle.
+  //  - cancelledAt: timestamp of the last cancellation, or null when no hint.
+  const [reqState, setReqState] = useState<{
+    activeId: number | null;
+    cancelledAt: number | null;
+  }>({ activeId: null, cancelledAt: null });
+  const loading = reqState.activeId !== null;
+  const cancelledHint = reqState.cancelledAt !== null;
   const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flashCancelledHint = () => {
-    setCancelledHint(true);
-    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
-    cancelledHintTimerRef.current = setTimeout(() => setCancelledHint(false), 1800);
-  };
   useEffect(() => () => {
     if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
   }, []);
@@ -178,14 +180,32 @@ export default function Moderation() {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
     // Cancel previous in-flight request and bump the token
-    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && loading;
+    const hadInFlight = !!abortRef.current && !abortRef.current.signal.aborted && reqState.activeId !== null;
     abortRef.current?.abort();
-    if (hadInFlight) flashCancelledHint();
     const controller = new AbortController();
     abortRef.current = controller;
     const myReqId = ++reqIdRef.current;
 
-    setLoading(true);
+    // Mark this request as the active one. If we cancelled a previous one,
+    // surface the hint and schedule its auto-clear from a single place.
+    setReqState((prev) => ({
+      activeId: myReqId,
+      cancelledAt: hadInFlight ? Date.now() : prev.cancelledAt,
+    }));
+    if (hadInFlight) {
+      if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
+      cancelledHintTimerRef.current = setTimeout(() => {
+        setReqState((prev) => ({ ...prev, cancelledAt: null }));
+      }, 1800);
+    }
+
+    // Helper: clear the active flag iff this is still the latest request.
+    const finishIfCurrent = () => {
+      setReqState((prev) =>
+        prev.activeId === myReqId ? { ...prev, activeId: null } : prev,
+      );
+    };
+
     const from = p * ps;
     const to = from + ps - 1;
 
@@ -224,7 +244,7 @@ export default function Moderation() {
       if (!error) break;
       // Aborted: stop without retrying or toasting
       if (controller.signal.aborted) {
-        setLoading(false);
+        finishIfCurrent();
         return;
       }
       // Non-network errors: stop immediately
@@ -240,7 +260,7 @@ export default function Moderation() {
       } catch {
         // Aborted during backoff
         if (myReqId !== reqIdRef.current) return;
-        setLoading(false);
+        finishIfCurrent();
         return;
       }
       if (myReqId !== reqIdRef.current) return;
@@ -257,7 +277,7 @@ export default function Moderation() {
           variant: "destructive",
         });
       }
-      setLoading(false);
+      finishIfCurrent();
       return;
     }
     if (data) {
@@ -282,7 +302,7 @@ export default function Moderation() {
         setProfiles(map);
       }
     }
-    setLoading(false);
+    finishIfCurrent();
   };
 
   // Cancel any pending request when leaving the screen
