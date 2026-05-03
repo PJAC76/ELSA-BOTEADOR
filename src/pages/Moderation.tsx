@@ -60,15 +60,17 @@ export default function Moderation() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-  // Subtle indicator: a previous in-flight request was cancelled because filters/page changed.
-  const [cancelledHint, setCancelledHint] = useState(false);
+  // Single source of truth for request lifecycle. `loading` and `cancelledHint`
+  // are derived from this so they can never disagree across renders.
+  //  - activeId: id of the in-flight loadReports call, or null when idle.
+  //  - cancelledAt: timestamp of the last cancellation, or null when no hint.
+  const [reqState, setReqState] = useState<{
+    activeId: number | null;
+    cancelledAt: number | null;
+  }>({ activeId: null, cancelledAt: null });
+  const loading = reqState.activeId !== null;
+  const cancelledHint = reqState.cancelledAt !== null;
   const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flashCancelledHint = () => {
-    setCancelledHint(true);
-    if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
-    cancelledHintTimerRef.current = setTimeout(() => setCancelledHint(false), 1800);
-  };
   useEffect(() => () => {
     if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
   }, []);
