@@ -272,13 +272,20 @@ export default function Moderation() {
     if (error) {
       if (!controller.signal.aborted) {
         const networky = isNetworkError(error);
+        const message = networky
+          ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
+          : error.message ?? "Unknown error";
+        setReqState((prev) =>
+          prev.activeId === myReqId
+            ? { ...prev, activeId: null, error: { message, networky, attempts: MAX_RETRIES + 1 } }
+            : { ...prev, error: { message, networky, attempts: MAX_RETRIES + 1 } },
+        );
         toast({
           title: networky ? "Network error" : "Load failed",
-          description: networky
-            ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
-            : error.message,
+          description: message,
           variant: "destructive",
         });
+        return;
       }
       finishIfCurrent();
       return;
