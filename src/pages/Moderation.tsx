@@ -179,6 +179,42 @@ export default function Moderation() {
 
   const MAX_RETRIES = 3;
 
+  // Structured logger for report-loading errors. Centralises the context
+  // (filters, pagination, reqId, attempts) so issues can be debugged faster
+  // from the browser console or piped to a remote service later.
+  const logReportError = (
+    kind: "network" | "query" | "profiles",
+    err: { message?: string; code?: string; name?: string } | null,
+    ctx: {
+      reqId: number;
+      page: number;
+      pageSize: number;
+      attempt?: number;
+      maxAttempts?: number;
+      aborted?: boolean;
+      filters: { status: string; dateFrom: string; dateTo: string };
+    },
+  ) => {
+    const payload = {
+      scope: "moderation.loadReports",
+      kind,
+      ts: new Date().toISOString(),
+      reqId: ctx.reqId,
+      page: ctx.page,
+      pageSize: ctx.pageSize,
+      attempt: ctx.attempt,
+      maxAttempts: ctx.maxAttempts,
+      aborted: ctx.aborted,
+      filters: ctx.filters,
+      error: err
+        ? { name: err.name, code: err.code, message: err.message }
+        : null,
+    };
+    // Console group keeps it readable but still greppable by `scope`.
+    // eslint-disable-next-line no-console
+    console.error("[moderation] report load error", payload);
+  };
+
   const loadReports = async (opts?: { page?: number; pageSize?: number }) => {
     const p = opts?.page ?? page;
     const ps = opts?.pageSize ?? pageSize;
