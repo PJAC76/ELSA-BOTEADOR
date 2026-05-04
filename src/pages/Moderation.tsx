@@ -193,6 +193,7 @@ export default function Moderation() {
     setReqState((prev) => ({
       activeId: myReqId,
       cancelledAt: hadInFlight ? Date.now() : prev.cancelledAt,
+      error: null,
     }));
     if (hadInFlight) {
       if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
