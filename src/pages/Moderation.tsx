@@ -361,44 +361,6 @@ export default function Moderation() {
             filters: { status: filterStatus, dateFrom, dateTo },
           });
         }
-    }
-
-    if (error) {
-      if (!controller.signal.aborted) {
-        const networky = isNetworkError(error);
-        const message = networky
-          ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
-          : error.message ?? "Unknown error";
-        setReqState((prev) =>
-          prev.activeId === myReqId
-            ? { ...prev, activeId: null, error: { message, networky, attempts: MAX_RETRIES + 1 } }
-            : { ...prev, error: { message, networky, attempts: MAX_RETRIES + 1 } },
-        );
-        toast({
-          title: networky ? "Network error" : "Load failed",
-          description: message,
-          variant: "destructive",
-        });
-        return;
-      }
-      finishIfCurrent();
-      return;
-    }
-    if (data) {
-      setReports(data as unknown as ReportRow[]);
-      if (typeof count === "number") setTotalCount(count);
-      const ids = Array.from(
-        new Set(
-          (data as unknown as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
-        ),
-      );
-      if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("user_id, display_name")
-          .in("user_id", ids);
-        // Drop stale profile fetch too
-        if (myReqId !== reqIdRef.current) return;
         const map: Record<string, string> = {};
         (profs as ProfileMini[] | null)?.forEach((p2) => {
           map[p2.user_id] = p2.display_name;
