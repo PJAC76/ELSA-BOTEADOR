@@ -287,6 +287,16 @@ export default function Moderation() {
         finishIfCurrent();
         return;
       }
+      // Log every failed attempt with full context for easier debugging
+      logReportError(isNetworkError(error) ? "network" : "query", error, {
+        reqId: myReqId,
+        page: p,
+        pageSize: ps,
+        attempt: attempt + 1,
+        maxAttempts: MAX_RETRIES + 1,
+        aborted: controller.signal.aborted,
+        filters: { status: filterStatus, dateFrom, dateTo },
+      });
       // Non-network errors: stop immediately
       if (!isNetworkError(error)) break;
       // Out of retries
@@ -304,6 +314,53 @@ export default function Moderation() {
         return;
       }
       if (myReqId !== reqIdRef.current) return;
+    }
+
+    if (error) {
+      if (!controller.signal.aborted) {
+        const networky = isNetworkError(error);
+        const message = networky
+          ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
+          : error.message ?? "Unknown error";
+        setReqState((prev) =>
+          prev.activeId === myReqId
+            ? { ...prev, activeId: null, error: { message, networky, attempts: MAX_RETRIES + 1 } }
+            : { ...prev, error: { message, networky, attempts: MAX_RETRIES + 1 } },
+        );
+        toast({
+          title: networky ? "Network error" : "Load failed",
+          description: message,
+          variant: "destructive",
+        });
+        return;
+      }
+      finishIfCurrent();
+      return;
+    }
+    if (data) {
+      setReports(data as unknown as ReportRow[]);
+      if (typeof count === "number") setTotalCount(count);
+      const ids = Array.from(
+        new Set(
+          (data as unknown as ReportRow[]).flatMap((r) => [r.reported_id, r.reporter_id]),
+        ),
+      );
+      if (ids.length) {
+        const { data: profs, error: profsErr } = await supabase
+          .from("profiles")
+          .select("user_id, display_name")
+          .in("user_id", ids);
+        // Drop stale profile fetch too
+        if (myReqId !== reqIdRef.current) return;
+        if (profsErr) {
+          logReportError("profiles", profsErr as typeof error, {
+            reqId: myReqId,
+            page: p,
+            pageSize: ps,
+            aborted: controller.signal.aborted,
+            filters: { status: filterStatus, dateFrom, dateTo },
+          });
+        }
     }
 
     if (error) {
