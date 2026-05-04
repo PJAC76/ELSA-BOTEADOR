@@ -528,6 +528,37 @@ export default function Moderation() {
           </div>
         </div>
 
+        {loadError && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>
+              {loadError.networky ? "Error de red al cargar reportes" : "No se pudieron cargar los reportes"}
+            </AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p className="text-sm">{loadError.message}</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => loadReports()}
+                  disabled={loading}
+                  className="gap-1"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                  Reintentar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setReqState((prev) => ({ ...prev, error: null }))}
+                >
+                  Descartar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Global search by sourceId / event id */}
         <Card className="p-3">
           <form
