@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
+import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Ban, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type ReportDiagnostics = {
   language?: string;
@@ -67,9 +68,11 @@ export default function Moderation() {
   const [reqState, setReqState] = useState<{
     activeId: number | null;
     cancelledAt: number | null;
-  }>({ activeId: null, cancelledAt: null });
+    error: { message: string; networky: boolean; attempts: number } | null;
+  }>({ activeId: null, cancelledAt: null, error: null });
   const loading = reqState.activeId !== null;
   const cancelledHint = reqState.cancelledAt !== null;
+  const loadError = reqState.error;
   const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
@@ -191,6 +194,7 @@ export default function Moderation() {
     setReqState((prev) => ({
       activeId: myReqId,
       cancelledAt: hadInFlight ? Date.now() : prev.cancelledAt,
+      error: null,
     }));
     if (hadInFlight) {
       if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
@@ -269,13 +273,20 @@ export default function Moderation() {
     if (error) {
       if (!controller.signal.aborted) {
         const networky = isNetworkError(error);
+        const message = networky
+          ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
+          : error.message ?? "Unknown error";
+        setReqState((prev) =>
+          prev.activeId === myReqId
+            ? { ...prev, activeId: null, error: { message, networky, attempts: MAX_RETRIES + 1 } }
+            : { ...prev, error: { message, networky, attempts: MAX_RETRIES + 1 } },
+        );
         toast({
           title: networky ? "Network error" : "Load failed",
-          description: networky
-            ? `Could not reach server after ${MAX_RETRIES + 1} attempts. ${error.message ?? ""}`.trim()
-            : error.message,
+          description: message,
           variant: "destructive",
         });
+        return;
       }
       finishIfCurrent();
       return;
@@ -516,6 +527,37 @@ export default function Moderation() {
             </Button>
           </div>
         </div>
+
+        {loadError && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>
+              {loadError.networky ? "Error de red al cargar reportes" : "No se pudieron cargar los reportes"}
+            </AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p className="text-sm">{loadError.message}</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => loadReports()}
+                  disabled={loading}
+                  className="gap-1"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                  Reintentar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setReqState((prev) => ({ ...prev, error: null }))}
+                >
+                  Descartar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Global search by sourceId / event id */}
         <Card className="p-3">
