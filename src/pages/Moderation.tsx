@@ -67,9 +67,11 @@ export default function Moderation() {
   const [reqState, setReqState] = useState<{
     activeId: number | null;
     cancelledAt: number | null;
-  }>({ activeId: null, cancelledAt: null });
+    error: { message: string; networky: boolean; attempts: number } | null;
+  }>({ activeId: null, cancelledAt: null, error: null });
   const loading = reqState.activeId !== null;
   const cancelledHint = reqState.cancelledAt !== null;
+  const loadError = reqState.error;
   const cancelledHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (cancelledHintTimerRef.current) clearTimeout(cancelledHintTimerRef.current);
