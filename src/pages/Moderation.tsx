@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
+import { ChevronDown, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Ban, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type ReportDiagnostics = {
   language?: string;
