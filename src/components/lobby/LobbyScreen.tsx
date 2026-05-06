@@ -66,6 +66,17 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const [showPresets, setShowPresets] = useState(false);
   const seenIdsRef = useRef<Set<string>>(new Set());
 
+  // --- Client-side rate limiting & length cap ---------------------------
+  // Server enforces 1..300 chars via CHECK constraint; we mirror it here for UX.
+  // Rate limiter: max 5 messages / 10s window + 1s minimum gap between sends.
+  // Anti-spam: block exact same message sent twice in a row.
+  const MAX_LEN = 300;
+  const WINDOW_MS = 10_000;
+  const WINDOW_MAX = 5;
+  const MIN_GAP_MS = 1000;
+  const sendTimesRef = useRef<number[]>([]);
+  const lastTextRef = useRef<string>("");
+
   const playerNameById = useMemo(() => {
     const map: Record<string, string> = {};
     players.forEach((p) => { if (p.user_id) map[p.user_id] = p.profile?.display_name ?? "..."; });
@@ -122,8 +133,34 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   }, [roomId, user?.id, t, playerNameById]);
 
   const sendMessage = async (content: string, type: ChatMessage["messageType"] = "free") => {
-    const text = content.trim();
+    let text = content.trim();
     if (!text || !roomId || !user?.id) return;
+
+    // Length cap (mirrors DB CHECK 1..300).
+    if (text.length > MAX_LEN) text = text.slice(0, MAX_LEN);
+
+    // Anti-duplicate (same exact text consecutively).
+    if (text === lastTextRef.current) {
+      toast.error("No repitas el mismo mensaje");
+      return;
+    }
+
+    // Rate limit window.
+    const now = Date.now();
+    const recent = sendTimesRef.current.filter((ts) => now - ts < WINDOW_MS);
+    if (recent.length > 0 && now - recent[recent.length - 1] < MIN_GAP_MS) {
+      toast.error("Vas muy rápido, espera un momento");
+      return;
+    }
+    if (recent.length >= WINDOW_MAX) {
+      const waitMs = WINDOW_MS - (now - recent[0]);
+      toast.error(`Demasiados mensajes (espera ${Math.ceil(waitMs / 1000)}s)`);
+      return;
+    }
+    recent.push(now);
+    sendTimesRef.current = recent;
+    lastTextRef.current = text;
+
     setChatInput(""); setShowPresets(false); setShowEmojis(false);
     const { error } = await supabase.from("lobby_messages").insert({
       room_id: roomId,
@@ -236,7 +273,7 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
               <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showEmojis ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><SmilePlus className="h-5 w-5" /></button>
               {mode === "friends" ? (
                 <>
-                  <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage(chatInput)} placeholder={t("writeMessage")} className="h-10 flex-1 rounded-xl border-none bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input value={chatInput} onChange={(e) => setChatInput(e.target.value.slice(0, MAX_LEN))} onKeyDown={(e) => e.key === "Enter" && sendMessage(chatInput)} placeholder={t("writeMessage")} maxLength={MAX_LEN} className="h-10 flex-1 rounded-xl border-none bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   <button onClick={() => sendMessage(chatInput)} disabled={!chatInput.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-primary text-primary-foreground disabled:opacity-40"><Send className="h-4 w-4" /></button>
                 </>
               ) : (
