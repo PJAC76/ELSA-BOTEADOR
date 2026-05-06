@@ -98,6 +98,14 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           <SettingRow label={t("privateProfile")} description={t("privateProfileDesc")} checked={settings.privateProfile} onChange={settings.setPrivateProfile} />
           <SettingRow label={t("friendRequests")} description={t("friendRequestsDesc")} checked={settings.friendRequests} onChange={settings.setFriendRequests} />
         </Section>
+        </Section>
+
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <Button onClick={handleSignOut} variant="destructive" size="lg" className="h-14 w-full rounded-2xl font-display text-base font-bold">
+            <LogOut className="mr-2 h-5 w-5" />
+            Cerrar sesión
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
