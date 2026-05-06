@@ -291,6 +291,13 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
               )}
             </AnimatePresence>
 
+            {mode === "friends" && (
+              <div className={`px-1 pt-1 font-body text-[10px] ${remaining <= 1 ? "text-destructive" : "text-muted-foreground"}`}>
+                {remaining > 0
+                  ? `${remaining}/${WINDOW_MAX} mensajes restantes${resetIn > 0 ? ` · se reinicia en ${resetIn}s` : ""}`
+                  : `Límite alcanzado · espera ${resetIn}s`}
+              </div>
+            )}
             <div className="flex items-center gap-2 py-3">
               <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showPresets ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><span className="text-sm font-bold">💬</span></button>
               <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showEmojis ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><SmilePlus className="h-5 w-5" /></button>
