@@ -17,6 +17,16 @@ type SettingsScreenProps = {
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const settings = useSettingsStore();
   const { t } = useTranslation();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      window.location.reload();
+    }
+  };
 
   const Section = ({ icon: Icon, title, children, delay = 0 }: { icon: React.ElementType; title: string; children: React.ReactNode; delay?: number }) => (
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }} className="rounded-3xl bg-card p-5 shadow-soft">
