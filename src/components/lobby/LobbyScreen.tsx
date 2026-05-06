@@ -133,8 +133,34 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   }, [roomId, user?.id, t, playerNameById]);
 
   const sendMessage = async (content: string, type: ChatMessage["messageType"] = "free") => {
-    const text = content.trim();
+    let text = content.trim();
     if (!text || !roomId || !user?.id) return;
+
+    // Length cap (mirrors DB CHECK 1..300).
+    if (text.length > MAX_LEN) text = text.slice(0, MAX_LEN);
+
+    // Anti-duplicate (same exact text consecutively).
+    if (text === lastTextRef.current) {
+      toast.error(t("chatDuplicate") ?? "No repitas el mismo mensaje");
+      return;
+    }
+
+    // Rate limit window.
+    const now = Date.now();
+    const recent = sendTimesRef.current.filter((ts) => now - ts < WINDOW_MS);
+    if (recent.length > 0 && now - recent[recent.length - 1] < MIN_GAP_MS) {
+      toast.error(t("chatTooFast") ?? "Vas muy rápido, espera un momento");
+      return;
+    }
+    if (recent.length >= WINDOW_MAX) {
+      const waitMs = WINDOW_MS - (now - recent[0]);
+      toast.error((t("chatRateLimited") ?? "Demasiados mensajes") + ` (${Math.ceil(waitMs / 1000)}s)`);
+      return;
+    }
+    recent.push(now);
+    sendTimesRef.current = recent;
+    lastTextRef.current = text;
+
     setChatInput(""); setShowPresets(false); setShowEmojis(false);
     const { error } = await supabase.from("lobby_messages").insert({
       room_id: roomId,
