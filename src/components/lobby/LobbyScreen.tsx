@@ -176,6 +176,13 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
     recent.push(now);
     sendTimesRef.current = recent;
     lastTextRef.current = text;
+    setRemaining(Math.max(0, WINDOW_MAX - recent.length));
+    setResetIn(Math.ceil((WINDOW_MS - (now - recent[0])) / 1000));
+
+    // Friendly heads-up when only 1 message remains in the window.
+    if (WINDOW_MAX - recent.length === 1) {
+      toast(`Te queda 1 mensaje en los próximos ${Math.ceil((WINDOW_MS - (now - recent[0])) / 1000)}s`);
+    }
 
     setChatInput(""); setShowPresets(false); setShowEmojis(false);
     const { error } = await supabase.from("lobby_messages").insert({
