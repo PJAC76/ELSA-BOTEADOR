@@ -66,6 +66,17 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const [showPresets, setShowPresets] = useState(false);
   const seenIdsRef = useRef<Set<string>>(new Set());
 
+  // --- Client-side rate limiting & length cap ---------------------------
+  // Server enforces 1..300 chars via CHECK constraint; we mirror it here for UX.
+  // Rate limiter: max 5 messages / 10s window + 1s minimum gap between sends.
+  // Anti-spam: block exact same message sent twice in a row.
+  const MAX_LEN = 300;
+  const WINDOW_MS = 10_000;
+  const WINDOW_MAX = 5;
+  const MIN_GAP_MS = 1000;
+  const sendTimesRef = useRef<number[]>([]);
+  const lastTextRef = useRef<string>("");
+
   const playerNameById = useMemo(() => {
     const map: Record<string, string> = {};
     players.forEach((p) => { if (p.user_id) map[p.user_id] = p.profile?.display_name ?? "..."; });
