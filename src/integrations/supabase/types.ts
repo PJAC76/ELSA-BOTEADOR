@@ -123,6 +123,36 @@ export type Database = {
           },
         ]
       }
+      lobby_messages: {
+        Row: {
+          client_msg_id: string | null
+          created_at: string
+          id: string
+          message: string
+          message_type: string
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          client_msg_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          message_type?: string
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          client_msg_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          message_type?: string
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       match_players: {
         Row: {
           bot_name: string | null
@@ -586,6 +616,10 @@ export type Database = {
       }
       is_match_player: {
         Args: { _match_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_room_member: {
+        Args: { _room_id: string; _user_id: string }
         Returns: boolean
       }
       is_round_player: {
