@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Globe, Accessibility, Shield, Volume2, Hand, Palette } from "lucide-react";
+import { ArrowLeft, Globe, Accessibility, Shield, Volume2, Hand, Palette, LogOut } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { setSoundEnabled } from "@/lib/sounds";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTranslation } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import ThemeSelector from "./ThemeSelector";
 
 type SettingsScreenProps = {
@@ -14,6 +17,16 @@ type SettingsScreenProps = {
 const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const settings = useSettingsStore();
   const { t } = useTranslation();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      window.location.reload();
+    }
+  };
 
   const Section = ({ icon: Icon, title, children, delay = 0 }: { icon: React.ElementType; title: string; children: React.ReactNode; delay?: number }) => (
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }} className="rounded-3xl bg-card p-5 shadow-soft">
@@ -85,6 +98,14 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
           <SettingRow label={t("privateProfile")} description={t("privateProfileDesc")} checked={settings.privateProfile} onChange={settings.setPrivateProfile} />
           <SettingRow label={t("friendRequests")} description={t("friendRequestsDesc")} checked={settings.friendRequests} onChange={settings.setFriendRequests} />
         </Section>
+
+
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <Button onClick={handleSignOut} variant="destructive" size="lg" className="h-14 w-full rounded-2xl font-display text-base font-bold">
+            <LogOut className="mr-2 h-5 w-5" />
+            Cerrar sesión
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
