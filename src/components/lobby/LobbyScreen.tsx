@@ -59,16 +59,80 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
     t("chat-not-me"), t("chat-trust-me"), t("chat-skip-vote"), t("chat-where-were-you"),
   ], [t]);
 
-  // Lobby chat is local-only for now (real chat sync arrives in Phase D for the meeting screen)
+  // Lobby chat — persisted in `lobby_messages` and synced via Supabase Realtime.
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [showEmojis, setShowEmojis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const seenIdsRef = useRef<Set<string>>(new Set());
 
-  const sendMessage = (content: string, type: ChatMessage["messageType"] = "free") => {
-    if (!content.trim()) return;
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), senderId: user?.id ?? "me", senderName: t("you"), messageType: type, content, createdAt: Date.now() }]);
+  const playerNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    players.forEach((p) => { if (p.user_id) map[p.user_id] = p.profile?.display_name ?? "..."; });
+    return map;
+  }, [players]);
+
+  // Load history + subscribe
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+    seenIdsRef.current = new Set();
+    setMessages([]);
+
+    (async () => {
+      const { data } = await supabase
+        .from("lobby_messages")
+        .select("id, sender_id, message, message_type, created_at")
+        .eq("room_id", roomId)
+        .order("created_at", { ascending: true })
+        .limit(200);
+      if (cancelled || !data) return;
+      const mapped: ChatMessage[] = data.map((r: any) => {
+        seenIdsRef.current.add(r.id);
+        return {
+          id: r.id,
+          senderId: r.sender_id,
+          senderName: r.sender_id === user?.id ? t("you") : (playerNameById[r.sender_id] ?? "..."),
+          messageType: (r.message_type ?? "free") as ChatMessage["messageType"],
+          content: r.message,
+          createdAt: new Date(r.created_at).getTime(),
+        };
+      });
+      setMessages(mapped);
+    })();
+
+    const channel = supabase
+      .channel(`lobby-chat-${roomId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "lobby_messages", filter: `room_id=eq.${roomId}` }, (payload) => {
+        const r: any = payload.new;
+        if (seenIdsRef.current.has(r.id)) return;
+        seenIdsRef.current.add(r.id);
+        setMessages((prev) => [...prev, {
+          id: r.id,
+          senderId: r.sender_id,
+          senderName: r.sender_id === user?.id ? t("you") : (playerNameById[r.sender_id] ?? "..."),
+          messageType: (r.message_type ?? "free") as ChatMessage["messageType"],
+          content: r.message,
+          createdAt: new Date(r.created_at).getTime(),
+        }]);
+      })
+      .subscribe();
+
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [roomId, user?.id, t, playerNameById]);
+
+  const sendMessage = async (content: string, type: ChatMessage["messageType"] = "free") => {
+    const text = content.trim();
+    if (!text || !roomId || !user?.id) return;
     setChatInput(""); setShowPresets(false); setShowEmojis(false);
+    const { error } = await supabase.from("lobby_messages").insert({
+      room_id: roomId,
+      sender_id: user.id,
+      message: text,
+      message_type: type,
+      client_msg_id: crypto.randomUUID(),
+    });
+    if (error) toast.error(error.message);
   };
 
   const handleBack = async () => {
