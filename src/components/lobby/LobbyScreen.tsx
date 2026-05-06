@@ -273,7 +273,7 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
               <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showEmojis ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><SmilePlus className="h-5 w-5" /></button>
               {mode === "friends" ? (
                 <>
-                  <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage(chatInput)} placeholder={t("writeMessage")} className="h-10 flex-1 rounded-xl border-none bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input value={chatInput} onChange={(e) => setChatInput(e.target.value.slice(0, MAX_LEN))} onKeyDown={(e) => e.key === "Enter" && sendMessage(chatInput)} placeholder={t("writeMessage")} maxLength={MAX_LEN} className="h-10 flex-1 rounded-xl border-none bg-muted px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   <button onClick={() => sendMessage(chatInput)} disabled={!chatInput.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-primary text-primary-foreground disabled:opacity-40"><Send className="h-4 w-4" /></button>
                 </>
               ) : (
