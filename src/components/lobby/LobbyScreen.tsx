@@ -141,7 +141,7 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
 
     // Anti-duplicate (same exact text consecutively).
     if (text === lastTextRef.current) {
-      toast.error(t("chatDuplicate") ?? "No repitas el mismo mensaje");
+      toast.error("No repitas el mismo mensaje");
       return;
     }
 
@@ -149,12 +149,12 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
     const now = Date.now();
     const recent = sendTimesRef.current.filter((ts) => now - ts < WINDOW_MS);
     if (recent.length > 0 && now - recent[recent.length - 1] < MIN_GAP_MS) {
-      toast.error(t("chatTooFast") ?? "Vas muy rápido, espera un momento");
+      toast.error("Vas muy rápido, espera un momento");
       return;
     }
     if (recent.length >= WINDOW_MAX) {
       const waitMs = WINDOW_MS - (now - recent[0]);
-      toast.error((t("chatRateLimited") ?? "Demasiados mensajes") + ` (${Math.ceil(waitMs / 1000)}s)`);
+      toast.error(`Demasiados mensajes (espera ${Math.ceil(waitMs / 1000)}s)`);
       return;
     }
     recent.push(now);
