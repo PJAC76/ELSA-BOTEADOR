@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Send, SmilePlus, Loader2 } from "lucide-react";
 import type { RoomMode, ChatMessage, Language } from "@/types/game";
@@ -8,6 +8,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoom, leaveRoom } from "@/hooks/use-room";
 import { startMatch, findActiveMatchForRoom } from "@/hooks/use-match";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type LobbyScreenProps = {
