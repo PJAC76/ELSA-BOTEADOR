@@ -76,6 +76,22 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
   const MIN_GAP_MS = 1000;
   const sendTimesRef = useRef<number[]>([]);
   const lastTextRef = useRef<string>("");
+  const [remaining, setRemaining] = useState(WINDOW_MAX);
+  const [resetIn, setResetIn] = useState(0);
+
+  // Tick every 500ms to refresh remaining-messages indicator as the window slides.
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      const recent = sendTimesRef.current.filter((ts) => now - ts < WINDOW_MS);
+      sendTimesRef.current = recent;
+      setRemaining(Math.max(0, WINDOW_MAX - recent.length));
+      setResetIn(recent.length > 0 ? Math.ceil((WINDOW_MS - (now - recent[0])) / 1000) : 0);
+    };
+    tick();
+    const id = window.setInterval(tick, 500);
+    return () => window.clearInterval(id);
+  }, []);
 
   const playerNameById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -160,6 +176,13 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
     recent.push(now);
     sendTimesRef.current = recent;
     lastTextRef.current = text;
+    setRemaining(Math.max(0, WINDOW_MAX - recent.length));
+    setResetIn(Math.ceil((WINDOW_MS - (now - recent[0])) / 1000));
+
+    // Friendly heads-up when only 1 message remains in the window.
+    if (WINDOW_MAX - recent.length === 1) {
+      toast(`Te queda 1 mensaje en los próximos ${Math.ceil((WINDOW_MS - (now - recent[0])) / 1000)}s`);
+    }
 
     setChatInput(""); setShowPresets(false); setShowEmojis(false);
     const { error } = await supabase.from("lobby_messages").insert({
@@ -268,6 +291,13 @@ const LobbyScreen = ({ roomCode, roomId, mode, isHost, onBack, onStart }: LobbyS
               )}
             </AnimatePresence>
 
+            {mode === "friends" && (
+              <div className={`px-1 pt-1 font-body text-[10px] ${remaining <= 1 ? "text-destructive" : "text-muted-foreground"}`}>
+                {remaining > 0
+                  ? `${remaining}/${WINDOW_MAX} mensajes restantes${resetIn > 0 ? ` · se reinicia en ${resetIn}s` : ""}`
+                  : `Límite alcanzado · espera ${resetIn}s`}
+              </div>
+            )}
             <div className="flex items-center gap-2 py-3">
               <button onClick={() => { setShowPresets(!showPresets); setShowEmojis(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showPresets ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><span className="text-sm font-bold">💬</span></button>
               <button onClick={() => { setShowEmojis(!showEmojis); setShowPresets(false); }} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${showEmojis ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}><SmilePlus className="h-5 w-5" /></button>
