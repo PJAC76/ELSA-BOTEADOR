@@ -273,6 +273,12 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           {mode === "login" ? t("enter") : t("createAccountBtn")}
         </Button>
 
+        {mode === "login" && (
+          <button type="button" onClick={handlePasswordReset} disabled={loading} className="text-center font-body text-xs text-primary underline-offset-2 hover:underline">
+            ¿Olvidaste tu contraseña? Te enviamos un enlace
+          </button>
+        )}
+
         <p className="text-center font-body text-sm text-muted-foreground">
           {mode === "login" ? t("noAccount") + " " : t("haveAccount") + " "}
           <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="font-bold text-primary">
