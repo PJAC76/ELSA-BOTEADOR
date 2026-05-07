@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, User, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
