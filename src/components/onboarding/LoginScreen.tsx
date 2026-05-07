@@ -32,7 +32,6 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [loading, setLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleAttempts, setGoogleAttempts] = useState(0);
-  const [resetMode, setResetMode] = useState(false);
   const { t } = useTranslation();
   const { toast } = useToast();
 
