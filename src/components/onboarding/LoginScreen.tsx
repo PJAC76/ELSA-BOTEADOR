@@ -51,6 +51,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setGoogleError(null);
     try {
       console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin });
       const result = await lovable.auth.signInWithOAuth("google", {
@@ -59,11 +60,10 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
       if (result.error) {
         console.error("[GoogleSignIn] Error devuelto por lovable.auth", result.error);
-        toast({
-          title: "Error al iniciar sesión con Google",
-          description: describeGoogleError(result.error),
-          variant: "destructive",
-        });
+        const desc = describeGoogleError(result.error);
+        setGoogleError(desc);
+        setGoogleAttempts((n) => n + 1);
+        toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
         setLoading(false);
         return;
       }
@@ -74,17 +74,42 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       console.info("[GoogleSignIn] Sesión establecida correctamente");
+      setGoogleError(null);
       onLogin();
     } catch (err: any) {
       console.error("[GoogleSignIn] Excepción no controlada", err);
-      toast({
-        title: "Error al iniciar sesión con Google",
-        description: describeGoogleError(err),
-        variant: "destructive",
-      });
+      const desc = describeGoogleError(err);
+      setGoogleError(desc);
+      setGoogleAttempts((n) => n + 1);
+      toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      toast({ title: "Email requerido", description: "Ingresa tu email para enviarte el enlace de recuperación.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({ title: "📧 Revisa tu email", description: "Te enviamos un enlace para restablecer tu contraseña." });
+      setResetMode(false);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo enviar el email", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchToEmailFallback = () => {
+    setMode("login");
+    setGoogleError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
