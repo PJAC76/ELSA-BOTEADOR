@@ -22,7 +22,7 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
 
   const handleSignOut = async () => {
     const result = await signOutAndReset();
-    if (!result.ok) {
+    if (result.ok === false) {
       toast({ title: "Error al cerrar sesión", description: result.error, variant: "destructive" });
     }
     // On success, signOutAndReset() reloads the page — no further action needed.
