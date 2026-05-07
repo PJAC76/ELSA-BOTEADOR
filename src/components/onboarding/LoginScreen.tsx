@@ -257,10 +257,15 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       </p>
 
       {/* Google button in both login and register */}
-      <Button onClick={handleGoogleLogin} disabled={loading} size="lg" className="h-14 w-full max-w-sm rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold mb-4">
+      <Button onClick={handleGoogleLogin} disabled={loading} size="lg" className="h-14 w-full max-w-sm rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold mb-2">
         {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <GoogleIcon />}
-        {t("continueWithGoogle")}
+        {loading ? "Conectando con Google…" : t("continueWithGoogle")}
       </Button>
+      {loading && (
+        <button onClick={cancelGoogleLoading} className="mb-4 font-body text-xs text-muted-foreground underline-offset-2 hover:underline">
+          Cancelar y usar email
+        </button>
+      )}
 
       {googleError && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm rounded-2xl border border-destructive/40 bg-destructive/10 p-4 mb-4">
