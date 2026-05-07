@@ -7,6 +7,7 @@ import { setSoundEnabled } from "@/lib/sounds";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { signOutAndReset } from "@/lib/auth-signout";
 import { useToast } from "@/hooks/use-toast";
 import ThemeSelector from "./ThemeSelector";
 
