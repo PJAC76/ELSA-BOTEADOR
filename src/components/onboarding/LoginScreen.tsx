@@ -48,14 +48,38 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return msg ? `No se pudo iniciar sesión con Google: ${msg}` : "No se pudo iniciar sesión con Google. Inténtalo de nuevo.";
   };
 
+  const GOOGLE_TIMEOUT_MS = 15000;
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     setGoogleError(null);
+    const attemptId = Date.now();
+    console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin, attemptId });
+
+    // Timeout safety net: if the OAuth call hangs (no redirect, no resolve) for too long,
+    // surface a clear error and let the user retry or fall back to email.
+    const timeoutPromise = new Promise<{ __timeout: true }>((resolve) =>
+      setTimeout(() => resolve({ __timeout: true }), GOOGLE_TIMEOUT_MS)
+    );
+
     try {
-      console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin });
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const oauthPromise = lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
+
+      const raced = await Promise.race([oauthPromise, timeoutPromise]);
+
+      if ("__timeout" in raced) {
+        console.warn("[GoogleSignIn] Timeout esperando respuesta de Google", { attemptId });
+        const desc = "Google tardó demasiado en responder. Revisa tu conexión e inténtalo de nuevo, o usa email y contraseña.";
+        setGoogleError(desc);
+        setGoogleAttempts((n) => n + 1);
+        toast({ title: "Tiempo de espera agotado", description: desc, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      const result = raced as Awaited<typeof oauthPromise>;
 
       if (result.error) {
         console.error("[GoogleSignIn] Error devuelto por lovable.auth", result.error);
@@ -68,11 +92,12 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       if (result.redirected) {
-        console.info("[GoogleSignIn] Redirigiendo al proveedor Google…");
+        console.info("[GoogleSignIn] Redirigiendo al proveedor Google…", { attemptId });
+        // Don't reset loading: page is about to navigate away.
         return;
       }
 
-      console.info("[GoogleSignIn] Sesión establecida correctamente");
+      console.info("[GoogleSignIn] Sesión establecida correctamente", { attemptId });
       setGoogleError(null);
       onLogin();
     } catch (err: any) {
@@ -84,6 +109,12 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const cancelGoogleLoading = () => {
+    console.info("[GoogleSignIn] Usuario canceló el intento manualmente");
+    setLoading(false);
+    setGoogleError("Cancelaste el intento. Puedes reintentar o usar email y contraseña.");
   };
 
   const handlePasswordReset = async () => {
