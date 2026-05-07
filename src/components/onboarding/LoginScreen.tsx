@@ -194,8 +194,13 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex w-full max-w-sm flex-col gap-3">
           <Button onClick={handleGoogleLogin} disabled={loading} size="lg" className="h-14 w-full rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold">
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <GoogleIcon />}
-            {t("continueWithGoogle")}
+            {loading ? "Conectando con Google…" : t("continueWithGoogle")}
           </Button>
+          {loading && (
+            <button onClick={cancelGoogleLoading} className="font-body text-xs text-muted-foreground underline-offset-2 hover:underline">
+              Cancelar y usar otro método
+            </button>
+          )}
 
           {googleError && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
