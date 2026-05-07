@@ -98,7 +98,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       });
       if (error) throw error;
       toast({ title: "📧 Revisa tu email", description: "Te enviamos un enlace para restablecer tu contraseña." });
-      setResetMode(false);
+      
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "No se pudo enviar el email", variant: "destructive" });
     } finally {
