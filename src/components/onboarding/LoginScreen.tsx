@@ -33,28 +33,52 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
 
+  const describeGoogleError = (raw: unknown): string => {
+    const msg = raw instanceof Error ? raw.message : typeof raw === "string" ? raw : JSON.stringify(raw);
+    const lower = (msg || "").toLowerCase();
+    if (lower.includes("popup") && lower.includes("clos")) return "Cerraste la ventana de Google antes de completar el acceso. Intenta de nuevo.";
+    if (lower.includes("popup") && lower.includes("block")) return "Tu navegador bloqueó la ventana emergente de Google. Permite popups para este sitio e intenta de nuevo.";
+    if (lower.includes("network") || lower.includes("failed to fetch")) return "Problema de conexión al contactar con Google. Revisa tu internet e inténtalo de nuevo.";
+    if (lower.includes("redirect") && lower.includes("uri")) return "La URL de redirección no está autorizada. Revisa la configuración de Google en Lovable Cloud.";
+    if (lower.includes("provider") && lower.includes("not")) return "El proveedor Google no está habilitado en este proyecto.";
+    if (lower.includes("access_denied") || lower.includes("denied")) return "Cancelaste el acceso con Google o no se concedieron los permisos.";
+    if (lower.includes("invalid") && lower.includes("client")) return "Credenciales de Google inválidas. Revisa la configuración OAuth.";
+    return msg ? `No se pudo iniciar sesión con Google: ${msg}` : "No se pudo iniciar sesión con Google. Inténtalo de nuevo.";
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin });
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
 
       if (result.error) {
-        toast({ title: "Error", description: String(result.error), variant: "destructive" });
+        console.error("[GoogleSignIn] Error devuelto por lovable.auth", result.error);
+        toast({
+          title: "Error al iniciar sesión con Google",
+          description: describeGoogleError(result.error),
+          variant: "destructive",
+        });
         setLoading(false);
         return;
       }
 
       if (result.redirected) {
-        // Browser will redirect to Google — just return
+        console.info("[GoogleSignIn] Redirigiendo al proveedor Google…");
         return;
       }
 
-      // Tokens received and session set — user is authenticated
+      console.info("[GoogleSignIn] Sesión establecida correctamente");
       onLogin();
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Google sign-in failed", variant: "destructive" });
+      console.error("[GoogleSignIn] Excepción no controlada", err);
+      toast({
+        title: "Error al iniciar sesión con Google",
+        description: describeGoogleError(err),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
