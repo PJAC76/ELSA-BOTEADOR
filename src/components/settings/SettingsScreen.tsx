@@ -20,12 +20,11 @@ const SettingsScreen = ({ onBack }: SettingsScreenProps) => {
   const { toast } = useToast();
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      window.location.reload();
+    const result = await signOutAndReset();
+    if (!result.ok) {
+      toast({ title: "Error al cerrar sesión", description: result.error, variant: "destructive" });
     }
+    // On success, signOutAndReset() reloads the page — no further action needed.
   };
 
   const Section = ({ icon: Icon, title, children, delay = 0 }: { icon: React.ElementType; title: string; children: React.ReactNode; delay?: number }) => (
