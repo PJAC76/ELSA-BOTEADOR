@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, User, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,8 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [googleAttempts, setGoogleAttempts] = useState(0);
   const { t } = useTranslation();
   const { toast } = useToast();
 
@@ -48,6 +50,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setGoogleError(null);
     try {
       console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin });
       const result = await lovable.auth.signInWithOAuth("google", {
@@ -56,11 +59,10 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
       if (result.error) {
         console.error("[GoogleSignIn] Error devuelto por lovable.auth", result.error);
-        toast({
-          title: "Error al iniciar sesión con Google",
-          description: describeGoogleError(result.error),
-          variant: "destructive",
-        });
+        const desc = describeGoogleError(result.error);
+        setGoogleError(desc);
+        setGoogleAttempts((n) => n + 1);
+        toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
         setLoading(false);
         return;
       }
@@ -71,17 +73,42 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       console.info("[GoogleSignIn] Sesión establecida correctamente");
+      setGoogleError(null);
       onLogin();
     } catch (err: any) {
       console.error("[GoogleSignIn] Excepción no controlada", err);
-      toast({
-        title: "Error al iniciar sesión con Google",
-        description: describeGoogleError(err),
-        variant: "destructive",
-      });
+      const desc = describeGoogleError(err);
+      setGoogleError(desc);
+      setGoogleAttempts((n) => n + 1);
+      toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      toast({ title: "Email requerido", description: "Ingresa tu email para enviarte el enlace de recuperación.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({ title: "📧 Revisa tu email", description: "Te enviamos un enlace para restablecer tu contraseña." });
+      
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "No se pudo enviar el email", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchToEmailFallback = () => {
+    setMode("login");
+    setGoogleError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,6 +166,25 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             {t("continueWithGoogle")}
           </Button>
 
+          {googleError && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                <p className="font-body text-xs text-destructive">{googleError}</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleGoogleLogin} disabled={loading} size="sm" variant="outline" className="h-10 rounded-xl font-display text-xs font-bold">
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Reintentar con Google {googleAttempts > 1 ? `(${googleAttempts})` : ""}
+                </Button>
+                <Button onClick={switchToEmailFallback} size="sm" className="h-10 rounded-xl gradient-primary text-primary-foreground font-display text-xs font-bold">
+                  <Mail className="mr-2 h-3 w-3" />
+                  Usar email y contraseña
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex items-center gap-3 my-2">
             <div className="h-px flex-1 bg-border" />
             <span className="font-body text-xs text-muted-foreground">{t("or")}</span>
@@ -180,6 +226,20 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         {t("continueWithGoogle")}
       </Button>
 
+      {googleError && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm rounded-2xl border border-destructive/40 bg-destructive/10 p-4 mb-4">
+          <div className="flex items-start gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+            <p className="font-body text-xs text-destructive">{googleError}</p>
+          </div>
+          <Button onClick={handleGoogleLogin} disabled={loading} size="sm" variant="outline" className="h-10 w-full rounded-xl font-display text-xs font-bold">
+            <RefreshCw className="mr-2 h-3 w-3" />
+            Reintentar con Google {googleAttempts > 1 ? `(${googleAttempts})` : ""}
+          </Button>
+          <p className="mt-2 font-body text-[11px] text-muted-foreground text-center">O completa tus datos abajo para entrar con email.</p>
+        </motion.div>
+      )}
+
       <div className="flex items-center gap-3 my-2 w-full max-w-sm">
         <div className="h-px flex-1 bg-border" />
         <span className="font-body text-xs text-muted-foreground">{t("or")}</span>
@@ -211,6 +271,12 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
           {mode === "login" ? t("enter") : t("createAccountBtn")}
         </Button>
+
+        {mode === "login" && (
+          <button type="button" onClick={handlePasswordReset} disabled={loading} className="text-center font-body text-xs text-primary underline-offset-2 hover:underline">
+            ¿Olvidaste tu contraseña? Te enviamos un enlace
+          </button>
+        )}
 
         <p className="text-center font-body text-sm text-muted-foreground">
           {mode === "login" ? t("noAccount") + " " : t("haveAccount") + " "}
