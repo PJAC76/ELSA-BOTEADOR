@@ -167,6 +167,25 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             {t("continueWithGoogle")}
           </Button>
 
+          {googleError && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                <p className="font-body text-xs text-destructive">{googleError}</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleGoogleLogin} disabled={loading} size="sm" variant="outline" className="h-10 rounded-xl font-display text-xs font-bold">
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Reintentar con Google {googleAttempts > 1 ? `(${googleAttempts})` : ""}
+                </Button>
+                <Button onClick={switchToEmailFallback} size="sm" className="h-10 rounded-xl gradient-primary text-primary-foreground font-display text-xs font-bold">
+                  <Mail className="mr-2 h-3 w-3" />
+                  Usar email y contraseña
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex items-center gap-3 my-2">
             <div className="h-px flex-1 bg-border" />
             <span className="font-body text-xs text-muted-foreground">{t("or")}</span>
