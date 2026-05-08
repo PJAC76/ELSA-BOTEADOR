@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
@@ -32,6 +32,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [loading, setLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleAttempts, setGoogleAttempts] = useState(0);
+  const googleInFlightRef = useRef(false);
   const { t } = useTranslation();
   const { toast } = useToast();
 
@@ -51,6 +52,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const GOOGLE_TIMEOUT_MS = 15000;
 
   const handleGoogleLogin = async () => {
+    if (googleInFlightRef.current || loading) {
+      console.warn("[GoogleSignIn] Intento ignorado: ya hay una solicitud en curso");
+      return;
+    }
+    googleInFlightRef.current = true;
     setLoading(true);
     setGoogleError(null);
     const attemptId = Date.now();
@@ -107,12 +113,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       setGoogleAttempts((n) => n + 1);
       toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
     } finally {
+      googleInFlightRef.current = false;
       setLoading(false);
     }
   };
 
   const cancelGoogleLoading = () => {
     console.info("[GoogleSignIn] Usuario canceló el intento manualmente");
+    googleInFlightRef.current = false;
     setLoading(false);
     setGoogleError("Cancelaste el intento. Puedes reintentar o usar email y contraseña.");
   };
