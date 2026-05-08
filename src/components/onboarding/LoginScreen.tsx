@@ -29,6 +29,50 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const outcomeLabel = (o: GoogleSessionSummary["lastOutcome"]) => {
+  switch (o) {
+    case "success": return { text: "Última sesión: Inicio exitoso", tone: "success" as const };
+    case "timeout": return { text: "Última sesión: Tiempo de espera agotado", tone: "warn" as const };
+    case "error": return { text: "Última sesión: Error de Google", tone: "error" as const };
+    case "cancelled": return { text: "Última sesión: Cancelaste el intento", tone: "warn" as const };
+    default: return { text: "Intento en curso…", tone: "info" as const };
+  }
+};
+
+const GoogleSessionSummaryBanner = ({
+  summary,
+  onDismiss,
+}: { summary: GoogleSessionSummary; onDismiss: () => void }) => {
+  const { text, tone } = outcomeLabel(summary.lastOutcome);
+  const toneClass =
+    tone === "success" ? "border-primary/40 bg-primary/10 text-foreground" :
+    tone === "error" ? "border-destructive/40 bg-destructive/10 text-destructive" :
+    tone === "warn" ? "border-amber-500/40 bg-amber-500/10 text-foreground" :
+    "border-border bg-muted/40 text-foreground";
+  return (
+    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className={`rounded-2xl border ${toneClass} p-3`}>
+      <div className="flex items-start gap-2">
+        <Info className="h-4 w-4 mt-0.5 flex-shrink-0 opacity-80" />
+        <div className="flex-1 min-w-0">
+          <p className="font-display text-xs font-bold">{text}</p>
+          <p className="font-body text-[11px] opacity-80 mt-0.5">
+            Intentos: {summary.totalAttempts} · Reintentos: {summary.retries}
+            {summary.timeouts > 0 ? ` · Timeouts: ${summary.timeouts}` : ""}
+            {summary.errors > 0 ? ` · Errores: ${summary.errors}` : ""}
+            {summary.cancellations > 0 ? ` · Cancelaciones: ${summary.cancellations}` : ""}
+          </p>
+          {summary.lastErrorMessage && (
+            <p className="font-body text-[11px] opacity-70 mt-1 line-clamp-2">{summary.lastErrorMessage}</p>
+          )}
+        </div>
+        <button onClick={onDismiss} className="font-body text-[10px] underline-offset-2 hover:underline opacity-70">
+          Limpiar
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [mode, setMode] = useState<Mode>("welcome");
   const [email, setEmail] = useState("");
