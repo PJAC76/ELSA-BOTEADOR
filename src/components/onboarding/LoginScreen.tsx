@@ -1,13 +1,18 @@
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { logGoogleSignInEvent } from "@/lib/auth-metrics";
+import {
+  logGoogleSignInEvent,
+  getGoogleSessionSummary,
+  clearGoogleSessionSummary,
+  type GoogleSessionSummary,
+} from "@/lib/auth-metrics";
 
 type LoginScreenProps = {
   onLogin: () => void;
@@ -34,8 +39,18 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleAttempts, setGoogleAttempts] = useState(0);
   const googleInFlightRef = useRef(false);
+  const [sessionSummary, setSessionSummary] = useState<GoogleSessionSummary>(() => getGoogleSessionSummary());
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  // Refresh summary when window regains focus (e.g. user returns from OAuth tab).
+  useEffect(() => {
+    const refresh = () => setSessionSummary(getGoogleSessionSummary());
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
+
+  const refreshSummary = () => setSessionSummary(getGoogleSessionSummary());
 
   const describeGoogleError = (raw: unknown): string => {
     const msg = raw instanceof Error ? raw.message : typeof raw === "string" ? raw : JSON.stringify(raw);
