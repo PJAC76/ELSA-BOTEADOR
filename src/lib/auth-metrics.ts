@@ -251,6 +251,8 @@ if (typeof window !== "undefined") {
         outcome: e.outcome,
         ms: e.durationMs ?? "",
         err: e.errorMessage ?? "",
+        anon: e.anonUserId ?? "",
+        anonSrc: e.anonSource ?? "",
         attemptId: e.attemptId,
       }))
     );
