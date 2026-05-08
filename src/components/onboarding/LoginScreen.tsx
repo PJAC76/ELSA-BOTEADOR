@@ -7,6 +7,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { logGoogleSignInEvent } from "@/lib/auth-metrics";
 
 type LoginScreenProps = {
   onLogin: () => void;
@@ -54,13 +55,21 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const handleGoogleLogin = async () => {
     if (googleInFlightRef.current || loading) {
       console.warn("[GoogleSignIn] Intento ignorado: ya hay una solicitud en curso");
+      logGoogleSignInEvent({
+        attemptId: Date.now(),
+        attemptNumber: googleAttempts + 1,
+        outcome: "ignored_concurrent",
+      });
       return;
     }
     googleInFlightRef.current = true;
     setLoading(true);
     setGoogleError(null);
     const attemptId = Date.now();
-    console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin, attemptId });
+    const attemptNumber = googleAttempts + 1;
+    const startedAt = performance.now();
+    console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin, attemptId, attemptNumber });
+    logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "started" });
 
     // Timeout safety net: if the OAuth call hangs (no redirect, no resolve) for too long,
     // surface a clear error and let the user retry or fall back to email.
@@ -76,42 +85,64 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       const raced = await Promise.race([oauthPromise, timeoutPromise]);
 
       if ("__timeout" in raced) {
-        console.warn("[GoogleSignIn] Timeout esperando respuesta de Google", { attemptId });
+        const durationMs = Math.round(performance.now() - startedAt);
+        console.warn("[GoogleSignIn] Timeout esperando respuesta de Google", { attemptId, attemptNumber, durationMs });
         const desc = "Google tardó demasiado en responder. Revisa tu conexión e inténtalo de nuevo, o usa email y contraseña.";
         setGoogleError(desc);
         setGoogleAttempts((n) => n + 1);
         toast({ title: "Tiempo de espera agotado", description: desc, variant: "destructive" });
+        logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "timeout", durationMs, errorMessage: desc });
         setLoading(false);
         return;
       }
 
       const result = raced as Awaited<typeof oauthPromise>;
+      const durationMs = Math.round(performance.now() - startedAt);
 
       if (result.error) {
-        console.error("[GoogleSignIn] Error devuelto por lovable.auth", result.error);
+        console.error("[GoogleSignIn] Error devuelto por lovable.auth", { attemptId, attemptNumber, error: result.error });
         const desc = describeGoogleError(result.error);
         setGoogleError(desc);
         setGoogleAttempts((n) => n + 1);
         toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
+        logGoogleSignInEvent({
+          attemptId,
+          attemptNumber,
+          outcome: "error",
+          durationMs,
+          errorMessage: result.error instanceof Error ? result.error.message : String(result.error),
+          errorName: result.error instanceof Error ? result.error.name : undefined,
+        });
         setLoading(false);
         return;
       }
 
       if (result.redirected) {
-        console.info("[GoogleSignIn] Redirigiendo al proveedor Google…", { attemptId });
+        console.info("[GoogleSignIn] Redirigiendo al proveedor Google…", { attemptId, attemptNumber, durationMs });
+        logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "redirected", durationMs });
         // Don't reset loading: page is about to navigate away.
         return;
       }
 
-      console.info("[GoogleSignIn] Sesión establecida correctamente", { attemptId });
+      console.info("[GoogleSignIn] Sesión establecida correctamente", { attemptId, attemptNumber, durationMs });
+      logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "success", durationMs });
       setGoogleError(null);
       onLogin();
     } catch (err: any) {
-      console.error("[GoogleSignIn] Excepción no controlada", err);
+      const durationMs = Math.round(performance.now() - startedAt);
+      console.error("[GoogleSignIn] Excepción no controlada", { attemptId, attemptNumber, err });
       const desc = describeGoogleError(err);
       setGoogleError(desc);
       setGoogleAttempts((n) => n + 1);
       toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
+      logGoogleSignInEvent({
+        attemptId,
+        attemptNumber,
+        outcome: "error",
+        durationMs,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        errorName: err instanceof Error ? err.name : undefined,
+      });
     } finally {
       googleInFlightRef.current = false;
       setLoading(false);
@@ -120,6 +151,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   const cancelGoogleLoading = () => {
     console.info("[GoogleSignIn] Usuario canceló el intento manualmente");
+    logGoogleSignInEvent({
+      attemptId: Date.now(),
+      attemptNumber: googleAttempts + 1,
+      outcome: "cancelled",
+    });
     googleInFlightRef.current = false;
     setLoading(false);
     setGoogleError("Cancelaste el intento. Puedes reintentar o usar email y contraseña.");
