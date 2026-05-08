@@ -256,6 +256,9 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex w-full max-w-sm flex-col gap-3">
+          {sessionSummary.totalAttempts > 0 && (
+            <GoogleSessionSummaryBanner summary={sessionSummary} onDismiss={() => { clearGoogleSessionSummary(); refreshSummary(); }} />
+          )}
           <Button onClick={handleGoogleLogin} disabled={loading} size="lg" className="h-14 w-full rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold">
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <GoogleIcon />}
             {loading ? "Conectando con Google…" : t("continueWithGoogle")}
