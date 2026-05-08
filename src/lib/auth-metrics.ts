@@ -70,6 +70,8 @@ export const logGoogleSignInEvent = (
   const buffer = readBuffer();
   buffer.push(enriched);
   writeBuffer(buffer);
+
+  updateSessionSummary(enriched);
 };
 
 export const getGoogleSignInMetrics = (): GoogleSignInEvent[] => readBuffer();
@@ -77,6 +79,107 @@ export const getGoogleSignInMetrics = (): GoogleSignInEvent[] => readBuffer();
 export const clearGoogleSignInMetrics = () => {
   try {
     localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Per-session summary: tracks total retries and the final outcome of Google
+// Sign-In attempts within the current browser session. Persisted in
+// sessionStorage so it survives the OAuth redirect round-trip but resets when
+// the user closes the tab.
+// ---------------------------------------------------------------------------
+
+export type GoogleFinalOutcome = "success" | "timeout" | "error" | "cancelled" | "pending";
+
+export type GoogleSessionSummary = {
+  totalAttempts: number;        // Counts user-initiated attempts (started)
+  retries: number;              // totalAttempts - 1 (0 if first attempt)
+  successes: number;
+  timeouts: number;
+  errors: number;
+  cancellations: number;
+  ignoredConcurrent: number;
+  lastOutcome: GoogleFinalOutcome;
+  lastErrorMessage?: string;
+  firstAttemptAt?: string;
+  lastAttemptAt?: string;
+};
+
+const SESSION_KEY = "elsa-boteador-google-signin-session";
+
+const emptySummary = (): GoogleSessionSummary => ({
+  totalAttempts: 0,
+  retries: 0,
+  successes: 0,
+  timeouts: 0,
+  errors: 0,
+  cancellations: 0,
+  ignoredConcurrent: 0,
+  lastOutcome: "pending",
+});
+
+export const getGoogleSessionSummary = (): GoogleSessionSummary => {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return emptySummary();
+    const parsed = JSON.parse(raw);
+    return { ...emptySummary(), ...parsed };
+  } catch {
+    return emptySummary();
+  }
+};
+
+const writeSessionSummary = (s: GoogleSessionSummary) => {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
+  } catch {
+    /* ignore */
+  }
+};
+
+const updateSessionSummary = (evt: GoogleSignInEvent) => {
+  const s = getGoogleSessionSummary();
+
+  if (evt.outcome === "started") {
+    s.totalAttempts += 1;
+    s.retries = Math.max(0, s.totalAttempts - 1);
+    if (!s.firstAttemptAt) s.firstAttemptAt = evt.timestamp;
+    s.lastAttemptAt = evt.timestamp;
+    s.lastOutcome = "pending";
+    s.lastErrorMessage = undefined;
+  } else if (evt.outcome === "success") {
+    s.successes += 1;
+    s.lastOutcome = "success";
+    s.lastErrorMessage = undefined;
+    s.lastAttemptAt = evt.timestamp;
+  } else if (evt.outcome === "timeout") {
+    s.timeouts += 1;
+    s.lastOutcome = "timeout";
+    s.lastErrorMessage = evt.errorMessage;
+    s.lastAttemptAt = evt.timestamp;
+  } else if (evt.outcome === "error") {
+    s.errors += 1;
+    s.lastOutcome = "error";
+    s.lastErrorMessage = evt.errorMessage;
+    s.lastAttemptAt = evt.timestamp;
+  } else if (evt.outcome === "cancelled") {
+    s.cancellations += 1;
+    s.lastOutcome = "cancelled";
+    s.lastAttemptAt = evt.timestamp;
+  } else if (evt.outcome === "ignored_concurrent") {
+    s.ignoredConcurrent += 1;
+  }
+  // "redirected" is a transient state; lastOutcome stays "pending" until the
+  // post-redirect page either logs success or another outcome.
+
+  writeSessionSummary(s);
+};
+
+export const clearGoogleSessionSummary = () => {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
   } catch {
     /* ignore */
   }
