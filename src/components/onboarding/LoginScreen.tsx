@@ -235,14 +235,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <Button onClick={() => setMode("login")} size="lg" className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold">
+          <Button onClick={() => setMode("login")} disabled={loading} size="lg" className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold">
             <Mail className="mr-2 h-5 w-5" />
             {t("emailAndPassword")}
           </Button>
 
           <p className="mt-4 text-center font-body text-sm text-muted-foreground">
             {t("noAccount")}{" "}
-            <button onClick={() => setMode("register")} className="font-bold text-primary underline-offset-2 hover:underline">
+            <button onClick={() => setMode("register")} disabled={loading} className="font-bold text-primary underline-offset-2 hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
               {t("register")}
             </button>
           </p>
