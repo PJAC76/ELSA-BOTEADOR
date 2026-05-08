@@ -218,6 +218,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       console.info("[GoogleSignIn] Sesión establecida correctamente", { attemptId, attemptNumber, durationMs });
+      // Upgrade anon id to user_id-based hash now that we have a session.
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.id) {
+          const hash = await hashAnonId(data.user.id);
+          if (hash) setAnonUserId({ anonUserId: hash, anonSource: "user_id" });
+        }
+      } catch { /* ignore */ }
       logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "success", durationMs });
       setGoogleError(null);
       onLogin();
