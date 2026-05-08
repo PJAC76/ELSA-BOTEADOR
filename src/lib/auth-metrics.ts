@@ -22,6 +22,58 @@ export type GoogleSignInEvent = {
   errorMessage?: string;
   errorName?: string;
   timestamp: string;
+  /** Anonymous, non-reversible identifier (sha256, first 12 hex chars) of
+   *  the user_id (preferred) or email. Lets us correlate repeated failures
+   *  per user without storing PII. */
+  anonUserId?: string;
+  anonSource?: "user_id" | "email" | "none";
+};
+
+// ---------------------------------------------------------------------------
+// Anonymous user identifier (privacy-preserving)
+// ---------------------------------------------------------------------------
+
+const ANON_KEY = "elsa-boteador-google-signin-anon";
+
+/** SHA-256(input) truncated to 12 hex chars. Salted with a fixed app prefix
+ *  so the hash is not directly reusable across apps. Returns null if the
+ *  Web Crypto API is unavailable or the input is empty. */
+export const hashAnonId = async (input: string): Promise<string | null> => {
+  if (!input) return null;
+  if (typeof crypto === "undefined" || !crypto.subtle) return null;
+  try {
+    const data = new TextEncoder().encode(`elsa-boteador:${input.trim().toLowerCase()}`);
+    const buf = await crypto.subtle.digest("SHA-256", data);
+    const hex = Array.from(new Uint8Array(buf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hex.slice(0, 12);
+  } catch {
+    return null;
+  }
+};
+
+export type AnonIdRecord = { anonUserId: string; anonSource: "user_id" | "email" };
+
+export const setAnonUserId = (rec: AnonIdRecord | null) => {
+  try {
+    if (!rec) sessionStorage.removeItem(ANON_KEY);
+    else sessionStorage.setItem(ANON_KEY, JSON.stringify(rec));
+  } catch {
+    /* ignore */
+  }
+};
+
+export const getAnonUserId = (): AnonIdRecord | null => {
+  try {
+    const raw = sessionStorage.getItem(ANON_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.anonUserId === "string") return parsed as AnonIdRecord;
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 const STORAGE_KEY = "elsa-boteador-google-signin-metrics";
@@ -50,10 +102,13 @@ export const logGoogleSignInEvent = (
   evt: Omit<GoogleSignInEvent, "timestamp" | "origin" | "userAgent"> &
     Partial<Pick<GoogleSignInEvent, "origin" | "userAgent">>
 ) => {
+  const anon = evt.anonUserId ? null : getAnonUserId();
   const enriched: GoogleSignInEvent = {
     timestamp: new Date().toISOString(),
     origin: evt.origin ?? (typeof window !== "undefined" ? window.location.origin : "unknown"),
     userAgent: evt.userAgent ?? (typeof navigator !== "undefined" ? navigator.userAgent : "unknown"),
+    anonUserId: evt.anonUserId ?? anon?.anonUserId,
+    anonSource: evt.anonSource ?? anon?.anonSource ?? "none",
     ...evt,
   };
 
