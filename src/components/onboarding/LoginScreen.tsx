@@ -11,6 +11,8 @@ import {
   logGoogleSignInEvent,
   getGoogleSessionSummary,
   clearGoogleSessionSummary,
+  hashAnonId,
+  setAnonUserId,
   type GoogleSessionSummary,
 } from "@/lib/auth-metrics";
 
@@ -94,6 +96,24 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
+  // On mount, if a Supabase session already exists, prefer hashing the user_id
+  // (more stable than email and never collides across providers).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const uid = data.user?.id;
+        if (!uid || cancelled) return;
+        const hash = await hashAnonId(uid);
+        if (!cancelled && hash) setAnonUserId({ anonUserId: hash, anonSource: "user_id" });
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const refreshSummary = () => setSessionSummary(getGoogleSessionSummary());
 
   const trackGoogleEvent: typeof logGoogleSignInEvent = (evt) => {
@@ -132,6 +152,15 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     const attemptId = Date.now();
     const attemptNumber = googleAttempts + 1;
     const startedAt = performance.now();
+
+    // Set anon id from email if we don't already have a user_id-based one.
+    if (email.trim()) {
+      try {
+        const hash = await hashAnonId(email);
+        if (hash) setAnonUserId({ anonUserId: hash, anonSource: "email" });
+      } catch { /* ignore */ }
+    }
+
     console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin, attemptId, attemptNumber });
     logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "started" });
 
@@ -189,6 +218,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       console.info("[GoogleSignIn] Sesión establecida correctamente", { attemptId, attemptNumber, durationMs });
+      // Upgrade anon id to user_id-based hash now that we have a session.
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.id) {
+          const hash = await hashAnonId(data.user.id);
+          if (hash) setAnonUserId({ anonUserId: hash, anonSource: "user_id" });
+        }
+      } catch { /* ignore */ }
       logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "success", durationMs });
       setGoogleError(null);
       onLogin();
