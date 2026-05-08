@@ -152,6 +152,15 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     const attemptId = Date.now();
     const attemptNumber = googleAttempts + 1;
     const startedAt = performance.now();
+
+    // Set anon id from email if we don't already have a user_id-based one.
+    if (email.trim()) {
+      try {
+        const hash = await hashAnonId(email);
+        if (hash) setAnonUserId({ anonUserId: hash, anonSource: "email" });
+      } catch { /* ignore */ }
+    }
+
     console.info("[GoogleSignIn] Iniciando OAuth con Google", { origin: window.location.origin, attemptId, attemptNumber });
     logGoogleSignInEvent({ attemptId, attemptNumber, outcome: "started" });
 
