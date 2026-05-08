@@ -329,13 +329,13 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
         <p className="text-center font-body text-sm text-muted-foreground">
           {mode === "login" ? t("noAccount") + " " : t("haveAccount") + " "}
-          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="font-bold text-primary">
+          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} disabled={loading} className="font-bold text-primary disabled:opacity-50 disabled:cursor-not-allowed">
             {mode === "login" ? t("register") : t("signIn")}
           </button>
         </p>
       </motion.form>
 
-      <button onClick={() => setMode("welcome")} className="mt-6 font-body text-sm text-muted-foreground">
+      <button onClick={() => setMode("welcome")} disabled={loading} className="mt-6 font-body text-sm text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed">
         {t("back")}
       </button>
     </div>
