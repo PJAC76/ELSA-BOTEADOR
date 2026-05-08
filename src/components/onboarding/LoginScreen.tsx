@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
@@ -32,6 +32,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [loading, setLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleAttempts, setGoogleAttempts] = useState(0);
+  const googleInFlightRef = useRef(false);
   const { t } = useTranslation();
   const { toast } = useToast();
 
@@ -51,6 +52,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const GOOGLE_TIMEOUT_MS = 15000;
 
   const handleGoogleLogin = async () => {
+    if (googleInFlightRef.current || loading) {
+      console.warn("[GoogleSignIn] Intento ignorado: ya hay una solicitud en curso");
+      return;
+    }
+    googleInFlightRef.current = true;
     setLoading(true);
     setGoogleError(null);
     const attemptId = Date.now();
@@ -107,12 +113,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       setGoogleAttempts((n) => n + 1);
       toast({ title: "Error al iniciar sesión con Google", description: desc, variant: "destructive" });
     } finally {
+      googleInFlightRef.current = false;
       setLoading(false);
     }
   };
 
   const cancelGoogleLoading = () => {
     console.info("[GoogleSignIn] Usuario canceló el intento manualmente");
+    googleInFlightRef.current = false;
     setLoading(false);
     setGoogleError("Cancelaste el intento. Puedes reintentar o usar email y contraseña.");
   };
@@ -227,14 +235,14 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <Button onClick={() => setMode("login")} size="lg" className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold">
+          <Button onClick={() => setMode("login")} disabled={loading} size="lg" className="h-14 w-full rounded-2xl gradient-primary text-primary-foreground shadow-soft font-display text-base font-bold">
             <Mail className="mr-2 h-5 w-5" />
             {t("emailAndPassword")}
           </Button>
 
           <p className="mt-4 text-center font-body text-sm text-muted-foreground">
             {t("noAccount")}{" "}
-            <button onClick={() => setMode("register")} className="font-bold text-primary underline-offset-2 hover:underline">
+            <button onClick={() => setMode("register")} disabled={loading} className="font-bold text-primary underline-offset-2 hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
               {t("register")}
             </button>
           </p>
@@ -321,13 +329,13 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
         <p className="text-center font-body text-sm text-muted-foreground">
           {mode === "login" ? t("noAccount") + " " : t("haveAccount") + " "}
-          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="font-bold text-primary">
+          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} disabled={loading} className="font-bold text-primary disabled:opacity-50 disabled:cursor-not-allowed">
             {mode === "login" ? t("register") : t("signIn")}
           </button>
         </p>
       </motion.form>
 
-      <button onClick={() => setMode("welcome")} className="mt-6 font-body text-sm text-muted-foreground">
+      <button onClick={() => setMode("welcome")} disabled={loading} className="mt-6 font-body text-sm text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed">
         {t("back")}
       </button>
     </div>
