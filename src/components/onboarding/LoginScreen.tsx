@@ -52,6 +52,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   const refreshSummary = () => setSessionSummary(getGoogleSessionSummary());
 
+  const trackGoogleEvent: typeof logGoogleSignInEvent = (evt) => {
+    logGoogleSignInEvent(evt);
+    refreshSummary();
+  };
+
   const describeGoogleError = (raw: unknown): string => {
     const msg = raw instanceof Error ? raw.message : typeof raw === "string" ? raw : JSON.stringify(raw);
     const lower = (msg || "").toLowerCase();
