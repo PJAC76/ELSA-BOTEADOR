@@ -11,6 +11,8 @@ import {
   logGoogleSignInEvent,
   getGoogleSessionSummary,
   clearGoogleSessionSummary,
+  hashAnonId,
+  setAnonUserId,
   type GoogleSessionSummary,
 } from "@/lib/auth-metrics";
 
@@ -92,6 +94,24 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     const refresh = () => setSessionSummary(getGoogleSessionSummary());
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
+  }, []);
+
+  // On mount, if a Supabase session already exists, prefer hashing the user_id
+  // (more stable than email and never collides across providers).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const uid = data.user?.id;
+        if (!uid || cancelled) return;
+        const hash = await hashAnonId(uid);
+        if (!cancelled && hash) setAnonUserId({ anonUserId: hash, anonSource: "user_id" });
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const refreshSummary = () => setSessionSummary(getGoogleSessionSummary());
