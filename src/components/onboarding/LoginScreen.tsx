@@ -1,13 +1,18 @@
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { logGoogleSignInEvent } from "@/lib/auth-metrics";
+import {
+  logGoogleSignInEvent,
+  getGoogleSessionSummary,
+  clearGoogleSessionSummary,
+  type GoogleSessionSummary,
+} from "@/lib/auth-metrics";
 
 type LoginScreenProps = {
   onLogin: () => void;
@@ -24,6 +29,50 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const outcomeLabel = (o: GoogleSessionSummary["lastOutcome"]) => {
+  switch (o) {
+    case "success": return { text: "Última sesión: Inicio exitoso", tone: "success" as const };
+    case "timeout": return { text: "Última sesión: Tiempo de espera agotado", tone: "warn" as const };
+    case "error": return { text: "Última sesión: Error de Google", tone: "error" as const };
+    case "cancelled": return { text: "Última sesión: Cancelaste el intento", tone: "warn" as const };
+    default: return { text: "Intento en curso…", tone: "info" as const };
+  }
+};
+
+const GoogleSessionSummaryBanner = ({
+  summary,
+  onDismiss,
+}: { summary: GoogleSessionSummary; onDismiss: () => void }) => {
+  const { text, tone } = outcomeLabel(summary.lastOutcome);
+  const toneClass =
+    tone === "success" ? "border-primary/40 bg-primary/10 text-foreground" :
+    tone === "error" ? "border-destructive/40 bg-destructive/10 text-destructive" :
+    tone === "warn" ? "border-amber-500/40 bg-amber-500/10 text-foreground" :
+    "border-border bg-muted/40 text-foreground";
+  return (
+    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className={`rounded-2xl border ${toneClass} p-3`}>
+      <div className="flex items-start gap-2">
+        <Info className="h-4 w-4 mt-0.5 flex-shrink-0 opacity-80" />
+        <div className="flex-1 min-w-0">
+          <p className="font-display text-xs font-bold">{text}</p>
+          <p className="font-body text-[11px] opacity-80 mt-0.5">
+            Intentos: {summary.totalAttempts} · Reintentos: {summary.retries}
+            {summary.timeouts > 0 ? ` · Timeouts: ${summary.timeouts}` : ""}
+            {summary.errors > 0 ? ` · Errores: ${summary.errors}` : ""}
+            {summary.cancellations > 0 ? ` · Cancelaciones: ${summary.cancellations}` : ""}
+          </p>
+          {summary.lastErrorMessage && (
+            <p className="font-body text-[11px] opacity-70 mt-1 line-clamp-2">{summary.lastErrorMessage}</p>
+          )}
+        </div>
+        <button onClick={onDismiss} className="font-body text-[10px] underline-offset-2 hover:underline opacity-70">
+          Limpiar
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [mode, setMode] = useState<Mode>("welcome");
   const [email, setEmail] = useState("");
@@ -34,8 +83,23 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleAttempts, setGoogleAttempts] = useState(0);
   const googleInFlightRef = useRef(false);
+  const [sessionSummary, setSessionSummary] = useState<GoogleSessionSummary>(() => getGoogleSessionSummary());
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  // Refresh summary when window regains focus (e.g. user returns from OAuth tab).
+  useEffect(() => {
+    const refresh = () => setSessionSummary(getGoogleSessionSummary());
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
+
+  const refreshSummary = () => setSessionSummary(getGoogleSessionSummary());
+
+  const trackGoogleEvent: typeof logGoogleSignInEvent = (evt) => {
+    logGoogleSignInEvent(evt);
+    refreshSummary();
+  };
 
   const describeGoogleError = (raw: unknown): string => {
     const msg = raw instanceof Error ? raw.message : typeof raw === "string" ? raw : JSON.stringify(raw);
@@ -236,6 +300,9 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex w-full max-w-sm flex-col gap-3">
+          {sessionSummary.totalAttempts > 0 && (
+            <GoogleSessionSummaryBanner summary={sessionSummary} onDismiss={() => { clearGoogleSessionSummary(); refreshSummary(); }} />
+          )}
           <Button onClick={handleGoogleLogin} disabled={loading} size="lg" className="h-14 w-full rounded-2xl bg-card text-foreground shadow-card hover:shadow-glow border border-border font-display text-base font-bold">
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <GoogleIcon />}
             {loading ? "Conectando con Google…" : t("continueWithGoogle")}
