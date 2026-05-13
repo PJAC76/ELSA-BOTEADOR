@@ -1,0 +1,10 @@
+# ELSA-BOTEADOR
+
+> Juego móvil de deducción social para chicas: completa tareas en el campus, da pistas, descubre a la saboteadora y gana con tu squad.
+
+ELSA-BOTEADOR es una app web/Android construida con React, Vite, Tailwind y Lovable Cloud. La experiencia es 100% client-side tras el login; el contenido del juego se renderiza dinámicamente y no expone páginas estáticas adicionales.
+
+## Pages
+
+- [Home](/): Pantalla principal del juego — login, lobby, partidas, perfil, tienda y ligas.
+- [Moderation](/moderation): Panel interno de moderación de reportes.
