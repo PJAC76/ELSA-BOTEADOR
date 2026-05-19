@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import { useThemeStore } from "./stores/theme-store";
 import App from "./App.tsx";
 import "./index.css";
@@ -12,4 +13,8 @@ useThemeStore.subscribe((state) => {
   document.documentElement.setAttribute("data-theme", state.activeTheme);
 });
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>
+);
