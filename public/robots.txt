@@ -1,5 +1,9 @@
+# ELSA-BOTEADOR — Single Page Application (SPA)
+# Todas las rutas se sirven desde index.html; el enrutamiento ocurre
+# en el cliente. Se permite el rastreo completo para que Google pueda
+# ejecutar JavaScript y descubrir el contenido dinámico.
 User-agent: *
 Allow: /
 Disallow: /moderation
 
-Sitemap: /sitemap.xml
+Sitemap: https://id-preview--a323d17d-449e-4414-a637-3c9c23c9178e.lovable.app/sitemap.xml

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ELSA-BOTEADOR — Single Page Application (SPA)
+  Este sitemap solo declara la entrada / porque toda la navegación
+  ocurre en el cliente (React Router). Las vistas internas (juego,
+  perfil, tienda, etc.) no son rutas HTML independientes y no deben
+  aparecer aquí para evitar errores de rastreo.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/</loc>
+    <loc>https://id-preview--a323d17d-449e-4414-a637-3c9c23c9178e.lovable.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
