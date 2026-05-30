@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "android:dev": "npm run build && npx cap sync android",
+    "android:standalone": "npm run build && cross-env CAP_STANDALONE=1 npx cap sync android",
+    "android:apk": "npm run android:standalone && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
